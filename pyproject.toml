@@ -8,18 +8,18 @@ packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.109.0"
+fastapi = "^0.115.12"
 uvicorn = {extras = ["standard"], version = "^0.27.0"}
 pydantic = "^2.5.0"
-httpx = "^0.26.0"
+httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
+pytest = "^8.3.5"
 pytest-asyncio = "^0.23.0"
-black = "^23.12.0"
-mypy = "^1.8.0"
-ruff = "^0.1.11"
-cyclonedx-bom = "^4.0.0"
+black = "^25.1.0"
+mypy = "^1.16.0"
+ruff = "^0.11.12"
+cyclonedx-bom = "^6.1.1"
 pip-audit = "^2.6.0"
 
 [build-system]
