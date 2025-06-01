@@ -20,15 +20,15 @@ install:
 # Generate all lock files
 lock:
 	@echo "🔒 Generating lock files..."
-	poetry lock --no-update
+	poetry lock 
 	poetry export -f requirements.txt --output requirements.txt --without-hashes
-	poetry export -f requirements.txt --output requirements-lock.txt --with-hashes
+	poetry export -f requirements.txt --output requirements-lock.txt 
 	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
 	@echo "✅ Lock files generated"
 
 # Verify lock file integrity
 verify-lock:
-	poetry lock --check
+	poetry check
 	@echo "✅ Lock file verified"
 
 # Update dependencies and regenerate locks
