@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: poetry-lock-check
+        name: Check poetry.lock
+        entry: poetry lock --check
+        language: system
+        pass_filenames: false
+        files: ^(poetry\.lock|pyproject\.toml)$

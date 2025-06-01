@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Generate VEX (Vulnerability Exploitability eXchange) document"""
+import json
+from datetime import datetime
+
+
+def generate_vex():
+    """Generate a VEX document for known vulnerabilities"""
+    vex = {
+        "@context": "https://cyclonedx.org/schema/vex-1.0.0",
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.4",
+        "version": 1,
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "tools": [
+                {
+                    "vendor": "FeelGood API",
+                    "name": "vex-generator",
+                    "version": "1.0.0"
+                }
+            ]
+        },
+        "vulnerabilities": [
+            {
+                "id": "CVE-2023-EXAMPLE",
+                "source": {
+                    "name": "NVD",
+                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-EXAMPLE"
+                },
+                "analysis": {
+                    "state": "not_affected",
+                    "justification": "code_not_reachable",
+                    "response": ["will_not_fix"],
+                    "detail": "The vulnerable code path in the affected library is not used by our application. We only use safe functions."
+                },
+                "affects": [
+                    {
+                        "ref": "urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/1#example-lib"
+                    }
+                ]
+            }
+        ]
+    }
+    
+    return json.dumps(vex, indent=2)
+
+
+if __name__ == "__main__":
+    print(generate_vex())

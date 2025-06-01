@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - ./sbom.json:/app/sbom.json:ro
+      - ./vex.json:/app/vex.json:ro
+    labels:
+      - "com.feelgood.api.version=1.0.0"
+      - "com.feelgood.api.sbom=true"
+      - "com.feelgood.api.slsa-level=3"

@@ -1,0 +1,112 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'poetry.lock'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - '.github/workflows/dependency-review.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on any vulnerable dependency
+          fail-on-severity: low
+          
+          # Report even if no vulnerabilities (shows licenses)
+          comment-summary-in-pr: always
+          
+          # License check
+          deny-licenses: AGPL-3.0, GPL-3.0, LGPL-3.0
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Verify lock file integrity
+        run: |
+          poetry lock --check
+          
+      - name: Check for dependency updates
+        run: |
+          poetry show --outdated
+      
+      - name: Run safety check
+        run: |
+          poetry export -f requirements.txt | poetry run safety check --stdin
+      
+      - name: Generate and check SBOM diff
+        if: github.event_name == 'pull_request'
+        run: |
+          # Install CycloneDX
+          poetry add --group dev cyclonedx-bom
+          
+          # Generate SBOM for current branch
+          poetry run cyclonedx-py -p -o current-sbom.json --format json
+          
+          # Checkout base branch
+          git checkout ${{ github.base_ref }}
+          
+          # Install dependencies for base branch
+          poetry install
+          
+          # Generate SBOM for base branch
+          poetry run cyclonedx-py -p -o base-sbom.json --format json
+          
+          # Compare SBOMs
+          echo "## SBOM Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "### Components Added:" >> $GITHUB_STEP_SUMMARY
+          cat <<EOF > python_script.py
+import json
+with open('current-sbom.json') as f:
+    current = json.load(f)
+with open('base-sbom.json') as f:
+    base = json.load(f)
+    
+current_components = {c['name']: c['version'] for c in current.get('components', [])}
+base_components = {c['name']: c['version'] for c in base.get('components', [])}
+
+added = set(current_components.keys()) - set(base_components.keys())
+removed = set(base_components.keys()) - set(current_components.keys())
+changed = {k for k in base_components if k in current_components and base_components[k] != current_components[k]}
+
+if added:
+    print('**Added:**')
+    for pkg in added:
+        print(f'- {pkg} {current_components[pkg]}')
+        
+if removed:
+    print('\n**Removed:**')
+    for pkg in removed:
+        print(f'- {pkg} {base_components[pkg]}')
+        
+if changed:
+    print('\n**Updated:**')
+    for pkg in changed:
+        print(f'- {pkg}: {base_components[pkg]} → {current_components[pkg]}')
+" >> $GITHUB_STEP_SUMMARY
+          EOF
+          python python_script.py
+      - name: License compatibility check
+        run: |
+          echo "## License Report" >> $GITHUB_STEP_SUMMARY
+          poetry run pip-licenses --format=markdown >> $GITHUB_STEP_SUMMARY

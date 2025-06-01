@@ -1,0 +1,29 @@
+name: Generate SLSA Provenance
+
+on:
+  workflow_call:
+    inputs:
+      image-digest:
+        description: 'Fully-qualified image digest to generate provenance for'
+        required: true
+        type: string
+    outputs:
+      provenance-name:
+        description: 'The file name of the generated provenance attestation'
+        value: ${{ jobs.generator.outputs.provenance-name }}
+
+jobs:
+  generator:
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+      packages: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+    with:
+      image: ghcr.io/${{ github.repository }}
+      digest: ${{ inputs.image-digest }}
+      registry-username: ${{ github.actor }}
+      compile-generator: true
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
