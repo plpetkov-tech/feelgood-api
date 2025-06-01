@@ -10,7 +10,7 @@ def generate_enhanced_sbom():
     """Generate SBOM with additional metadata"""
     # Run cyclonedx-bom
     result = subprocess.run(
-        ["cyclonedx-py", "-p", "-o", "-", "--format", "json"],
+        ["cyclonedx-py", "poetry","-o","sbom.json", "--of", "json"],
         capture_output=True,
         text=True
     )

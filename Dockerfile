@@ -27,7 +27,7 @@ COPY scripts/ ./scripts/
 
 # Generate SBOM during build
 RUN pip install cyclonedx-bom && \
-    cyclonedx-py -r -i requirements-lock.txt -o /build/sbom.json --format json
+    cyclonedx-py poetry -o /build/sbom.json --of json
 
 # Final stage
 FROM python:3.11-slim

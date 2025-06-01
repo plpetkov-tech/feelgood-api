@@ -63,7 +63,7 @@ build:
 	docker build -t feelgood-api:latest .
 
 sbom:
-	poetry run cyclonedx-py -p -o sbom.json --format json
+	poetry run cyclonedx-py poetry -o sbom.json --of json
 	@echo "SBOM generated: sbom.json"
 
 vex:
