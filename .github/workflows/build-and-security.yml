@@ -120,6 +120,13 @@ jobs:
         platforms: linux/amd64,linux/arm64
         provenance: false  # We'll generate SLSA provenance separately
     
+    - name: Sign container image with private key
+      env:
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      run: |
+        cosign sign --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+    
     - name: Generate GitHub Attestations
       uses: actions/attest-build-provenance@v1
       id: attest
@@ -205,10 +212,8 @@ jobs:
     
     - name: Verify container signature and SLSA provenance
       run: |
-        # Verify signature
-        cosign verify \
-          --certificate-identity-regexp=".*" \
-          --certificate-oidc-issuer-regexp=".*" \
+        # Verify signature with your public key (commit cosign.pub to your repo)
+        cosign verify --key cosign.pub \
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
         
         # Verify SLSA provenance
