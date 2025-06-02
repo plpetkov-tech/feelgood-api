@@ -7,7 +7,8 @@ from src.app import app
 @pytest.fixture
 def client():
     """Test client fixture"""
-    return TestClient(app)
+    with TestClient(app) as client:
+        yield client
 
 
 def test_root(client):

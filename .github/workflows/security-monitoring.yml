@@ -1,0 +1,38 @@
+# .github/workflows/security-monitoring.yml
+name: Security Monitoring
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for new vulnerabilities
+      run: |
+        # Scan latest image
+        trivy image --format json --output new-scan.json \
+          ghcr.io/${{ github.repository }}:latest
+        
+        # Compare with previous scan
+        python scripts/compare_scans.py \
+          --previous previous-scan.json \
+          --current new-scan.json \
+          --output scan-diff.json
+    
+    - name: Update VEX if needed
+      if: steps.scan.outputs.new-vulnerabilities == 'true'
+      run: |
+        python scripts/generate_vex.py \
+          --trivy-results new-scan.json \
+          --sbom sbom.json \
+          --output updated-vex.json
+        
+        # Create PR with updated VEX
+        gh pr create \
+          --title "Security: Update VEX document" \
+          --body "Automated VEX update due to new vulnerabilities"

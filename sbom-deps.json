@@ -12119,25 +12119,9 @@
       "description": "A Feel Good Phrases API with Supply Chain Security",
       "name": "feelgood-api",
       "type": "application",
-      "version": "1.0.0",
-      "supplier": {
-        "name": "FeelGood API Team",
-        "url": [
-          "https://github.com/yourusername/feelgood-api"
-        ]
-      },
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "git@github.com:plpetkov-tech/feelgood-api.git"
-        },
-        {
-          "type": "website",
-          "url": "https://github.com/yourusername/feelgood-api"
-        }
-      ]
+      "version": "1.0.0"
     },
-    "timestamp": "2025-06-02T22:13:33.619500",
+    "timestamp": "2025-06-02T19:05:24.774067+00:00",
     "tools": {
       "components": [
         {
@@ -12239,35 +12223,9 @@
           "version": "9.1.0"
         }
       ]
-    },
-    "properties": [
-      {
-        "name": "build.timestamp",
-        "value": "2025-06-02T22:13:33.619500"
-      },
-      {
-        "name": "build.tool",
-        "value": "github-actions"
-      },
-      {
-        "name": "build.platform",
-        "value": "GitHub Actions"
-      },
-      {
-        "name": "slsa.buildLevel",
-        "value": "3"
-      },
-      {
-        "name": "source.commit.sha",
-        "value": "4410fe813cc1b2269c0215dc674bbacad4d5c9e1"
-      },
-      {
-        "name": "source.repository.url",
-        "value": "git@github.com:plpetkov-tech/feelgood-api.git"
-      }
-    ]
+    }
   },
-  "serialNumber": "urn:uuid:fa7fdf1b-560c-4bea-82d1-6daa95f3ea0b",
+  "serialNumber": "urn:uuid:07fd693a-e1ca-4d4a-b802-fd7031147db2",
   "version": 1,
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",

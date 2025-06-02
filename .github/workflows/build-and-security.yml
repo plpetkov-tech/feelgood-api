@@ -1,8 +1,9 @@
-name: Build and Security Pipeline
+name: SLSA Level 3 Build and Security Pipeline
 
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
 
@@ -13,61 +14,59 @@ env:
 jobs:
   test-and-scan:
     runs-on: ubuntu-latest
+    outputs:
+      sbom-hash: ${{ steps.sbom.outputs.hash }}
     steps:
     - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
     
-    - name: Cache Poetry dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/pypoetry
-          ~/.cache/pip
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-    
     - name: Install Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
+      uses: snok/install-poetry@v1
+      with:
+        version: "1.7.1"
+        virtualenvs-create: true
+        virtualenvs-in-project: true
     
-    - name: Verify lock file
-      run: |
-        poetry lock --check
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
     
     - name: Install dependencies
-      run: |
-        poetry install
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+    
+    - name: Verify lock file integrity
+      run: poetry lock --check
     
     - name: Run tests
-      run: |
-        poetry run pytest tests/ -v --tb=short
+      run: poetry run pytest tests/ -v --tb=short --cov=src --cov-report=xml
     
-    - name: Run linters
+    - name: Run linters and security checks
       run: |
         poetry run black --check src/ tests/
         poetry run ruff src/ tests/
         poetry run mypy src/
+        poetry run pip-audit --format=json --output=audit-results.json
     
-    - name: Security audit
+    - name: Generate SBOM with enhanced metadata
+      id: sbom
       run: |
-        poetry run pip-audit
-        
-    - name: Generate SBOM
-      run: |
-        poetry run cyclonedx-py -p -o sbom.json --format json
-        poetry run cyclonedx-py -p -o sbom.xml --format xml
+        poetry run python scripts/generate_sbom.py > sbom.json
+        echo "hash=$(sha256sum sbom.json | cut -d' ' -f1)" >> $GITHUB_OUTPUT
         
     - name: Upload SBOM
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: sbom
-        path: |
-          sbom.json
-          sbom.xml
+        name: sbom-${{ github.sha }}
+        path: sbom.json
+        retention-days: 90
 
   build-container:
     needs: test-and-scan
@@ -76,8 +75,10 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      attestations: write
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
+      image-uri: ${{ steps.meta.outputs.tags }}
       
     steps:
     - uses: actions/checkout@v4
@@ -105,6 +106,7 @@ jobs:
           type=ref,event=pr
           type=sha,prefix={{branch}}-
           type=raw,value=latest,enable={{is_default_branch}}
+          type=semver,pattern={{version}}
     
     - name: Build and push Docker image
       id: build
@@ -116,50 +118,101 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+        provenance: false  # We'll generate SLSA provenance separately
     
-    - name: Sign container image
-      env:
-        COSIGN_EXPERIMENTAL: 1
-      run: |
-        cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+    - name: Generate GitHub Attestations
+      uses: actions/attest-build-provenance@v1
+      id: attest
+      with:
+        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        subject-digest: ${{ steps.build.outputs.digest }}
 
-  generate-provenance:
+  slsa-provenance:
     needs: build-container
+    if: github.event_name != 'pull_request'
     permissions:
       actions: read
       id-token: write
       packages: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
     with:
-      image: ${{ needs.build-container.outputs.image-digest }}
+      image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      digest: ${{ needs.build-container.outputs.image-digest }}
       registry-username: ${{ github.actor }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
 
-  vulnerability-scan:
+  vulnerability-analysis:
     needs: build-container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download SBOM
+      uses: actions/download-artifact@v4
+      with:
+        name: sbom-${{ github.sha }}
+    
+    - name: Run Trivy vulnerability scanner on image
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
+        format: 'json'
+        output: 'trivy-results.json'
+    
+    - name: Run Trivy on SBOM
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'sbom'
+        scan-ref: 'sbom.json'
+        format: 'sarif'
+        output: 'trivy-sbom-results.sarif'
+    
+    - name: Generate enhanced VEX document
+      run: |
+        python scripts/generate_vex.py \
+          --trivy-results trivy-results.json \
+          --sbom sbom.json \
+          --output vex.json
+    
+    - name: Upload SARIF results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-sbom-results.sarif'
+    
+    - name: Upload VEX document
+      uses: actions/upload-artifact@v4
+      with:
+        name: vex-${{ github.sha }}
+        path: vex.json
+
+  verify-attestations:
+    needs: [build-container, slsa-provenance]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+      
+    - name: Install SLSA Verifier
+      uses: slsa-framework/slsa-verifier/actions/installer@v2.5.1
     
-    - name: Upload Trivy scan results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'trivy-results.sarif'
-    
-    - name: Generate VEX document
+    - name: Verify container signature and SLSA provenance
       run: |
-        python scripts/generate_vex.py > vex.json
-    
-    - name: Upload VEX document
-      uses: actions/upload-artifact@v3
-      with:
-        name: vex
-        path: vex.json
+        # Verify signature
+        cosign verify \
+          --certificate-identity-regexp=".*" \
+          --certificate-oidc-issuer-regexp=".*" \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
+        
+        # Verify SLSA provenance
+        slsa-verifier verify-image \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }} \
+          --source-uri github.com/${{ github.repository }}

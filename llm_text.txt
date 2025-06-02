@@ -1,0 +1,1753 @@
+Directory Structure:
+-------------------
+/ 
+├── .git/
+├── .github/
+│   ├── workflows/
+│   │   ├── build-and-security.yml
+│   │   ├── dependency-review.yml
+│   │   └── slsa-provenance.yml
+│   └── dependabot.yml
+├── scripts/
+│   ├── generate_locks.sh
+│   ├── generate_sbom.py
+│   ├── generate_vex.py
+│   └── verify_attestations.py
+├── src/
+│   ├── __init__.py
+│   ├── app.py
+│   └── phrases.py
+├── tests/
+│   └── test_api.py
+├── .dockerignore
+├── .pre-commit-config.yaml
+├── docker-compose.yaml
+├── Dockerfile
+├── llm_text.txt
+├── Makefile
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+└── vex.json
+
+File Contents:
+--------------
+File: ./.dockerignore
+--------------------------------------------------
+Content of ./.dockerignore:
+
+
+File: ./Dockerfile
+--------------------------------------------------
+Content of ./Dockerfile:
+# Multi-stage build for supply chain security
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /build
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock requirements.txt requirements-lock.txt ./
+
+# Install poetry and dependencies
+RUN pip install --no-cache-dir poetry==1.7.1 && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
+
+# Generate pip freeze for hash verification
+RUN pip freeze > /build/pip-freeze.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+
+# Generate SBOM during build
+RUN pip install cyclonedx-bom && \
+    cyclonedx-py poetry -o /build/sbom.json --of json
+
+# Final stage
+FROM python:3.11-slim
+
+# Security: Run as non-root user
+RUN useradd -m -u 1000 apiuser
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy dependencies from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application
+COPY --from=builder /build/src ./src
+COPY --from=builder /build/sbom.json ./sbom.json
+COPY --from=builder /build/pip-freeze.txt ./pip-freeze.txt
+
+# Copy lock files for transparency
+COPY requirements-lock.txt ./
+COPY poetry.lock ./
+
+# Set ownership
+RUN chown -R apiuser:apiuser /app
+
+# Switch to non-root user
+USER apiuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Labels for provenance
+LABEL org.opencontainers.image.source="https://github.com/yourusername/feelgood-api"
+LABEL org.opencontainers.image.description="Feel Good Phrases API with SLSA provenance"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Run the application
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+File: ./docker-compose.yaml
+--------------------------------------------------
+Content of ./docker-compose.yaml:
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - ./sbom.json:/app/sbom.json:ro
+      - ./vex.json:/app/vex.json:ro
+    labels:
+      - "com.feelgood.api.version=1.0.0"
+      - "com.feelgood.api.sbom=true"
+      - "com.feelgood.api.slsa-level=3"
+
+
+File: ./.pre-commit-config.yaml
+--------------------------------------------------
+Content of ./.pre-commit-config.yaml:
+repos:
+  - repo: local
+    hooks:
+      - id: poetry-lock-check
+        name: Check poetry.lock
+        entry: poetry check
+        language: system
+        pass_filenames: false
+        files: ^(poetry\.lock|pyproject\.toml)$
+
+
+File: ./README.md
+--------------------------------------------------
+Content of ./README.md:
+# Feel Good Phrases API - Supply Chain Security PoC
+
+A Python FastAPI application demonstrating comprehensive supply chain security practices including immutable builds, SLSA provenance, SBOM generation, and VEX documents.
+
+## Features
+
+### Application
+- FastAPI-based REST API serving motivational phrases
+- Categories: motivation, gratitude, kindness, growth
+- Health checks and security endpoints
+- Comprehensive test coverage
+
+### Supply Chain Security
+- **Immutable Builds**: Poetry lock files ensure reproducible builds
+- **SLSA Level 3 Provenance**: Automated attestation generation
+- **SBOM Generation**: CycloneDX format with full dependency tree
+- **VEX Documents**: Vulnerability exploitability assessments
+- **Container Signing**: Cosign signatures for all images
+- **Security Scanning**: Trivy vulnerability scanning
+
+## Quick Start
+
+### Local Development
+```bash
+# Install dependencies
+make install
+
+# Run tests
+make test
+
+# Run linters
+make lint
+
+# Generate SBOM locally
+make sbom
+
+# Build container
+make build
+
+# Run container
+make run
+```
+
+### API Endpoints
+- `GET /` - API information
+- `GET /health` - Health check with build info
+- `GET /phrase` - Get random feel-good phrase
+- `GET /phrase?category=motivation` - Get phrase from specific category
+- `GET /phrases/categories` - List all categories
+- `GET /security` - Security information
+- `GET /security/sbom` - Download SBOM
+- `GET /security/vex` - Download VEX document
+- `GET /security/provenance` - View provenance information
+
+## Supply Chain Security Implementation
+
+### 1. Dependency Management
+- Uses Poetry for deterministic dependency resolution
+- Lock files (`poetry.lock` and `requirements-lock.txt`) ensure reproducible builds
+- Regular dependency updates via Dependabot
+
+### 2. Build Process
+- Multi-stage Docker builds for minimal attack surface
+- Non-root container execution
+- Build-time SBOM generation
+- Comprehensive security headers
+
+### 3. SLSA Provenance
+- GitHub Actions workflow generates SLSA Level 3 provenance
+- Provenance includes:
+  - Source repository information
+  - Build environment details
+  - Build parameters
+  - Cryptographic signatures
+
+### 4. SBOM (Software Bill of Materials)
+- Generated in CycloneDX format
+- Includes all direct and transitive dependencies
+- Embedded in container image
+- Accessible via API endpoint
+
+### 5. VEX (Vulnerability Exploitability eXchange)
+- Documents known vulnerabilities and their exploitability
+- Reduces false positives in security scans
+- Updated independently of builds
+- Machine-readable format
+
+### 6. Container Security
+- Signed with Cosign (keyless signing via OIDC)
+- Vulnerability scanning with Trivy
+- Security findings uploaded to GitHub Security tab
+- Minimal base image (python:3.11-slim)
+
+## Verification
+
+### Verify Container Signatures
+```bash
+# Install cosign
+brew install cosign  # or your package manager
+
+# Verify signature
+cosign verify --certificate-identity-regexp=".*" \
+  --certificate-oidc-issuer-regexp=".*" \
+  ghcr.io/yourusername/feelgood-api:latest
+
+# Verify SLSA provenance
+cosign verify-attestation --type slsaprovenance \
+  --certificate-identity-regexp=".*" \
+  --certificate-oidc-issuer-regexp=".*" \
+  ghcr.io/yourusername/feelgood-api:latest
+```
+
+### Verify SBOM
+```bash
+# Download and verify SBOM
+curl http://localhost:8000/security/sbom | jq .
+
+# Scan with Grype
+grype sbom:./sbom.json
+```
+
+### Verify Build Reproducibility
+```bash
+# Clone repository
+git clone https://github.com/yourusername/feelgood-api.git
+cd feelgood-api
+
+# Checkout specific commit
+git checkout <commit-sha>
+
+# Install exact dependencies
+poetry install --no-dev
+
+# Verify installed packages match lock file
+poetry show --tree
+```
+
+## CI/CD Pipeline
+
+The GitHub Actions workflow performs:
+1. **Test & Scan**: Run tests, linters, and security audits
+2. **Build**: Create container image with embedded SBOM
+3. **Sign**: Sign container with Cosign
+4. **Generate Provenance**: Create SLSA attestations
+5. **Scan**: Run Trivy vulnerability scanner
+6. **Generate VEX**: Create exploitability assessments
+
+## Security Best Practices Demonstrated
+
+1. **Principle of Least Privilege**: Non-root container user
+2. **Defense in Depth**: Multiple security layers
+3. **Supply Chain Transparency**: Full visibility into dependencies
+4. **Immutable Infrastructure**: Reproducible builds
+5. **Continuous Security**: Automated scanning and updates
+6. **Cryptographic Verification**: Signed artifacts
+7. **Security Headers**: OWASP recommended headers
+8. **Minimal Attack Surface**: Slim base images, only required dependencies
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Run tests and linters
+4. Update SBOM if dependencies change
+5. Submit pull request
+
+## License
+
+MIT License - See LICENSE file for details
+
+
+File: ./Makefile
+--------------------------------------------------
+Content of ./Makefile:
+.PHONY: help install lock test lint security-check build run clean
+
+help:
+	@echo "Available commands:"
+	@echo "  make install        Install dependencies"
+	@echo "  make lock          Generate lock files"
+	@echo "  make refresh-locks  Refresh lock files"
+	@echo "  make update-deps"
+	@echo "  make verify-lock"
+	@echo "  make test          Run tests"
+	@echo "  make lint          Run linters"
+	@echo "  make security-check Run security checks"
+	@echo "  make build         Build Docker image"
+	@echo "  make sbom          Generate SBOM"
+	@echo "  make vex           Generate VEX document"
+
+install:
+	poetry install
+
+# Generate all lock files
+lock:
+	@echo "🔒 Generating lock files..."
+	poetry lock 
+	poetry export -f requirements.txt --output requirements.txt --without-hashes
+	poetry export -f requirements.txt --output requirements-lock.txt 
+	poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
+	@echo "✅ Lock files generated"
+
+# Verify lock file integrity
+verify-lock:
+	poetry check
+	@echo "✅ Lock file verified"
+
+# Update dependencies and regenerate locks
+update-deps:
+	@echo "📦 Updating dependencies..."
+	poetry update
+	$(MAKE) lock
+	@echo "✅ Dependencies updated"
+
+# Clear caches and regenerate everything
+refresh-locks:
+	@echo "🧹 Clearing caches..."
+	poetry cache clear pypi --all -n
+	rm -f poetry.lock requirements*.txt
+	poetry lock
+	$(MAKE) lock
+	@echo "✅ Lock files refreshed"
+
+test:
+	poetry run pytest tests/ -v
+
+lint:
+	poetry run black src/ tests/
+	poetry run ruff src/ tests/
+	poetry run mypy src/
+
+security-check:
+	poetry run pip-audit
+	@echo "Checking for known vulnerabilities in dependencies..."
+
+build:
+	docker build -t feelgood-api:latest .
+
+sbom:
+	poetry run cyclonedx-py poetry -o sbom.json --of json
+	@echo "SBOM generated: sbom.json"
+
+vex:
+	python scripts/generate_vex.py > vex.json
+	@echo "VEX document generated: vex.json"
+
+run:
+	docker run -p 8000:8000 feelgood-api:latest
+
+clean:
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+
+
+File: ./pyproject.toml
+--------------------------------------------------
+Content of ./pyproject.toml:
+[tool.poetry]
+name = "feelgood-api"
+version = "1.0.0"
+description = "A Feel Good Phrases API with Supply Chain Security"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.12"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+pydantic = "^2.5.0"
+httpx = "^0.28.1"
+lib4vex = "^0.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-asyncio = "^0.23.0"
+black = "^25.1.0"
+mypy = "^1.16.0"
+ruff = "^0.11.12"
+cyclonedx-bom = "^6.1.1"
+pip-audit = "^2.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "N", "UP", "S", "B", "A", "C4", "PT"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+
+
+File: ./vex.json
+--------------------------------------------------
+Content of ./vex.json:
+{
+  "@context": "https://cyclonedx.org/schema/vex-1.0.0",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-06-01T10:15:57.436749",
+    "tools": [
+      {
+        "vendor": "FeelGood API",
+        "name": "vex-generator",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "CVE-2023-EXAMPLE",
+      "source": {
+        "name": "NVD",
+        "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-EXAMPLE"
+      },
+      "analysis": {
+        "state": "not_affected",
+        "justification": "code_not_reachable",
+        "response": [
+          "will_not_fix"
+        ],
+        "detail": "The vulnerable code path in the affected library is not used by our application. We only use safe functions."
+      },
+      "affects": [
+        {
+          "ref": "urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/1#example-lib"
+        }
+      ]
+    }
+  ]
+}
+
+
+File: ./requirements.txt
+--------------------------------------------------
+Content of ./requirements.txt:
+annotated-types==0.7.0 ; python_version >= "3.11" and python_version < "4.0"
+anyio==4.9.0 ; python_version >= "3.11" and python_version < "4.0"
+certifi==2025.4.26 ; python_version >= "3.11" and python_version < "4.0"
+click==8.2.1 ; python_version >= "3.11" and python_version < "4.0"
+colorama==0.4.6 ; python_version >= "3.11" and python_version < "4.0" and (platform_system == "Windows" or sys_platform == "win32")
+csaf-tool==0.3.2 ; python_version >= "3.11" and python_version < "4.0"
+defusedxml==0.7.1 ; python_version >= "3.11" and python_version < "4.0"
+fastapi==0.115.12 ; python_version >= "3.11" and python_version < "4.0"
+h11==0.16.0 ; python_version >= "3.11" and python_version < "4.0"
+httpcore==1.0.9 ; python_version >= "3.11" and python_version < "4.0"
+httptools==0.6.4 ; python_version >= "3.11" and python_version < "4.0"
+httpx==0.28.1 ; python_version >= "3.11" and python_version < "4.0"
+idna==3.10 ; python_version >= "3.11" and python_version < "4.0"
+lib4sbom==0.8.4 ; python_version >= "3.11" and python_version < "4.0"
+lib4vex==0.2.0 ; python_version >= "3.11" and python_version < "4.0"
+markdown-it-py==3.0.0 ; python_version >= "3.11" and python_version < "4.0"
+mdurl==0.1.2 ; python_version >= "3.11" and python_version < "4.0"
+packageurl-python==0.16.0 ; python_version >= "3.11" and python_version < "4.0"
+pydantic-core==2.33.2 ; python_version >= "3.11" and python_version < "4.0"
+pydantic==2.11.5 ; python_version >= "3.11" and python_version < "4.0"
+pygments==2.19.1 ; python_version >= "3.11" and python_version < "4.0"
+python-dotenv==1.1.0 ; python_version >= "3.11" and python_version < "4.0"
+pyyaml==6.0.2 ; python_version >= "3.11" and python_version < "4.0"
+rich==14.0.0 ; python_version >= "3.11" and python_version < "4.0"
+semantic-version==2.10.0 ; python_version >= "3.11" and python_version < "4.0"
+sniffio==1.3.1 ; python_version >= "3.11" and python_version < "4.0"
+starlette==0.46.2 ; python_version >= "3.11" and python_version < "4.0"
+typing-extensions==4.13.2 ; python_version >= "3.11" and python_version < "4.0"
+typing-inspection==0.4.1 ; python_version >= "3.11" and python_version < "4.0"
+uvicorn==0.27.1 ; python_version >= "3.11" and python_version < "4.0"
+uvloop==0.21.0 ; python_version >= "3.11" and python_version < "4.0" and sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"
+watchfiles==1.0.5 ; python_version >= "3.11" and python_version < "4.0"
+websockets==15.0.1 ; python_version >= "3.11" and python_version < "4.0"
+
+
+File: ./llm_text.txt
+--------------------------------------------------
+Content of ./llm_text.txt:
+Directory Structure:
+-------------------
+/ 
+├── .git/
+├── .github/
+│   ├── workflows/
+│   │   ├── build-and-security.yml
+│   │   ├── dependency-review.yml
+│   │   └── slsa-provenance.yml
+│   └── dependabot.yml
+├── scripts/
+│   ├── generate_locks.sh
+│   ├── generate_sbom.py
+│   ├── generate_vex.py
+│   └── verify_attestations.py
+├── src/
+│   ├── __init__.py
+│   ├── app.py
+│   └── phrases.py
+├── tests/
+│   └── test_api.py
+├── .dockerignore
+├── .pre-commit-config.yaml
+├── docker-compose.yaml
+├── Dockerfile
+├── llm_text.txt
+├── Makefile
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+└── vex.json
+
+File Contents:
+--------------
+File: ./.dockerignore
+--------------------------------------------------
+Content of ./.dockerignore:
+
+
+File: ./Dockerfile
+--------------------------------------------------
+Content of ./Dockerfile:
+# Multi-stage build for supply chain security
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /build
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock requirements.txt requirements-lock.txt ./
+
+# Install poetry and dependencies
+RUN pip install --no-cache-dir poetry==1.7.1 && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
+
+# Generate pip freeze for hash verification
+RUN pip freeze > /build/pip-freeze.txt
+
+# Copy source code
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+
+# Generate SBOM during build
+RUN pip install cyclonedx-bom && \
+    cyclonedx-py poetry -o /build/sbom.json --of json
+
+# Final stage
+FROM python:3.11-slim
+
+# Security: Run as non-root user
+RUN useradd -m -u 1000 apiuser
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy dependencies from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application
+COPY --from=builder /build/src ./src
+COPY --from=builder /build/sbom.json ./sbom.json
+COPY --from=builder /build/pip-freeze.txt ./pip-freeze.txt
+
+# Copy lock files for transparency
+COPY requirements-lock.txt ./
+COPY poetry.lock ./
+
+# Set ownership
+RUN chown -R apiuser:apiuser /app
+
+# Switch to non-root user
+USER apiuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Labels for provenance
+LABEL org.opencontainers.image.source="https://github.com/yourusername/feelgood-api"
+LABEL org.opencontainers.image.description="Feel Good Phrases API with SLSA provenance"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Run the application
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+File: ./docker-compose.yaml
+--------------------------------------------------
+Content of ./docker-compose.yaml:
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - ./sbom.json:/app/sbom.json:ro
+      - ./vex.json:/app/vex.json:ro
+    labels:
+      - "com.feelgood.api.version=1.0.0"
+      - "com.feelgood.api.sbom=true"
+      - "com.feelgood.api.slsa-level=3"
+
+
+File: ./.pre-commit-config.yaml
+--------------------------------------------------
+Content of ./.pre-commit-config.yaml:
+repos:
+  - repo: local
+    hooks:
+      - id: poetry-lock-check
+        name: Check poetry.lock
+        entry: poetry check
+        language: system
+        pass_filenames: false
+        files: ^(poetry\.lock|pyproject\.toml)$
+
+
+File: ./README.md
+--------------------------------------------------
+Content of ./README.md:
+# Feel Good Phrases API - Supply Chain Security PoC
+
+A Python FastAPI application demonstrating comprehensive supply chain security practices including immutable builds, SLSA provenance, SBOM generation, and VEX documents.
+
+## Features
+
+### Application
+- FastAPI-based REST API serving motivational phrases
+- Categories: motivation, gratitude, kindness, growth
+- Health checks and security endpoints
+- Comprehensive test coverage
+
+### Supply Chain Security
+- **Immutable Builds**: Poetry lock files ensure reproducible builds
+- **SLSA Level 3 Provenance**: Automated attestation generation
+- **SBOM Generation**: CycloneDX format with full dependency tree
+- **VEX Documents**: Vulnerability exploitability assessments
+- **Container Signing**: Cosign signatures for all images
+- **Security Scanning**: Trivy vulnerability scanning
+
+## Quick Start
+
+### Local Development
+```bash
+# Install dependencies
+make install
+
+# Run tests
+make test
+
+# Run linters
+make lint
+
+# Generate SBOM locally
+make sbom
+
+# Build container
+make build
+
+# Run container
+make run
+```
+
+### API Endpoints
+- `GET /` - API information
+- `GET /health` - Health check with build info
+- `GET /phrase` - Get random feel-good phrase
+- `GET /phrase?category=motivation` - Get phrase from specific category
+- `GET /phrases/categories` - List all categories
+- `GET /security` - Security information
+- `GET /security/sbom` - Download SBOM
+- `GET /security/vex` - Download VEX document
+- `GET /security/provenance` - View provenance information
+
+## Supply Chain Security Implementation
+
+### 1. Dependency Management
+- Uses Poetry for deterministic dependency resolution
+- Lock files (`poetry.lock` and `requirements-lock.txt`) ensure reproducible builds
+- Regular dependency updates via Dependabot
+
+### 2. Build Process
+- Multi-stage Docker builds for minimal attack surface
+- Non-root container execution
+- Build-time SBOM generation
+- Comprehensive security headers
+
+### 3. SLSA Provenance
+- GitHub Actions workflow generates SLSA Level 3 provenance
+- Provenance includes:
+  - Source repository information
+  - Build environment details
+  - Build parameters
+  - Cryptographic signatures
+
+### 4. SBOM (Software Bill of Materials)
+- Generated in CycloneDX format
+- Includes all direct and transitive dependencies
+- Embedded in container image
+- Accessible via API endpoint
+
+### 5. VEX (Vulnerability Exploitability eXchange)
+- Documents known vulnerabilities and their exploitability
+- Reduces false positives in security scans
+- Updated independently of builds
+- Machine-readable format
+
+### 6. Container Security
+- Signed with Cosign (keyless signing via OIDC)
+- Vulnerability scanning with Trivy
+- Security findings uploaded to GitHub Security tab
+- Minimal base image (python:3.11-slim)
+
+## Verification
+
+### Verify Container Signatures
+```bash
+# Install cosign
+brew install cosign  # or your package manager
+
+# Verify signature
+cosign verify --certificate-identity-regexp=".*" \
+  --certificate-oidc-issuer-regexp=".*" \
+  ghcr.io/yourusername/feelgood-api:latest
+
+# Verify SLSA provenance
+cosign verify-attestation --type slsaprovenance \
+  --certificate-identity-regexp=".*" \
+  --certificate-oidc-issuer-regexp=".*" \
+  ghcr.io/yourusername/feelgood-api:latest
+```
+
+### Verify SBOM
+```bash
+# Download and verify SBOM
+curl http://localhost:8000/security/sbom | jq .
+
+# Scan with Grype
+grype sbom:./sbom.json
+```
+
+### Verify Build Reproducibility
+```bash
+# Clone repository
+git clone https://github.com/yourusername/feelgood-api.git
+cd feelgood-api
+
+# Checkout specific commit
+git checkout <commit-sha>
+
+# Install exact dependencies
+poetry install --no-dev
+
+# Verify installed packages match lock file
+poetry show --tree
+```
+
+## CI/CD Pipeline
+
+The GitHub Actions workflow performs:
+1. **Test & Scan**: Run tests, linters, and security audits
+2. **Build**: Create container image with embedded SBOM
+3. **Sign**: Sign container with Cosign
+4. **Generate Provenance**: Create SLSA attestations
+5. **Scan**: Run Trivy vulnerability scanner
+6. **Generate VEX**: Create exploitability assessments
+
+## Security Best Practices Demonstrated
+
+1. **Principle of Least Privilege**: Non-root container user
+2. **Defense in Depth**: Multiple security layers
+3. **Supply Chain Transparency**: Full visibility into dependencies
+4. **Immutable Infrastructure**: Reproducible builds
+5. **Continuous Security**: Automated scanning and updates
+6. **Cryptographic Verification**: Signed artifacts
+7. **Security Headers**: OWASP recommended headers
+8. **Minimal Attack Surface**: Slim base images, only required dependencies
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Run tests and linters
+4. Update SBOM if dependencies change
+5. Submit pull request
+
+## License
+
+MIT License - See LICENSE file for details
+
+
+File: .github/dependabot.yml
+--------------------------------------------------
+Content of .github/dependabot.yml:
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "plpetkov-tech"
+
+
+File: .github/workflows/slsa-provenance.yml
+--------------------------------------------------
+Content of .github/workflows/slsa-provenance.yml:
+name: Generate SLSA Provenance
+
+on:
+  workflow_call:
+    inputs:
+      image-digest:
+        description: 'Fully-qualified image digest to generate provenance for'
+        required: true
+        type: string
+    outputs:
+      provenance-name:
+        description: 'The file name of the generated provenance attestation'
+        value: ${{ jobs.generator.outputs.provenance-name }}
+
+jobs:
+  generator:
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+      packages: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+    with:
+      image: ghcr.io/${{ github.repository }}
+      digest: ${{ inputs.image-digest }}
+      registry-username: ${{ github.actor }}
+      compile-generator: true
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+
+File: .github/workflows/dependency-review.yml
+--------------------------------------------------
+Content of .github/workflows/dependency-review.yml:
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'poetry.lock'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - '.github/workflows/dependency-review.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on any vulnerable dependency
+          fail-on-severity: low
+          
+          # Report even if no vulnerabilities (shows licenses)
+          comment-summary-in-pr: always
+          
+          # License check
+          deny-licenses: AGPL-3.0, GPL-3.0, LGPL-3.0
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Verify lock file integrity
+        run: |
+          poetry lock --check
+          
+      - name: Check for dependency updates
+        run: |
+          poetry show --outdated
+      
+      - name: Run safety check
+        run: |
+          poetry export -f requirements.txt | poetry run safety check --stdin
+      
+      - name: Generate and check SBOM diff
+        if: github.event_name == 'pull_request'
+        run: |
+          # Install CycloneDX
+          poetry add --group dev cyclonedx-bom
+          
+          # Generate SBOM for current branch
+          poetry run cyclonedx-py -p -o current-sbom.json --format json
+          
+          # Checkout base branch
+          git checkout ${{ github.base_ref }}
+          
+          # Install dependencies for base branch
+          poetry install
+          
+          # Generate SBOM for base branch
+          poetry run cyclonedx-py -p -o base-sbom.json --format json
+          
+          # Compare SBOMs
+          echo "## SBOM Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "### Components Added:" >> $GITHUB_STEP_SUMMARY
+          cat <<EOF > python_script.py
+import json
+with open('current-sbom.json') as f:
+    current = json.load(f)
+with open('base-sbom.json') as f:
+    base = json.load(f)
+    
+current_components = {c['name']: c['version'] for c in current.get('components', [])}
+base_components = {c['name']: c['version'] for c in base.get('components', [])}
+
+added = set(current_components.keys()) - set(base_components.keys())
+removed = set(base_components.keys()) - set(current_components.keys())
+changed = {k for k in base_components if k in current_components and base_components[k] != current_components[k]}
+
+if added:
+    print('**Added:**')
+    for pkg in added:
+        print(f'- {pkg} {current_components[pkg]}')
+        
+if removed:
+    print('\n**Removed:**')
+    for pkg in removed:
+        print(f'- {pkg} {base_components[pkg]}')
+        
+if changed:
+    print('\n**Updated:**')
+    for pkg in changed:
+        print(f'- {pkg}: {base_components[pkg]} → {current_components[pkg]}')
+" >> $GITHUB_STEP_SUMMARY
+          EOF
+          python python_script.py
+      - name: License compatibility check
+        run: |
+          echo "## License Report" >> $GITHUB_STEP_SUMMARY
+          poetry run pip-licenses --format=markdown >> $GITHUB_STEP_SUMMARY
+
+
+File: .github/workflows/build-and-security.yml
+--------------------------------------------------
+Content of .github/workflows/build-and-security.yml:
+name: Build and Security Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Cache Poetry dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pypoetry
+          ~/.cache/pip
+        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+    
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Verify lock file
+      run: |
+        poetry lock --check
+    
+    - name: Install dependencies
+      run: |
+        poetry install
+    
+    - name: Run tests
+      run: |
+        poetry run pytest tests/ -v --tb=short
+    
+    - name: Run linters
+      run: |
+        poetry run black --check src/ tests/
+        poetry run ruff src/ tests/
+        poetry run mypy src/
+    
+    - name: Security audit
+      run: |
+        poetry run pip-audit
+        
+    - name: Generate SBOM
+      run: |
+        poetry run cyclonedx-py -p -o sbom.json --format json
+        poetry run cyclonedx-py -p -o sbom.xml --format xml
+        
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v3
+      with:
+        name: sbom
+        path: |
+          sbom.json
+          sbom.xml
+
+  build-container:
+    needs: test-and-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Sign container image
+      env:
+        COSIGN_EXPERIMENTAL: 1
+      run: |
+        cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+
+  generate-provenance:
+    needs: build-container
+    permissions:
+      actions: read
+      id-token: write
+      packages: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+    with:
+      image: ${{ needs.build-container.outputs.image-digest }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
+
+  vulnerability-scan:
+    needs: build-container
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+    
+    - name: Generate VEX document
+      run: |
+        python scripts/generate_vex.py > vex.json
+    
+    - name: Upload VEX document
+      uses: actions/upload-artifact@v3
+      with:
+        name: vex
+        path: vex.json
+
+
+File: src/__init__.py
+--------------------------------------------------
+Content of src/__init__.py:
+"""Feel Good API package"""
+__version__ = "1.0.0"
+
+
+File: src/app.py
+--------------------------------------------------
+Content of src/app.py:
+"""Feel Good Phrases API - Main Application"""
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Dict, List
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from .phrases import PhraseGenerator
+
+
+class HealthResponse(BaseModel):
+    status: str
+    timestamp: datetime
+    version: str
+    build_info: Dict[str, str]
+
+
+class PhraseResponse(BaseModel):
+    phrase: str
+    category: str
+    timestamp: datetime
+
+
+class SecurityHeaders(BaseModel):
+    sbom_location: str
+    vex_location: str
+    provenance_location: str
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager"""
+    # Startup
+    app.state.phrase_generator = PhraseGenerator()
+    print("Feel Good API started with supply chain security features")
+    yield
+    # Shutdown
+    print("Feel Good API shutting down")
+
+
+app = FastAPI(
+    title="Feel Good Phrases API",
+    description="An API that serves motivational phrases with comprehensive supply chain security",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-SBOM-Location"] = "/security/sbom"
+    response.headers["X-VEX-Location"] = "/security/vex"
+    response.headers["X-Provenance-Location"] = "/security/provenance"
+    return response
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/", response_model=Dict[str, str])
+async def root():
+    """Root endpoint with API information"""
+    return {
+        "message": "Welcome to the Feel Good Phrases API",
+        "docs": "/docs",
+        "health": "/health",
+        "security": "/security"
+    }
+
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint with build information"""
+    return HealthResponse(
+        status="healthy",
+        timestamp=datetime.now(),
+        version="1.0.0",
+        build_info={
+            "python_version": "3.11",
+            "build_date": datetime.now().isoformat(),
+            "sbom_generated": "true",
+            "slsa_level": "3"
+        }
+    )
+
+
+@app.get("/phrase", response_model=PhraseResponse)
+async def get_phrase(category: str = None):
+    """Get a random feel-good phrase"""
+    try:
+        phrase, used_category = app.state.phrase_generator.get_phrase(category)
+        return PhraseResponse(
+            phrase=phrase,
+            category=used_category,
+            timestamp=datetime.now()
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/phrases/categories", response_model=List[str])
+async def get_categories():
+    """Get all available phrase categories"""
+    return app.state.phrase_generator.get_categories()
+
+
+@app.get("/security", response_model=SecurityHeaders)
+async def security_info():
+    """Get security and supply chain information"""
+    return SecurityHeaders(
+        sbom_location="/security/sbom",
+        vex_location="/security/vex",
+        provenance_location="/security/provenance"
+    )
+
+
+@app.get("/security/sbom")
+async def get_sbom():
+    """Get the Software Bill of Materials"""
+    try:
+        with open("/app/sbom.json", "r") as f:
+            import json
+            return JSONResponse(content=json.load(f))
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "SBOM not found. Generated during build process."}
+        )
+
+
+@app.get("/security/vex")
+async def get_vex():
+    """Get the Vulnerability Exploitability eXchange document"""
+    try:
+        with open("/app/vex.json", "r") as f:
+            import json
+            return JSONResponse(content=json.load(f))
+    except FileNotFoundError:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "VEX document not found."}
+        )
+
+
+@app.get("/security/provenance")
+async def get_provenance():
+    """Get SLSA provenance information"""
+    return {
+        "builder": "github-actions",
+        "buildType": "https://github.com/slsa-framework/slsa-github-generator",
+        "invocation": {
+            "configSource": {
+                "uri": "https://github.com/yourusername/feelgood-api",
+                "digest": {"sha1": "placeholder"},
+                "entryPoint": ".github/workflows/build-and-security.yml"
+            }
+        },
+        "metadata": {
+            "buildInvocationId": "placeholder",
+            "buildStartedOn": datetime.now().isoformat(),
+            "completeness": {
+                "parameters": True,
+                "environment": True,
+                "materials": True
+            },
+            "reproducible": True
+        }
+    }
+
+
+File: src/phrases.py
+--------------------------------------------------
+Content of src/phrases.py:
+"""Phrase generator module"""
+import random
+from typing import List, Optional, Tuple
+
+
+class PhraseGenerator:
+    """Generates feel-good phrases by category"""
+    
+    def __init__(self):
+        self.phrases = {
+            "motivation": [
+                "You are capable of amazing things!",
+                "Every day is a new beginning.",
+                "Believe in yourself and all that you are.",
+                "Your potential is endless.",
+                "You've got this!"
+            ],
+            "gratitude": [
+                "Today is a gift, that's why it's called the present.",
+                "Gratitude turns what we have into enough.",
+                "Count your rainbows, not your thunderstorms.",
+                "The little things are the big things.",
+                "Appreciation is a wonderful thing."
+            ],
+            "kindness": [
+                "Kindness is always fashionable.",
+                "Be the reason someone smiles today.",
+                "A little kindness goes a long way.",
+                "Spread love everywhere you go.",
+                "Your kindness makes a difference."
+            ],
+            "growth": [
+                "Progress, not perfection.",
+                "Every expert was once a beginner.",
+                "Growth happens outside your comfort zone.",
+                "You're becoming who you're meant to be.",
+                "Small steps lead to big changes."
+            ]
+        }
+    
+    def get_phrase(self, category: Optional[str] = None) -> Tuple[str, str]:
+        """Get a random phrase, optionally from a specific category"""
+        if category:
+            if category not in self.phrases:
+                raise ValueError(f"Category '{category}' not found. Available: {list(self.phrases.keys())}")
+            return random.choice(self.phrases[category]), category
+        
+        # Random category if none specified
+        category = random.choice(list(self.phrases.keys()))
+        return random.choice(self.phrases[category]), category
+    
+    def get_categories(self) -> List[str]:
+        """Get all available categories"""
+        return list(self.phrases.keys())
+
+
+File: tests/test_api.py
+--------------------------------------------------
+Content of tests/test_api.py:
+"""API tests"""
+import pytest
+from fastapi.testclient import TestClient
+from src.app import app
+
+
+@pytest.fixture
+def client():
+    """Test client fixture"""
+    return TestClient(app)
+
+
+def test_root(client):
+    """Test root endpoint"""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "message" in response.json()
+
+
+def test_health(client):
+    """Test health endpoint"""
+    response = client.get("/health")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "healthy"
+    assert "build_info" in data
+
+
+def test_get_phrase(client):
+    """Test phrase generation"""
+    response = client.get("/phrase")
+    assert response.status_code == 200
+    data = response.json()
+    assert "phrase" in data
+    assert "category" in data
+    assert "timestamp" in data
+
+
+def test_get_phrase_with_category(client):
+    """Test phrase generation with specific category"""
+    response = client.get("/phrase?category=motivation")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["category"] == "motivation"
+
+
+def test_get_phrase_invalid_category(client):
+    """Test phrase generation with invalid category"""
+    response = client.get("/phrase?category=invalid")
+    assert response.status_code == 400
+
+
+def test_security_headers(client):
+    """Test security headers are present"""
+    response = client.get("/")
+    assert "X-Content-Type-Options" in response.headers
+    assert "X-Frame-Options" in response.headers
+    assert "X-SBOM-Location" in response.headers
+
+
+File: scripts/generate_vex.py
+--------------------------------------------------
+Content of scripts/generate_vex.py:
+#!/usr/bin/env python3
+"""Generate VEX (Vulnerability Exploitability eXchange) document"""
+import json
+from datetime import datetime
+
+
+def generate_vex():
+    """Generate a VEX document for known vulnerabilities"""
+    vex = {
+        "@context": "https://cyclonedx.org/schema/vex-1.0.0",
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.4",
+        "version": 1,
+        "metadata": {
+            "timestamp": datetime.now().isoformat(),
+            "tools": [
+                {
+                    "vendor": "FeelGood API",
+                    "name": "vex-generator",
+                    "version": "1.0.0"
+                }
+            ]
+        },
+        "vulnerabilities": [
+            {
+                "id": "CVE-2023-EXAMPLE",
+                "source": {
+                    "name": "NVD",
+                    "url": "https://nvd.nist.gov/vuln/detail/CVE-2023-EXAMPLE"
+                },
+                "analysis": {
+                    "state": "not_affected",
+                    "justification": "code_not_reachable",
+                    "response": ["will_not_fix"],
+                    "detail": "The vulnerable code path in the affected library is not used by our application. We only use safe functions."
+                },
+                "affects": [
+                    {
+                        "ref": "urn:cdx:3e671687-395b-41f5-a30f-a58921a69b79/1#example-lib"
+                    }
+                ]
+            }
+        ]
+    }
+    
+    return json.dumps(vex, indent=2)
+
+
+if __name__ == "__main__":
+    print(generate_vex())
+
+
+File: scripts/generate_sbom.py
+--------------------------------------------------
+Content of scripts/generate_sbom.py:
+#!/usr/bin/env python3
+"""Enhanced SBOM generation with additional metadata"""
+import subprocess
+import json
+import sys
+from datetime import datetime
+
+
+def generate_enhanced_sbom():
+    """Generate SBOM with additional metadata"""
+    # Run cyclonedx-bom
+    result = subprocess.run(
+        ["cyclonedx-py", "poetry","-o","sbom.json", "--of", "json"],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode != 0:
+        print(f"Error generating SBOM: {result.stderr}", file=sys.stderr)
+        sys.exit(1)
+    
+    # Parse and enhance SBOM
+    sbom = json.loads(result.stdout)
+    
+    # Add metadata
+    sbom["metadata"]["timestamp"] = datetime.now().isoformat()
+    sbom["metadata"]["properties"] = [
+        {
+            "name": "build.timestamp",
+            "value": datetime.now().isoformat()
+        },
+        {
+            "name": "build.tool",
+            "value": "github-actions"
+        },
+        {
+            "name": "slsa.buildLevel",
+            "value": "3"
+        }
+    ]
+    
+    return json.dumps(sbom, indent=2)
+
+
+if __name__ == "__main__":
+    print(generate_enhanced_sbom())
+
+
+File: scripts/verify_attestations.py
+--------------------------------------------------
+Content of scripts/verify_attestations.py:
+#!/usr/bin/env python3
+"""Verify SLSA attestations and signatures"""
+import subprocess
+import json
+import sys
+
+
+def verify_image_attestation(image_ref: str):
+    """Verify SLSA provenance for a container image"""
+    print(f"Verifying attestations for {image_ref}")
+    
+    # Verify signature
+    result = subprocess.run(
+        ["cosign", "verify", "--certificate-identity-regexp", ".*", 
+         "--certificate-oidc-issuer-regexp", ".*", image_ref],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode != 0:
+        print(f"Signature verification failed: {result.stderr}")
+        return False
+    
+    print("✓ Signature verified")
+    
+    # Verify SLSA provenance
+    result = subprocess.run(
+        ["cosign", "verify-attestation", "--type", "slsaprovenance",
+         "--certificate-identity-regexp", ".*",
+         "--certificate-oidc-issuer-regexp", ".*", image_ref],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode != 0:
+        print(f"Provenance verification failed: {result.stderr}")
+        return False
+    
+    print("✓ SLSA provenance verified")
+    
+    # Parse and display provenance
+    try:
+        attestation = json.loads(result.stdout)
+        print("\nProvenance summary:")
+        print(f"  Builder: {attestation.get('builder', {}).get('id', 'Unknown')}")
+        print(f"  Build type: {attestation.get('buildType', 'Unknown')}")
+    except:
+        pass
+    
+    return True
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: verify_attestations.py <image-ref>")
+        sys.exit(1)
+    
+    success = verify_image_attestation(sys.argv[1])
+    sys.exit(0 if success else 1)
+
+
+File: scripts/generate_locks.sh
+--------------------------------------------------
+Content of scripts/generate_locks.sh:
+#!/bin/bash
+set -euo pipefail
+
+echo "🔒 Generating lock files..."
+
+# Ensure we're in the project root
+cd "$(dirname "$0")/.."
+
+# Clear any existing caches to ensure fresh resolution
+echo "📦 Clearing Poetry cache..."
+poetry cache clear pypi --all -n
+
+# Generate poetry.lock
+echo "🔐 Generating poetry.lock..."
+poetry lock --no-update
+
+# Generate requirements files
+echo "📄 Generating requirements.txt..."
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+echo "📄 Generating requirements-lock.txt with hashes..."
+poetry export -f requirements.txt --output requirements-lock.txt --with-hashes
+
+echo "📄 Generating requirements-dev.txt..."
+poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
+
+# Verify the lock file
+echo "✅ Verifying lock file integrity..."
+poetry lock --check
+
+# Show outdated packages
+echo "📊 Checking for outdated packages..."
+poetry show --outdated || true
+
+echo "✨ Lock files generated successfully!"
+echo ""
+echo "Files created:"
+echo "  - poetry.lock"
+echo "  - requirements.txt"
+echo "  - requirements-lock.txt"
+echo "  - requirements-dev.txt"
+
+

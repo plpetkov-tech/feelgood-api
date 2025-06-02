@@ -69,7 +69,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Labels for provenance
-LABEL org.opencontainers.image.source="https://github.com/yourusername/feelgood-api"
+LABEL org.opencontainers.image.source="https://github.com/plpetkov-tech/feelgood-api"
 LABEL org.opencontainers.image.description="Feel Good Phrases API with SLSA provenance"
 LABEL org.opencontainers.image.licenses="MIT"
 

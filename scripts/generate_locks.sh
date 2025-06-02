@@ -1,41 +1,39 @@
 #!/bin/bash
 set -euo pipefail
 
-echo "🔒 Generating lock files..."
+echo "🔒 Enhanced lock file generation with security checks..."
 
 # Ensure we're in the project root
 cd "$(dirname "$0")/.."
 
-# Clear any existing caches to ensure fresh resolution
+# Security audit before lock generation
+echo "🛡️ Running security audit..."
+poetry run pip-audit --format=json --output=pre-audit.json || echo "Pre-audit completed with findings"
+
+# Clear caches and regenerate
 echo "📦 Clearing Poetry cache..."
 poetry cache clear pypi --all -n
 
-# Generate poetry.lock
+# Generate locks with integrity verification
 echo "🔐 Generating poetry.lock..."
-poetry lock --no-update
+poetry lock 
 
-# Generate requirements files
-echo "📄 Generating requirements.txt..."
+# Export with hashes for integrity
+echo "📄 Generating requirements with integrity hashes..."
+poetry export -f requirements.txt --output requirements-lock.txt 
 poetry export -f requirements.txt --output requirements.txt --without-hashes
-
-echo "📄 Generating requirements-lock.txt with hashes..."
-poetry export -f requirements.txt --output requirements-lock.txt --with-hashes
-
-echo "📄 Generating requirements-dev.txt..."
 poetry export -f requirements.txt --output requirements-dev.txt --with dev --without-hashes
 
-# Verify the lock file
+# Post-generation security audit
+echo "🛡️ Running post-generation security audit..."
+poetry run pip-audit --format=json --output=post-audit.json
+
+# Verify lock integrity
 echo "✅ Verifying lock file integrity..."
-poetry lock --check
+poetry check
 
-# Show outdated packages
-echo "📊 Checking for outdated packages..."
-poetry show --outdated || true
+# Generate SBOM for dependency analysis
+echo "📋 Generating dependency SBOM..."
+poetry run cyclonedx-py poetry -o sbom-deps.json --of json
 
-echo "✨ Lock files generated successfully!"
-echo ""
-echo "Files created:"
-echo "  - poetry.lock"
-echo "  - requirements.txt"
-echo "  - requirements-lock.txt"
-echo "  - requirements-dev.txt"
+echo "✨ Enhanced lock files generated with security validation!"
