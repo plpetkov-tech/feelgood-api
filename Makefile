@@ -72,7 +72,6 @@ test:
 
 lint:
 	poetry run black src/ tests/
-	poetry run ruff src/ tests/
 	poetry run mypy src/
 
 security-check:

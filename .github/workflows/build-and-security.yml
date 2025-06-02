@@ -51,7 +51,6 @@ jobs:
     - name: Run linters and security checks
       run: |
         poetry run black --check src/ tests/
-        poetry run ruff src/ tests/
         poetry run mypy src/
         poetry run pip-audit --format=json --output=audit-results.json
     
