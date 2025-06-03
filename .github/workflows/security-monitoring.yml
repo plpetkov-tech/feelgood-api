@@ -10,29 +10,60 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Check for new vulnerabilities
-      run: |
-        # Scan latest image
-        trivy image --format json --output new-scan.json \
-          ghcr.io/${{ github.repository }}:latest
-        
-        # Compare with previous scan
-        python scripts/compare_scans.py \
-          --previous previous-scan.json \
-          --current new-scan.json \
-          --output scan-diff.json
-    
-    - name: Update VEX if needed
-      if: steps.scan.outputs.new-vulnerabilities == 'true'
-      run: |
-        python scripts/generate_vex.py \
-          --trivy-results new-scan.json \
-          --sbom sbom.json \
-          --output updated-vex.json
-        
-        # Create PR with updated VEX
-        gh pr create \
-          --title "Security: Update VEX document" \
-          --body "Automated VEX update due to new vulnerabilities"
+      - uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget -qO- https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s)_$(uname -m).tar.gz | tar zxvf - -C /tmp
+          sudo mv /tmp/trivy /usr/local/bin/
+
+      - name: Download previous scan artifact (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: previous-scan
+        continue-on-error: true
+
+      - name: Scan latest image
+        run: |
+          trivy image --format json --output new-scan.json \
+            ghcr.io/${{ github.repository }}:latest
+
+      - name: Upload new scan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: previous-scan
+          path: new-scan.json
+
+      - name: Compare with previous scan
+        run: |
+          if [ -f previous-scan.json ]; then
+            python scripts/compare_scans.py \
+              --previous previous-scan.json \
+              --current new-scan.json \
+              --output scan-diff.json
+          else
+            echo '{}' > scan-diff.json
+            echo "No previous scan found, skipping comparison."
+          fi
+
+      - name: Generate SBOM (if missing)
+        run: |
+          if [ ! -f sbom.json ]; then
+            trivy image --format cyclonedx --output sbom.json \
+              ghcr.io/${{ github.repository }}:latest
+          fi
+
+      - name: Update VEX if needed
+        if: steps.scan.outputs.new-vulnerabilities == 'true'
+        run: |
+          python scripts/generate_vex.py \
+            --trivy-results new-scan.json \
+            --sbom sbom.json \
+            --output updated-vex.json
+
+          # Create PR with updated VEX
+          gh pr create \
+            --title "Security: Update VEX document" \
+            --body "Automated VEX update due to new vulnerabilities"
