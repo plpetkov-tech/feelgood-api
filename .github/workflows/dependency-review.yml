@@ -44,7 +44,7 @@ jobs:
       
       - name: Verify lock file integrity
         run: |
-          poetry lock --check
+          poetry check --lock
           
       - name: Check for dependency updates
         run: |
@@ -52,7 +52,7 @@ jobs:
       
       - name: Run safety check
         run: |
-          poetry export -f requirements.txt | poetry run safety check --stdin
+          poetry check
       
       - name: Generate and check SBOM diff
         if: github.event_name == 'pull_request'
@@ -61,7 +61,7 @@ jobs:
           poetry add --group dev cyclonedx-bom
 
           # Generate SBOM for current branch
-          poetry run cyclonedx-py -p -o current-sbom.json --format json
+          poetry run cyclonedx-py poetry -o current-sbom.json --of json
 
           # Checkout base branch
           git checkout ${{ github.base_ref }}
@@ -70,7 +70,7 @@ jobs:
           poetry install
 
           # Generate SBOM for base branch
-          poetry run cyclonedx-py -p -o base-sbom.json --format json
+          poetry run cyclonedx-py poetry -o base-sbom.json --of json
 
           # Compare SBOMs
           echo "## SBOM Comparison" >> $GITHUB_STEP_SUMMARY
