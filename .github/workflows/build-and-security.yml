@@ -320,7 +320,6 @@ jobs:
         vexctl attest \
           --attach \
           --sign \
-          --key env://COSIGN_PRIVATE_KEY \
           consolidated.vex.json \
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
         
