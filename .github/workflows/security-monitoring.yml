@@ -6,6 +6,11 @@ on:
     - cron: '0 6 * * *' # Daily at 6 AM UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
 jobs:
   security-scan:
     runs-on: ubuntu-latest
@@ -44,6 +49,14 @@ jobs:
           run-id: ${{ steps.get-run.outputs.previous-run-id }}
           github-token: ${{ github.token }}
         continue-on-error: true
+
+      - name: Rename downloaded scan file
+        if: steps.get-run.outputs.previous-run-id
+        run: |
+          if [ -f new-scan.json ]; then
+            mv new-scan.json previous-scan.json
+            echo "Renamed downloaded scan file to previous-scan.json"
+          fi
 
       - name: Scan latest image
         id: scan
@@ -96,11 +109,21 @@ jobs:
             --sbom sbom.json \
             --output updated-vex.json
           
+          # Create branch and commit VEX update
+          BRANCH_NAME="security/vex-update-$(date +%Y%m%d-%H%M%S)"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout -b "$BRANCH_NAME"
+          git add updated-vex.json
+          git commit -m "Security: Update VEX document with new vulnerabilities"
+          git push origin "$BRANCH_NAME"
+          
           # Create PR with updated VEX
           gh pr create \
             --title "Security: Update VEX document" \
-            --body "Automated VEX update due to new vulnerabilities" \
-            --head security/vex-update-$(date +%Y%m%d-%H%M%S) \
+            --body "Automated VEX update due to new vulnerabilities detected in security scan." \
+            --head "$BRANCH_NAME" \
+            --base main \
             || echo "PR creation failed or already exists"
         env:
           GH_TOKEN: ${{ github.token }}
