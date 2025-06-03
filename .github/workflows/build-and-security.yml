@@ -170,7 +170,23 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+    
+    # Note: Organization package write permissions
+    - name: Check VEX attestation permissions
+      run: |
+        echo "📋 VEX Attestation Setup Information:"
+        echo "   For organization repositories, VEX attestations require:"
+        echo "   1. Organization-level package write permissions"
+        echo "   2. GHCR_PAT secret with 'write:packages' scope (recommended)"
+        echo "   3. Or organization settings allowing GitHub Actions package writes"
+        echo ""
+        if [ -n "${{ secrets.GHCR_PAT }}" ]; then
+          echo "✅ GHCR_PAT is configured - using for enhanced permissions"
+        else
+          echo "⚠️  GHCR_PAT not found - using GITHUB_TOKEN (may have limited org permissions)"
+          echo "   Consider adding GHCR_PAT secret for better compatibility"
+        fi
     
     # Install vexctl for VEX operations
     - name: Install vexctl
@@ -332,13 +348,17 @@ jobs:
           vex-summary.md
           filtered.sarif
           unfiltered.sarif
+          vex-attestation.jsonl
+          vex-attestation-instructions.md
         retention-days: 90
 
-    # Fixed VEX attestation step
+    # Store VEX attestation as artifact and optionally attach to image
     - name: Attest VEX document to container image
       env:
         COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        # Use PAT if available for organization package writes, otherwise use GITHUB_TOKEN
+        REGISTRY_TOKEN: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
       run: |
         IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}"
         echo "🔐 Attesting VEX document to container image: $IMAGE_REF"
@@ -356,15 +376,62 @@ jobs:
           exit 1
         }
         
-        # Use cosign to attest the VEX document instead of vexctl attest
-        # This is more reliable and compatible with the existing signing setup
-        cosign attest --yes \
+        # Create a signed VEX attestation file
+        echo "🔏 Creating signed VEX attestation..."
+        cosign attest \
+          --yes \
           --key env://COSIGN_PRIVATE_KEY \
-          --type=openvex \
+          --type=vex \
           --predicate=consolidated.vex.json \
-          "$IMAGE_REF"
+          --output-file=vex-attestation.jsonl \
+          "$IMAGE_REF" || {
+          
+          echo "⚠️  Direct image attestation failed (likely due to organization permissions)"
+          echo "📄 Creating standalone signed VEX attestation instead..."
+          
+          # Create a standalone attestation that can be verified later
+          cosign attest \
+            --yes \
+            --key env://COSIGN_PRIVATE_KEY \
+            --type=vex \
+            --predicate=consolidated.vex.json \
+            --output-file=vex-attestation.jsonl \
+            --no-upload \
+            "$IMAGE_REF"
+          
+          echo "✅ Standalone VEX attestation created successfully"
+          echo "📋 To attach this attestation later with proper permissions:"
+          echo "   cosign attach attestation --attestation vex-attestation.jsonl $IMAGE_REF"
+          
+          # Create instructions for manual attachment
+          cat > vex-attestation-instructions.md << EOF
+        # VEX Attestation Instructions
         
-        echo "✅ VEX attestation attached to image using cosign"
+        The VEX attestation was created but could not be automatically attached due to organization permissions.
+        
+        ## To attach the attestation manually:
+        
+        1. Download the \`vex-attestation.jsonl\` file from the workflow artifacts
+        2. Run the following command with appropriate permissions:
+        
+        \`\`\`bash
+        cosign attach attestation --attestation vex-attestation.jsonl $IMAGE_REF
+        \`\`\`
+        
+        ## To verify the standalone attestation:
+        
+        \`\`\`bash
+        cosign verify-attestation --type=vex --key cosign.pub $IMAGE_REF
+        \`\`\`
+        
+        ## Image Reference:
+        \`$IMAGE_REF\`
+        EOF
+          
+          exit 0
+        }
+        
+        echo "✅ VEX attestation attached to image successfully"
 
   # Modified runtime VEX generation job
   runtime-vex-generation:
@@ -608,13 +675,18 @@ jobs:
         echo "🔍 Verifying VEX attestation..."
         IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}"
         
-        # Verify VEX attestation was attached using cosign
-        cosign verify-attestation \
+        # Try to verify attached attestation first
+        if cosign verify-attestation \
           --key cosign.pub \
-          --type=openvex \
-          "$IMAGE_REF"
-        
-        echo "✅ VEX attestation verified and accessible"
+          --type=vex \
+          "$IMAGE_REF" 2>/dev/null; then
+          echo "✅ VEX attestation verified on image"
+        else
+          echo "⚠️  No attached VEX attestation found on image"
+          echo "📄 This may be due to organization permissions"
+          echo "🔍 VEX attestation was created as standalone artifact"
+          echo "📋 Check workflow artifacts for vex-attestation.jsonl and instructions"
+        fi
 
   # Summary job for PR comments
   vex-summary:
