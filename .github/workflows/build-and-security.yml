@@ -360,7 +360,7 @@ jobs:
         # This is more reliable and compatible with the existing signing setup
         cosign attest --yes \
           --key env://COSIGN_PRIVATE_KEY \
-          --type=vex \
+          --type=openvex \
           --predicate=consolidated.vex.json \
           "$IMAGE_REF"
         
