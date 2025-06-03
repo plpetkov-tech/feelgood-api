@@ -117,7 +117,7 @@ class VEXGenerator:
             "justification": justification,
             "response": response,
             "detail": detail,
-            "analysis_timestamp": datetime.now().isoformat()
+            "analysis_timestamp": datetime.now().astimezone().isoformat()
         }
 
     def create_product_identifier(self, image_ref: Optional[str], pkg_name: str, pkg_version: str) -> str:
@@ -189,7 +189,7 @@ class VEXGenerator:
                     "vulnerability": {
                         "name": vuln.get("VulnerabilityID", "")
                     },
-                    "timestamp": datetime.now().isoformat(),
+                    "timestamp": datetime.now().astimezone().isoformat(),
                     "products": [
                         {
                             "@id": product_id
@@ -246,7 +246,7 @@ class VEXGenerator:
             "@context": "https://openvex.dev/ns/v0.2.0",
             "@id": doc_id,
             "author": author,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().astimezone().isoformat(),
             "version": 1,
             "statements": statements
         }
@@ -269,7 +269,7 @@ class VEXGenerator:
                 "vulnerability": {
                     "name": "PLACEHOLDER-VEX"
                 },
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now().astimezone().isoformat(),
                 "products": [
                     {
                         "@id": product_id
