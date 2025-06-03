@@ -1,0 +1,409 @@
+name: Production VEX Integration
+
+on:
+  push:
+    paths:
+      - '**/*.vex.json'
+      - 'vex/production/**'
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      consolidate_all:
+        description: 'Force consolidation of all VEX documents'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  validate-and-consolidate-vex:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+      pull-requests: write
+    outputs:
+      vex-updated: ${{ steps.consolidate.outputs.updated }}
+      affected-images: ${{ steps.consolidate.outputs.affected_images }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history to see what changed
+    
+    - name: Install vexctl
+      uses: openvex/setup-vexctl@main
+      with:
+        vexctl-release: '0.3.0'
+
+    - name: Install jq for JSON processing
+      run: sudo apt-get update && sudo apt-get install -y jq bc
+
+    - name: Identify changed VEX documents
+      id: changes
+      run: |
+        echo "🔍 Identifying changed VEX documents..."
+        
+        # Get list of changed VEX files
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.consolidate_all }}" = "true" ]; then
+          echo "🔄 Force consolidation requested - processing all VEX documents"
+          find . -name "*.vex.json" -type f > changed_vex_files.txt
+        else
+          # Get changed files from the push event
+          git diff --name-only HEAD~1 HEAD | grep '\.vex\.json$' > changed_vex_files.txt || true
+        fi
+        
+        if [ -s changed_vex_files.txt ]; then
+          echo "📄 Changed VEX documents:"
+          cat changed_vex_files.txt
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "📄 No VEX documents changed"
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Validate VEX documents
+      if: steps.changes.outputs.has_changes == 'true'
+      run: |
+        echo "✅ Validating VEX documents..."
+        
+        # Validate each changed VEX document
+        while IFS= read -r vex_file; do
+          if [ -f "$vex_file" ]; then
+            echo "🔍 Validating: $vex_file"
+            
+            # Basic JSON validation
+            if ! jq empty "$vex_file" 2>/dev/null; then
+              echo "❌ Invalid JSON in $vex_file"
+              exit 1
+            fi
+            
+            # VEX-specific validation
+            if ! jq -e '.statements' "$vex_file" >/dev/null 2>&1; then
+              echo "❌ Missing statements in $vex_file"
+              exit 1
+            fi
+            
+            # Check for required fields
+            if ! jq -e '.["@context"] and .timestamp and .statements' "$vex_file" >/dev/null 2>&1; then
+              echo "❌ Missing required VEX fields in $vex_file"
+              exit 1
+            fi
+            
+            echo "✅ $vex_file is valid"
+          fi
+        done < changed_vex_files.txt
+        
+        echo "✅ All VEX documents validated successfully"
+
+    - name: Analyze VEX impact
+      if: steps.changes.outputs.has_changes == 'true'
+      id: analyze
+      run: |
+        echo "📊 Analyzing VEX document impact..."
+        
+        # Initialize counters
+        total_statements=0
+        affected_count=0
+        not_affected_count=0
+        fixed_count=0
+        under_investigation_count=0
+        
+        # Analyze each VEX document
+        while IFS= read -r vex_file; do
+          if [ -f "$vex_file" ]; then
+            echo "📄 Analyzing: $vex_file"
+            
+            # Count statements by status
+            file_statements=$(jq '.statements | length' "$vex_file")
+            file_affected=$(jq '[.statements[] | select(.status == "affected")] | length' "$vex_file")
+            file_not_affected=$(jq '[.statements[] | select(.status == "not_affected")] | length' "$vex_file")
+            file_fixed=$(jq '[.statements[] | select(.status == "fixed")] | length' "$vex_file")
+            file_investigation=$(jq '[.statements[] | select(.status == "under_investigation")] | length' "$vex_file")
+            
+            total_statements=$((total_statements + file_statements))
+            affected_count=$((affected_count + file_affected))
+            not_affected_count=$((not_affected_count + file_not_affected))
+            fixed_count=$((fixed_count + file_fixed))
+            under_investigation_count=$((under_investigation_count + file_investigation))
+            
+            echo "  📊 Statements: $file_statements (affected: $file_affected, not_affected: $file_not_affected, fixed: $file_fixed)"
+          fi
+        done < changed_vex_files.txt
+        
+        echo "📈 Total Impact Analysis:"
+        echo "  📊 Total statements: $total_statements"
+        echo "  🔴 Affected: $affected_count"
+        echo "  🟢 Not affected: $not_affected_count"
+        echo "  ✅ Fixed: $fixed_count"
+        echo "  🔍 Under investigation: $under_investigation_count"
+        
+        # Calculate effectiveness percentage
+        if [ $total_statements -gt 0 ]; then
+          mitigated=$((not_affected_count + fixed_count))
+          effectiveness=$(echo "scale=1; $mitigated * 100 / $total_statements" | bc -l)
+          echo "  🎯 Mitigation effectiveness: ${effectiveness}%"
+          echo "effectiveness=$effectiveness" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "total_statements=$total_statements" >> $GITHUB_OUTPUT
+        echo "not_affected_count=$not_affected_count" >> $GITHUB_OUTPUT
+        echo "fixed_count=$fixed_count" >> $GITHUB_OUTPUT
+
+    - name: Create consolidated VEX by image
+      if: steps.changes.outputs.has_changes == 'true'
+      id: consolidate
+      run: |
+        echo "🔄 Creating consolidated VEX documents by container image..."
+        
+        mkdir -p consolidated-vex
+        declare -A image_vex_files
+        affected_images=""
+        
+        # Group VEX documents by target image/product
+        while IFS= read -r vex_file; do
+          if [ -f "$vex_file" ]; then
+            echo "🔍 Processing: $vex_file"
+            
+            # Extract product/image information from VEX statements
+            products=$(jq -r '.statements[].products[]."@id" // empty' "$vex_file" 2>/dev/null || echo "")
+            
+            if [ -n "$products" ]; then
+              while IFS= read -r product; do
+                if [[ "$product" == *"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"* ]]; then
+                  # Extract image digest or tag
+                  image_ref=$(echo "$product" | sed 's/pkg:oci\///')
+                  safe_name=$(echo "$image_ref" | sed 's/[^a-zA-Z0-9._-]/_/g')
+                  
+                  echo "  🎯 Found reference to image: $image_ref"
+                  
+                  if [ -z "${image_vex_files[$safe_name]:-}" ]; then
+                    image_vex_files[$safe_name]="$vex_file"
+                    affected_images="$affected_images $image_ref"
+                  else
+                    image_vex_files[$safe_name]="${image_vex_files[$safe_name]} $vex_file"
+                  fi
+                fi
+              done <<< "$products"
+            else
+              # If no specific product reference, treat as general VEX
+              echo "  📄 General VEX document (no specific image reference)"
+              if [ -z "${image_vex_files[general]:-}" ]; then
+                image_vex_files[general]="$vex_file"
+              else
+                image_vex_files[general]="${image_vex_files[general]} $vex_file"
+              fi
+            fi
+          fi
+        done < changed_vex_files.txt
+        
+        # Consolidate VEX documents for each image
+        for image_key in "${!image_vex_files[@]}"; do
+          echo "🔄 Consolidating VEX for: $image_key"
+          
+          vex_files_list=(${image_vex_files[$image_key]})
+          output_file="consolidated-vex/${image_key}.vex.json"
+          
+          if [ ${#vex_files_list[@]} -eq 1 ]; then
+            # Single VEX file, just copy it
+            cp "${vex_files_list[0]}" "$output_file"
+            echo "  📄 Single VEX file copied"
+          else
+            # Multiple VEX files, merge them
+            echo "  🔗 Merging ${#vex_files_list[@]} VEX documents..."
+            
+            # Start with the first file
+            cp "${vex_files_list[0]}" "$output_file"
+            
+            # Merge additional files
+            for ((i=1; i<${#vex_files_list[@]}; i++)); do
+              echo "    📄 Merging: ${vex_files_list[i]}"
+              vexctl merge "$output_file" "${vex_files_list[i]}" > temp_merged.vex.json
+              mv temp_merged.vex.json "$output_file"
+            done
+          fi
+          
+          # Validate the consolidated VEX
+          if jq empty "$output_file" 2>/dev/null; then
+            statements_count=$(jq '.statements | length' "$output_file")
+            echo "  ✅ Consolidated VEX created with $statements_count statements"
+          else
+            echo "  ❌ Failed to create valid consolidated VEX for $image_key"
+            exit 1
+          fi
+        done
+        
+        echo "updated=true" >> $GITHUB_OUTPUT
+        echo "affected_images=${affected_images// /,}" >> $GITHUB_OUTPUT
+        
+        # List all consolidated VEX files
+        echo "📁 Consolidated VEX documents:"
+        ls -la consolidated-vex/
+
+    - name: Update existing image attestations
+      if: steps.consolidate.outputs.updated == 'true' && steps.consolidate.outputs.affected_images != ''
+      env:
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      run: |
+        echo "🔐 Updating VEX attestations for affected images..."
+        
+        # Process each affected image
+        IFS=',' read -ra IMAGES <<< "${{ steps.consolidate.outputs.affected_images }}"
+        for image_ref in "${IMAGES[@]}"; do
+          if [ -n "$image_ref" ]; then
+            echo "🎯 Processing image: $image_ref"
+            
+            # Find corresponding consolidated VEX
+            safe_name=$(echo "$image_ref" | sed 's/[^a-zA-Z0-9._-]/_/g')
+            vex_file="consolidated-vex/${safe_name}.vex.json"
+            
+            if [ -f "$vex_file" ]; then
+              echo "📄 Using VEX document: $vex_file"
+              
+              # Check if image exists and is accessible
+              if cosign verify --key cosign.pub "$image_ref" >/dev/null 2>&1; then
+                echo "🔐 Re-attesting VEX document to image..."
+                vexctl attest \
+                  --attach \
+                  --sign \
+                  --key env://COSIGN_PRIVATE_KEY \
+                  "$vex_file" \
+                  "$image_ref"
+                echo "✅ VEX attestation updated for $image_ref"
+              else
+                echo "⚠️  Cannot verify image signature for $image_ref - skipping attestation update"
+              fi
+            else
+              echo "⚠️  No consolidated VEX found for $image_ref"
+            fi
+          fi
+        done
+
+    - name: Create VEX update summary
+      if: steps.consolidate.outputs.updated == 'true'
+      run: |
+        echo "📊 Creating VEX update summary..."
+        
+        cat > vex-update-summary.md << EOF
+        # 🛡️ VEX Documents Updated
+        
+        Production VEX documents have been processed and consolidated.
+        
+        ## 📈 Summary
+        - **Total statements processed**: ${{ steps.analyze.outputs.total_statements }}
+        - **Not affected vulnerabilities**: ${{ steps.analyze.outputs.not_affected_count }}
+        - **Fixed vulnerabilities**: ${{ steps.analyze.outputs.fixed_count }}
+        - **Mitigation effectiveness**: ${{ steps.analyze.outputs.effectiveness }}%
+        
+        ## 🎯 Affected Images
+        EOF
+        
+        if [ -n "${{ steps.consolidate.outputs.affected_images }}" ]; then
+          IFS=',' read -ra IMAGES <<< "${{ steps.consolidate.outputs.affected_images }}"
+          for image_ref in "${IMAGES[@]}"; do
+            if [ -n "$image_ref" ]; then
+              echo "- \`$image_ref\`" >> vex-update-summary.md
+            fi
+          done
+        else
+          echo "- No specific images targeted (general VEX updates)" >> vex-update-summary.md
+        fi
+        
+        cat >> vex-update-summary.md << EOF
+        
+        ## 📁 Consolidated VEX Documents
+        EOF
+        
+        if [ -d "consolidated-vex" ]; then
+          for vex_file in consolidated-vex/*.vex.json; do
+            if [ -f "$vex_file" ]; then
+              filename=$(basename "$vex_file")
+              statements=$(jq '.statements | length' "$vex_file")
+              echo "- \`$filename\` ($statements statements)" >> vex-update-summary.md
+            fi
+          done
+        fi
+
+    - name: Upload consolidated VEX documents
+      if: steps.consolidate.outputs.updated == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: production-consolidated-vex-${{ github.sha }}
+        path: |
+          consolidated-vex/
+          vex-update-summary.md
+        retention-days: 90
+
+    - name: Commit consolidated VEX to repository
+      if: steps.consolidate.outputs.updated == 'true' && github.ref == 'refs/heads/main'
+      run: |
+        echo "💾 Committing consolidated VEX documents to repository..."
+        
+        # Create/update the consolidated VEX directory
+        mkdir -p .vex/consolidated
+        cp consolidated-vex/* .vex/consolidated/ 2>/dev/null || true
+        
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add and commit changes
+        git add .vex/consolidated/
+        
+        if git diff --staged --quiet; then
+          echo "📄 No changes to commit"
+        else
+          git commit -m "chore: update consolidated VEX documents [skip ci]
+          
+          - Updated VEX consolidation from production analysis
+          - Total statements: ${{ steps.analyze.outputs.total_statements }}
+          - Mitigation effectiveness: ${{ steps.analyze.outputs.effectiveness }}%"
+          
+          git push
+          echo "✅ Consolidated VEX documents committed to repository"
+        fi
+
+  # Notify security team of significant VEX updates
+  notify-security-team:
+    needs: validate-and-consolidate-vex
+    if: needs.validate-and-consolidate-vex.outputs.vex-updated == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download VEX summary
+      uses: actions/download-artifact@v4
+      with:
+        name: production-consolidated-vex-${{ github.sha }}
+
+    - name: Notify security team
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const summary = fs.readFileSync('vex-update-summary.md', 'utf8');
+            
+            // Create an issue to notify the security team
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🛡️ Production VEX Updates Available - ${new Date().toISOString().split('T')[0]}`,
+              body: summary + `
+              
+              ---
+              **Next Steps:**
+              - Review the updated VEX consolidations
+              - Verify that production runtime analysis is properly integrated
+              - Consider updating security policies based on new findings
+              
+              **Automation:** This issue was created automatically when production VEX documents were updated.`,
+              labels: ['security', 'vex', 'production']
+            });
+            
+            console.log('Security team notification issue created');
+          } catch (error) {
+            console.log('Error creating notification:', error);
+          }

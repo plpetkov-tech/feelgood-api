@@ -1,0 +1,9 @@
+# Temporary VEX files
+*.tmp.vex.json
+temp-*.vex.json
+
+# Build artifacts (these should come from CI/CD)
+build-time/*.tmp
+
+# Archive old versions but keep structure
+archive/*.old
