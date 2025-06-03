@@ -620,6 +620,8 @@ jobs:
         jq '.statements | length' final-consolidated.vex.json || echo "0 statements"
 
     # Apply final VEX filtering to scan results
+    - name: Install Trivy
+      uses: aquasecurity/setup-trivy@v0.2.3
     - name: Apply final VEX filtering
       run: |
         echo "🔽 Applying final VEX filtering to scan results..."
