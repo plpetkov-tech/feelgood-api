@@ -164,6 +164,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    # Add registry authentication for VEX operations
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
     # Install vexctl for VEX operations
     - name: Install vexctl
       uses: openvex/setup-vexctl@main
@@ -179,6 +187,22 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: baseline-scan-${{ github.sha }}
+    
+    # Verify image accessibility before scanning
+    - name: Verify image accessibility
+      run: |
+        IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}"
+        echo "🔍 Verifying image accessibility: $IMAGE_REF"
+        
+        # Try to inspect the image to ensure it's accessible
+        docker manifest inspect "$IMAGE_REF" || {
+          echo "❌ Cannot access image manifest. Checking if image exists..."
+          docker pull "$IMAGE_REF" || {
+            echo "❌ Cannot pull image. This may cause VEX attestation to fail."
+            exit 1
+          }
+        }
+        echo "✅ Image is accessible"
     
     # Scan the built container image
     - name: Run Trivy vulnerability scanner on image
@@ -310,20 +334,37 @@ jobs:
           unfiltered.sarif
         retention-days: 90
 
-    # Attest the VEX document to the container image
+    # Fixed VEX attestation step
     - name: Attest VEX document to container image
       env:
         COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
       run: |
-        echo "🔐 Attesting VEX document to container image..."
-        vexctl attest \
-          --attach \
-          --sign \
-          consolidated.vex.json \
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
+        IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}"
+        echo "🔐 Attesting VEX document to container image: $IMAGE_REF"
         
-        echo "✅ VEX attestation attached to image"
+        # Ensure we have a valid VEX document
+        if [ ! -f "consolidated.vex.json" ]; then
+          echo "❌ consolidated.vex.json not found"
+          exit 1
+        fi
+        
+        # Validate VEX document structure
+        echo "🔍 Validating VEX document..."
+        jq empty consolidated.vex.json || {
+          echo "❌ Invalid VEX JSON document"
+          exit 1
+        }
+        
+        # Use cosign to attest the VEX document instead of vexctl attest
+        # This is more reliable and compatible with the existing signing setup
+        cosign attest --yes \
+          --key env://COSIGN_PRIVATE_KEY \
+          --type=vex \
+          --predicate=consolidated.vex.json \
+          "$IMAGE_REF"
+        
+        echo "✅ VEX attestation attached to image using cosign"
 
   # Modified runtime VEX generation job
   runtime-vex-generation:
@@ -565,10 +606,13 @@ jobs:
     - name: Verify VEX attestation
       run: |
         echo "🔍 Verifying VEX attestation..."
-        vexctl filter \
-          --format=sarif \
-          /dev/null \
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}
+        IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build-container.outputs.image-digest }}"
+        
+        # Verify VEX attestation was attached using cosign
+        cosign verify-attestation \
+          --key cosign.pub \
+          --type=openvex \
+          "$IMAGE_REF"
         
         echo "✅ VEX attestation verified and accessible"
 
