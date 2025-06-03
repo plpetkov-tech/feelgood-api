@@ -105,10 +105,10 @@ jobs:
                   image: ${FULL_IMAGE}
                   imagePullPolicy: Always
                   ports:
-                  - containerPort: 8080
+                  - containerPort: 8000 
                   env:
                   - name: PORT
-                    value: "8080"
+                    value: "8000"
                   - name: ENV
                     value: "production"
                   resources:
@@ -137,7 +137,7 @@ jobs:
             type: NodePort
             ports:
             - port: 80
-              targetPort: 8080
+              targetPort: 8000
               nodePort: 30080
               protocol: TCP
               name: http
