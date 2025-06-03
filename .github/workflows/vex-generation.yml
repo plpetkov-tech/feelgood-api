@@ -1,0 +1,339 @@
+name: Deploy with Kubescape VEX Generation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      vex_wait_minutes:
+        description: 'Minutes to wait for VEX document generation'
+        required: false
+        default: '1'
+        type: string
+      image_tag:
+        description: 'Image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-to-kind:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Kubernetes Kind Cluster
+        id: kind
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: feelgood-cluster
+          wait: 60s
+          verbosity: 1
+
+      - name: Verify cluster is ready
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Install Kubescape Operator with VEX Generation
+        run: |
+          echo "🔧 Installing Kubescape Operator with VEX generation enabled..."
+          helm repo add kubescape https://kubescape.github.io/helm-charts/
+          helm repo update
+          
+          # Install Kubescape with VEX generation enabled
+          helm upgrade --install kubescape kubescape/kubescape-operator \
+            -n kubescape \
+            --create-namespace \
+            --set clusterName=feelgood-cluster \
+            --set capabilities.vexGeneration=enable \
+            --set capabilities.vulnerabilityScan=enable \
+            --set capabilities.relevancy=enable \
+            --set capabilities.runtimeObservability=enable \
+            --wait \
+            --timeout=300s
+
+      - name: Verify Kubescape deployment
+        run: |
+          echo "🔍 Verifying Kubescape pods are running..."
+          kubectl get pods -n kubescape
+          kubectl wait --for=condition=ready pod --all -n kubescape --timeout=300s
+          
+          echo ""
+          echo "📊 Kubescape deployment status:"
+          kubectl get all -n kubescape
+
+      - name: Create application deployment manifest
+        run: |
+          # Determine image tag to use
+          IMAGE_TAG="${{ github.event.inputs.image_tag || 'latest' }}"
+          FULL_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
+          
+          echo "🚀 Deploying image: $FULL_IMAGE"
+          
+          cat <<EOF > app-deployment.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: ${{ github.event.repository.name }}
+            labels:
+              app: ${{ github.event.repository.name }}
+              version: "${IMAGE_TAG}"
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: ${{ github.event.repository.name }}
+            template:
+              metadata:
+                labels:
+                  app: ${{ github.event.repository.name }}
+                  version: "${IMAGE_TAG}"
+              spec:
+                containers:
+                - name: ${{ github.event.repository.name }}
+                  image: ${FULL_IMAGE}
+                  imagePullPolicy: Always
+                  ports:
+                  - containerPort: 8080
+                  env:
+                  - name: PORT
+                    value: "8080"
+                  - name: ENV
+                    value: "production"
+                  resources:
+                    requests:
+                      memory: "64Mi"
+                      cpu: "50m"
+                    limits:
+                      memory: "256Mi"
+                      cpu: "200m"
+                  livenessProbe:
+                    httpGet:
+                      path: /health
+                      port: 8080
+                    initialDelaySeconds: 30
+                    periodSeconds: 10
+                    failureThreshold: 3
+                  readinessProbe:
+                    httpGet:
+                      path: /ready
+                      port: 8080
+                    initialDelaySeconds: 5
+                    periodSeconds: 5
+                    failureThreshold: 3
+                  securityContext:
+                    runAsNonRoot: true
+                    runAsUser: 65534
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                      - ALL
+                    readOnlyRootFilesystem: true
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: ${{ github.event.repository.name }}-service
+            labels:
+              app: ${{ github.event.repository.name }}
+          spec:
+            type: NodePort
+            ports:
+            - port: 80
+              targetPort: 8080
+              nodePort: 30080
+              protocol: TCP
+              name: http
+            selector:
+              app: ${{ github.event.repository.name }}
+          EOF
+
+      - name: Pull and load application image into Kind cluster
+        run: |
+          IMAGE_TAG="${{ github.event.inputs.image_tag || 'latest' }}"
+          FULL_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
+          
+          echo "🔄 Pulling image: $FULL_IMAGE"
+          
+          # Pull the image from GitHub Container Registry
+          docker pull $FULL_IMAGE
+          
+          # Load image into kind cluster
+          echo "📦 Loading image into Kind cluster..."
+          kind load docker-image $FULL_IMAGE --name feelgood-cluster
+          
+          # Verify image is loaded
+          echo "✅ Verifying image is available in cluster..."
+          docker exec feelgood-cluster-control-plane crictl images | grep "${{ env.IMAGE_NAME }}" || echo "⚠️  Image not found in cluster images"
+
+      - name: Deploy application to cluster
+        run: |
+          kubectl apply -f app-deployment.yaml
+          
+      - name: Wait for deployment to be ready
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment/${{ github.event.repository.name }}
+          
+      - name: Verify deployment
+        run: |
+          echo "=== Deployment Status ==="
+          kubectl get deployments
+          echo ""
+          echo "=== Pods Status ==="
+          kubectl get pods -l app=${{ github.event.repository.name }}
+          echo ""
+          echo "=== Service Status ==="
+          kubectl get services
+          echo ""
+          echo "=== Service Endpoints ==="
+          kubectl get endpoints
+
+      - name: Test API accessibility
+        run: |
+          # Get the node IP
+          NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+          echo "Node IP: $NODE_IP"
+          
+          # Test the service (adjust the health check endpoint as needed)
+          echo "Testing API accessibility..."
+          for i in {1..10}; do
+            if curl -f http://$NODE_IP:30080 > /dev/null 2>&1; then
+              echo "✅ API is accessible!"
+              break
+            else
+              echo "⏳ Waiting for API to be ready... (attempt $i/10)"
+              sleep 10
+            fi
+          done
+
+      - name: Wait for VEX document generation
+        run: |
+          # Set wait time based on input or default to 1 minute for testing
+          WAIT_MINUTES="${{ github.event.inputs.vex_wait_minutes || '1' }}"
+          IMAGE_TAG="${{ github.event.inputs.image_tag || 'latest' }}"
+          
+          echo "⏳ Waiting $WAIT_MINUTES minute(s) for Kubescape to generate VEX documents for ${{ github.event.repository.name }}:${IMAGE_TAG}..."
+          echo "📝 VEX (Vulnerability Exploitability eXchange) documents help identify which vulnerabilities are actually exploitable vs. those that are not affected."
+          echo ""
+          echo "🕐 Start time: $(date)"
+          
+          # Wait for specified minutes
+          for i in $(seq 1 $WAIT_MINUTES); do
+            echo "⏱️  Minute $i/$WAIT_MINUTES - $(date)"
+            
+            # Check if VEX documents are being generated
+            VEX_COUNT=$(kubectl get openvulnerabilityexchangecontainer -n kubescape 2>/dev/null | wc -l || echo "0")
+            if [ "$VEX_COUNT" -gt 1 ]; then
+              echo "📄 Found $((VEX_COUNT-1)) VEX document(s) generated so far"
+              kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers 2>/dev/null | head -5 || true
+            else
+              echo "📄 No VEX documents generated yet (takes ~2 minutes minimum)"
+            fi
+            
+            sleep 60
+          done
+          
+          echo ""
+          echo "🏁 Completed $WAIT_MINUTES-minute wait period at: $(date)"
+
+      - name: Collect and analyze VEX documents
+        run: |
+          echo "📊 Collecting generated VEX documents..."
+          
+          # Check for VEX documents
+          VEX_RESOURCES=$(kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers 2>/dev/null || echo "")
+          
+          if [ -z "$VEX_RESOURCES" ]; then
+            echo "⚠️  No VEX documents found. This could be because:"
+            echo "   - The learning period hasn't completed yet"
+            echo "   - Kubescape needs more runtime activity to analyze"
+            echo "   - There might be configuration issues"
+            
+            echo ""
+            echo "🔍 Checking Kubescape logs for insights:"
+            kubectl logs -n kubescape -l app.kubernetes.io/name=kubevuln --tail=20 || true
+          else
+            echo "✅ Found VEX documents:"
+            kubectl get openvulnerabilityexchangecontainer -n kubescape
+            
+            echo ""
+            echo "📄 VEX document details:"
+            # Get the first VEX document and show its structure
+            FIRST_VEX=$(kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers | head -1 | awk '{print $1}')
+            if [ ! -z "$FIRST_VEX" ]; then
+              echo "🔍 Analyzing VEX document: $FIRST_VEX"
+              
+              # Extract VEX document content
+              kubectl get openvulnerabilityexchangecontainer "$FIRST_VEX" -n kubescape -o jsonpath='{.spec}' > ${{ github.event.repository.name }}-vex.json
+              
+              if [ -s ${{ github.event.repository.name }}-vex.json ]; then
+                echo "📈 VEX Analysis Summary:"
+                echo "  📦 Product: $(jq -r '.product.name // "${{ github.event.repository.name }}"' ${{ github.event.repository.name }}-vex.json)"
+                echo "  🔢 Total statements: $(jq '.statements | length' ${{ github.event.repository.name }}-vex.json)"
+                
+                AFFECTED=$(jq '.statements[] | select(.status == "affected")' ${{ github.event.repository.name }}-vex.json | jq -s 'length')
+                NOT_AFFECTED=$(jq '.statements[] | select(.status == "not_affected")' ${{ github.event.repository.name }}-vex.json | jq -s 'length')
+                
+                echo "  🔴 Affected vulnerabilities: $AFFECTED"
+                echo "  🟢 Not affected vulnerabilities: $NOT_AFFECTED"
+                
+                if [ "$NOT_AFFECTED" -gt 0 ]; then
+                  PERCENTAGE=$(echo "scale=1; $NOT_AFFECTED * 100 / ($AFFECTED + $NOT_AFFECTED)" | bc -l 2>/dev/null || echo "N/A")
+                  echo "  📊 Percentage of vulnerabilities marked as not affected: ${PERCENTAGE}%"
+                fi
+                
+                echo ""
+                echo "💾 VEX document saved as artifact: ${{ github.event.repository.name }}-vex.json"
+              else
+                echo "⚠️  VEX document appears to be empty"
+              fi
+            fi
+          fi
+
+      - name: Upload VEX documents as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubescape-vex-documents
+          path: |
+            *.json
+            !package*.json
+          retention-days: 30
+
+      - name: Show logs for debugging
+        if: failure()
+        run: |
+          echo "=== Deployment Description ==="
+          kubectl describe deployment ${{ github.event.repository.name }}
+          echo ""
+          echo "=== Pod Logs ==="
+          kubectl logs -l app=${{ github.event.repository.name }} --tail=50
+          echo ""
+          echo "=== Events ==="
+          kubectl get events --sort-by=.metadata.creationTimestamp
+          echo ""
+          echo "=== Kubescape Status ==="
+          kubectl get pods -n kubescape
+          echo ""
+          echo "=== Kubescape Logs ==="
+          kubectl logs -n kubescape -l app.kubernetes.io/name=kubescape --tail=20 || true
+          kubectl logs -n kubescape -l app.kubernetes.io/name=kubevuln --tail=20 || true
+
+      - name: Cleanup (optional)
+        if: always()
+        run: |
+          echo "Cleaning up resources..."
+          kubectl delete -f app-deployment.yaml || true
+          helm uninstall kubescape -n kubescape || true
+          kubectl delete namespace kubescape || true
