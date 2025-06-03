@@ -3,7 +3,7 @@ name: Security Monitoring
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+    - cron: '0 6 * * *' # Daily at 6 AM UTC
   workflow_dispatch:
 
 jobs:
@@ -11,20 +11,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Install Trivy
         uses: aquasecurity/setup-trivy@v0.2.3
         with:
           version: v0.61.0
           cache: true
 
+      - name: Get latest successful workflow run
+        id: get-run
+        run: |
+          # Get the latest successful workflow run (excluding current run)
+          LATEST_RUN=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/actions/workflows/security-monitoring.yml/runs?status=success&per_page=1" \
+            --jq '.workflow_runs[0].id')
+          
+          if [ "$LATEST_RUN" != "null" ] && [ "$LATEST_RUN" != "" ]; then
+            echo "previous-run-id=$LATEST_RUN" >> $GITHUB_OUTPUT
+            echo "Found previous run: $LATEST_RUN"
+          else
+            echo "No previous successful run found"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Download previous scan artifact (if exists)
+        if: steps.get-run.outputs.previous-run-id
         uses: actions/download-artifact@v4
         with:
           name: previous-scan
+          run-id: ${{ steps.get-run.outputs.previous-run-id }}
+          github-token: ${{ github.token }}
         continue-on-error: true
 
       - name: Scan latest image
+        id: scan
         run: |
           trivy image --format json --output new-scan.json \
             ghcr.io/${{ github.repository }}:latest
@@ -34,17 +56,29 @@ jobs:
         with:
           name: previous-scan
           path: new-scan.json
+          retention-days: 90
 
       - name: Compare with previous scan
+        id: compare
         run: |
           if [ -f previous-scan.json ]; then
             python scripts/compare_scans.py \
               --previous previous-scan.json \
               --current new-scan.json \
               --output scan-diff.json
+            
+            # Check if there are new vulnerabilities from the comparison
+            if [ -f scan-diff.json ] && [ -s scan-diff.json ]; then
+              # Use jq to check if there are any new vulnerabilities
+              NEW_VULNS=$(jq -r 'if .new_vulnerabilities and (.new_vulnerabilities | length > 0) then "true" else "false" end' scan-diff.json 2>/dev/null || echo "true")
+              echo "new-vulnerabilities=$NEW_VULNS" >> $GITHUB_OUTPUT
+            else
+              echo "new-vulnerabilities=false" >> $GITHUB_OUTPUT
+            fi
           else
             echo '{}' > scan-diff.json
             echo "No previous scan found, skipping comparison."
+            echo "new-vulnerabilities=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate SBOM (if missing)
@@ -55,14 +89,18 @@ jobs:
           fi
 
       - name: Update VEX if needed
-        if: steps.scan.outputs.new-vulnerabilities == 'true'
+        if: steps.compare.outputs.new-vulnerabilities == 'true'
         run: |
           python scripts/generate_vex.py \
             --trivy-results new-scan.json \
             --sbom sbom.json \
             --output updated-vex.json
-
+          
           # Create PR with updated VEX
           gh pr create \
             --title "Security: Update VEX document" \
-            --body "Automated VEX update due to new vulnerabilities"
+            --body "Automated VEX update due to new vulnerabilities" \
+            --head security/vex-update-$(date +%Y%m%d-%H%M%S) \
+            || echo "PR creation failed or already exists"
+        env:
+          GH_TOKEN: ${{ github.token }}
