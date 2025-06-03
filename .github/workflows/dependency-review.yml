@@ -59,53 +59,24 @@ jobs:
         run: |
           # Install CycloneDX
           poetry add --group dev cyclonedx-bom
-          
+
           # Generate SBOM for current branch
           poetry run cyclonedx-py -p -o current-sbom.json --format json
-          
+
           # Checkout base branch
           git checkout ${{ github.base_ref }}
-          
+
           # Install dependencies for base branch
           poetry install
-          
+
           # Generate SBOM for base branch
           poetry run cyclonedx-py -p -o base-sbom.json --format json
-          
+
           # Compare SBOMs
           echo "## SBOM Comparison" >> $GITHUB_STEP_SUMMARY
           echo "### Components Added:" >> $GITHUB_STEP_SUMMARY
-          cat <<EOF > python_script.py
-import json
-with open('current-sbom.json') as f:
-    current = json.load(f)
-with open('base-sbom.json') as f:
-    base = json.load(f)
-    
-current_components = {c['name']: c['version'] for c in current.get('components', [])}
-base_components = {c['name']: c['version'] for c in base.get('components', [])}
-
-added = set(current_components.keys()) - set(base_components.keys())
-removed = set(base_components.keys()) - set(current_components.keys())
-changed = {k for k in base_components if k in current_components and base_components[k] != current_components[k]}
-
-if added:
-    print('**Added:**')
-    for pkg in added:
-        print(f'- {pkg} {current_components[pkg]}')
-        
-if removed:
-    print('\n**Removed:**')
-    for pkg in removed:
-        print(f'- {pkg} {base_components[pkg]}')
-        
-if changed:
-    print('\n**Updated:**')
-    for pkg in changed:
-        print(f'- {pkg}: {base_components[pkg]} → {current_components[pkg]}')
-" >> $GITHUB_STEP_SUMMARY
-          EOF
-          python python_script.py
+          python scripts/sbom_diff.py
+          cat sbom_diff.txt >> $GITHUB_STEP_SUMMARY
       - name: License compatibility check
         run: |
           echo "## License Report" >> $GITHUB_STEP_SUMMARY
