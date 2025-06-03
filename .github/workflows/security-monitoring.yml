@@ -26,6 +26,8 @@ jobs:
       - name: Get latest successful workflow run
         id: get-run
         run: |
+          echo "🔍 Searching for previous successful workflow run..."
+          
           # Get the latest successful workflow run (excluding current run)
           LATEST_RUN=$(gh api \
             -H "Accept: application/vnd.github+json" \
@@ -34,9 +36,11 @@ jobs:
           
           if [ "$LATEST_RUN" != "null" ] && [ "$LATEST_RUN" != "" ]; then
             echo "previous-run-id=$LATEST_RUN" >> $GITHUB_OUTPUT
-            echo "Found previous run: $LATEST_RUN"
+            echo "✅ Found previous successful run: #$LATEST_RUN"
+            echo "📥 Will attempt to download previous scan artifact"
           else
-            echo "No previous successful run found"
+            echo "🆕 No previous successful run found - this is likely the first run"
+            echo "🚀 Will perform initial baseline scan"
           fi
         env:
           GH_TOKEN: ${{ github.token }}
@@ -55,14 +59,47 @@ jobs:
         run: |
           if [ -f new-scan.json ]; then
             mv new-scan.json previous-scan.json
-            echo "Renamed downloaded scan file to previous-scan.json"
+            echo "✅ Successfully downloaded and renamed previous scan file"
+            echo "📊 Previous scan data is ready for comparison"
+          else
+            echo "⚠️ Previous scan artifact was not found or failed to download"
+            echo "🔄 Will proceed without comparison baseline"
           fi
 
       - name: Scan latest image
         id: scan
         run: |
+          echo "🔍 Starting security scan of container image..."
+          echo "🎯 Target: ghcr.io/${{ github.repository }}:latest"
+          echo ""
+          
           trivy image --format json --output new-scan.json \
             ghcr.io/${{ github.repository }}:latest
+          
+          echo ""
+          echo "✅ Security scan completed successfully!"
+          
+          # Quick analysis of scan results
+          if [ -f new-scan.json ]; then
+            TOTAL_VULNS=$(jq '[.Results[]?.Vulnerabilities // empty] | add | length' new-scan.json 2>/dev/null || echo "0")
+            CRITICAL=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "CRITICAL")) | length' new-scan.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "HIGH")) | length' new-scan.json 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "MEDIUM")) | length' new-scan.json 2>/dev/null || echo "0")
+            
+            echo "📊 Scan Results Summary:"
+            echo "   🔴 Critical: $CRITICAL vulnerabilities"
+            echo "   🟠 High: $HIGH vulnerabilities" 
+            echo "   🟡 Medium: $MEDIUM vulnerabilities"
+            echo "   📝 Total: $TOTAL_VULNS vulnerabilities found"
+            
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "⚠️  ATTENTION: Critical vulnerabilities detected!"
+            elif [ "$HIGH" -gt 0 ]; then
+              echo "⚠️  High severity vulnerabilities found"
+            else
+              echo "✅ No critical or high severity vulnerabilities detected"
+            fi
+          fi
 
       - name: Upload new scan artifact
         uses: actions/upload-artifact@v4
@@ -74,56 +111,234 @@ jobs:
       - name: Compare with previous scan
         id: compare
         run: |
+          echo "🔄 Starting vulnerability comparison analysis..."
+          echo ""
+          
           if [ -f previous-scan.json ]; then
+            echo "📊 Comparing current scan with previous baseline..."
+            
             python scripts/compare_scans.py \
               --previous previous-scan.json \
               --current new-scan.json \
-              --output scan-diff.json
+              --output scan-diff.json \
+              --verbose
             
-            # Check if there are new vulnerabilities from the comparison
+            echo ""
+            echo "📋 Comparison Analysis Results:"
+            
             if [ -f scan-diff.json ] && [ -s scan-diff.json ]; then
-              # Use jq to check if there are any new vulnerabilities
+              # Extract comparison statistics
+              NEW_COUNT=$(jq '.comparison_metadata.new_vulnerabilities_count // 0' scan-diff.json)
+              RESOLVED_COUNT=$(jq '.comparison_metadata.resolved_vulnerabilities_count // 0' scan-diff.json)
+              UNCHANGED_COUNT=$(jq '.comparison_metadata.unchanged_vulnerabilities_count // 0' scan-diff.json)
+              RISK_LEVEL=$(jq -r '.summary.risk_level // "UNKNOWN"' scan-diff.json)
+              
+              echo "   🆕 New vulnerabilities: $NEW_COUNT"
+              echo "   ✅ Resolved vulnerabilities: $RESOLVED_COUNT"  
+              echo "   ⚪ Unchanged vulnerabilities: $UNCHANGED_COUNT"
+              echo "   🎯 Risk Level: $RISK_LEVEL"
+              
+              # Check for new critical/high severity
+              NEW_CRITICAL=$(jq '.summary.new_vulnerabilities_summary.critical // 0' scan-diff.json)
+              NEW_HIGH=$(jq '.summary.new_vulnerabilities_summary.high // 0' scan-diff.json)
+              
+              if [ "$NEW_CRITICAL" -gt 0 ]; then
+                echo "   🚨 NEW CRITICAL: $NEW_CRITICAL critical vulnerabilities detected!"
+              fi
+              if [ "$NEW_HIGH" -gt 0 ]; then
+                echo "   ⚠️  NEW HIGH: $NEW_HIGH high severity vulnerabilities detected!"
+              fi
+              
+              # Set output for workflow decisions
               NEW_VULNS=$(jq -r 'if .new_vulnerabilities and (.new_vulnerabilities | length > 0) then "true" else "false" end' scan-diff.json 2>/dev/null || echo "true")
               echo "new-vulnerabilities=$NEW_VULNS" >> $GITHUB_OUTPUT
+              
+              if [ "$NEW_VULNS" = "true" ]; then
+                echo ""
+                echo "🔔 Action Required: New vulnerabilities detected - VEX document will be updated"
+              else
+                echo ""
+                echo "✅ No new vulnerabilities found - no action required"
+              fi
             else
+              echo "❌ Comparison failed or produced empty results"
               echo "new-vulnerabilities=false" >> $GITHUB_OUTPUT
             fi
           else
-            echo '{}' > scan-diff.json
-            echo "No previous scan found, skipping comparison."
+            echo "🆕 No previous scan found - establishing baseline"
+            echo '{"comparison_metadata": {"note": "Initial baseline scan"}, "new_vulnerabilities": [], "summary": {"risk_level": "BASELINE"}}' > scan-diff.json
+            echo "   📝 This scan will serve as the baseline for future comparisons"
+            echo "   🎯 All vulnerabilities in this scan are considered baseline state"
             echo "new-vulnerabilities=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate SBOM (if missing)
         run: |
           if [ ! -f sbom.json ]; then
+            echo "📦 Generating Software Bill of Materials (SBOM)..."
+            echo "🎯 Target: ghcr.io/${{ github.repository }}:latest"
+            
             trivy image --format cyclonedx --output sbom.json \
               ghcr.io/${{ github.repository }}:latest
+            
+            echo "✅ SBOM generated successfully!"
+            
+            # Quick SBOM analysis
+            if [ -f sbom.json ]; then
+              COMPONENT_COUNT=$(jq '.components | length' sbom.json 2>/dev/null || echo "0")
+              echo "   📊 Components catalogued: $COMPONENT_COUNT"
+            fi
+          else
+            echo "✅ SBOM already exists, skipping generation"
           fi
 
       - name: Update VEX if needed
         if: steps.compare.outputs.new-vulnerabilities == 'true'
         run: |
+          echo "🔄 New vulnerabilities detected - updating VEX document..."
+          echo ""
+          
+          # Generate VEX document
           python scripts/generate_vex.py \
             --trivy-results new-scan.json \
             --sbom sbom.json \
             --output updated-vex.json
           
-          # Create branch and commit VEX update
-          BRANCH_NAME="security/vex-update-$(date +%Y%m%d-%H%M%S)"
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git checkout -b "$BRANCH_NAME"
-          git add updated-vex.json
-          git commit -m "Security: Update VEX document with new vulnerabilities"
-          git push origin "$BRANCH_NAME"
-          
-          # Create PR with updated VEX
-          gh pr create \
-            --title "Security: Update VEX document" \
-            --body "Automated VEX update due to new vulnerabilities detected in security scan." \
-            --head "$BRANCH_NAME" \
-            --base main \
-            || echo "PR creation failed or already exists"
+          if [ -f updated-vex.json ]; then
+            echo "✅ VEX document generated successfully"
+            
+            # Analyze VEX content
+            VEX_VULNS=$(jq '.vulnerabilities | length' updated-vex.json 2>/dev/null || echo "0")
+            echo "   📄 VEX document contains $VEX_VULNS vulnerability entries"
+            
+            # Create branch and commit VEX update
+            BRANCH_NAME="security/vex-update-$(date +%Y%m%d-%H%M%S)"
+            echo ""
+            echo "🌿 Creating security update branch: $BRANCH_NAME"
+            
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git checkout -b "$BRANCH_NAME"
+            git add updated-vex.json
+            git commit -m "🔒 Security: Update VEX document with new vulnerabilities
+            - Updated VEX document with latest vulnerability analysis
+            - Generated from security scan on $(date)
+            - Contains $VEX_VULNS vulnerability entries
+            - Auto-generated by security monitoring workflow"
+                        
+            git push origin "$BRANCH_NAME"
+            echo "✅ Security branch pushed successfully"
+            
+            echo ""
+            echo "📝 Creating Pull Request..."
+            
+            # Create detailed PR body
+            PR_BODY="## 🔒 Security Update: VEX Document
+
+            This automated security update contains a new VEX (Vulnerability Exploitability eXchange) document based on the latest vulnerability scan.
+
+            ### 📊 Scan Summary
+            "
+            
+            if [ -f scan-diff.json ]; then
+              NEW_COUNT=$(jq '.comparison_metadata.new_vulnerabilities_count // 0' scan-diff.json)
+              RISK_LEVEL=$(jq -r '.summary.risk_level // "UNKNOWN"' scan-diff.json)
+              PR_BODY="$PR_BODY
+              - **New Vulnerabilities:** $NEW_COUNT
+              - **Risk Level:** $RISK_LEVEL
+              - **VEX Entries:** $VEX_VULNS"
+            fi
+                          
+            PR_BODY="$PR_BODY
+            ### 🎯 What's Changed
+            - Updated \`updated-vex.json\` with latest vulnerability analysis
+            - Auto-generated VEX document following CycloneDX standard
+            - Includes exploitability analysis for each vulnerability
+
+            ### 🔍 Next Steps
+            1. Review the VEX document for accuracy
+            2. Validate vulnerability analysis and justifications  
+            3. Merge to update security documentation
+            4. Consider additional mitigation measures if needed
+
+            ---
+            🤖 *This PR was automatically created by the security monitoring workflow*"
+                          
+            # Create PR with detailed information
+            gh pr create \
+              --title "🔒 Security: Update VEX document ($(date +%Y-%m-%d))" \
+              --body "$PR_BODY" \
+              --head "$BRANCH_NAME" \
+              --base main \
+              && echo "✅ Pull request created successfully!" \
+              || echo "❌ PR creation failed or already exists"
+              
+          else
+            echo "❌ Failed to generate VEX document"
+            exit 1
+          fi
         env:
           GH_TOKEN: ${{ github.token }}
+          
+      - name: Create Security Summary
+        if: always()
+        run: |
+          echo "# 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run:** [${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Current scan results
+          if [ -f new-scan.json ]; then
+            TOTAL_VULNS=$(jq '[.Results[]?.Vulnerabilities // empty] | add | length' new-scan.json 2>/dev/null || echo "0")
+            CRITICAL=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "CRITICAL")) | length' new-scan.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "HIGH")) | length' new-scan.json 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "MEDIUM")) | length' new-scan.json 2>/dev/null || echo "0")
+            LOW=$(jq '[.Results[]?.Vulnerabilities // empty] | add | map(select(.Severity == "LOW")) | length' new-scan.json 2>/dev/null || echo "0")
+            
+            echo "## 📊 Current Scan Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total** | **$TOTAL_VULNS** |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Comparison results
+          if [ -f scan-diff.json ]; then
+            NEW_COUNT=$(jq '.comparison_metadata.new_vulnerabilities_count // 0' scan-diff.json)
+            RESOLVED_COUNT=$(jq '.comparison_metadata.resolved_vulnerabilities_count // 0' scan-diff.json)
+            RISK_LEVEL=$(jq -r '.summary.risk_level // "UNKNOWN"' scan-diff.json)
+            RECOMMENDATION=$(jq -r '.summary.recommended_action // "No recommendation available"' scan-diff.json)
+            
+            echo "## 🔄 Comparison with Previous Scan" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **New Vulnerabilities:** $NEW_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- **Resolved Vulnerabilities:** $RESOLVED_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- **Risk Level:** $RISK_LEVEL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Recommendation:** $RECOMMENDATION" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Action taken
+          if [ "${{ steps.compare.outputs.new-vulnerabilities }}" = "true" ]; then
+            echo "## 🎯 Actions Taken" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Generated updated VEX document" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Created security update pull request" >> $GITHUB_STEP_SUMMARY
+            echo "- 📝 Updated vulnerability analysis documentation" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ✅ No Action Required" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No new vulnerabilities detected. Current security posture is maintained." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*🤖 This summary was automatically generated by the security monitoring workflow*" >> $GITHUB_STEP_SUMMARY
