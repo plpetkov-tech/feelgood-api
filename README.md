@@ -101,13 +101,13 @@ brew install cosign  # or your package manager
 # Verify signature
 cosign verify --certificate-identity-regexp=".*" \
   --certificate-oidc-issuer-regexp=".*" \
-  ghcr.io/yourusername/feelgood-api:latest
+  ghcr.io/plpetkov-tech/feelgood-api:latest
 
 # Verify SLSA provenance
 cosign verify-attestation --type slsaprovenance \
   --certificate-identity-regexp=".*" \
   --certificate-oidc-issuer-regexp=".*" \
-  ghcr.io/yourusername/feelgood-api:latest
+  ghcr.io/plpetkov-tech/feelgood-api:latest
 ```
 
 ### Verify SBOM
@@ -122,7 +122,7 @@ grype sbom:./sbom.json
 ### Verify Build Reproducibility
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/feelgood-api.git
+git clone https://github.com/plpetkov-tech/feelgood-api.git
 cd feelgood-api
 
 # Checkout specific commit

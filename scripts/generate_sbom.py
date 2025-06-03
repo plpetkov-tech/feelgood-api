@@ -118,7 +118,7 @@ def generate_enhanced_sbom():
     if "component" in sbom["metadata"]:
         sbom["metadata"]["component"]["supplier"] = {
             "name": "FeelGood API Team",
-            "url": ["https://github.com/yourusername/feelgood-api"]
+            "url": ["https://github.com/plpetkov-tech/feelgood-api"]
         }
         
         # Add external references
@@ -132,7 +132,7 @@ def generate_enhanced_sbom():
             },
             {
                 "type": "website",
-                "url": "https://github.com/yourusername/feelgood-api"
+                "url": "https://github.com/plpetkov-tech/feelgood-api"
             }
         ])
     

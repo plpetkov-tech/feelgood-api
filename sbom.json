@@ -12123,7 +12123,7 @@
       "supplier": {
         "name": "FeelGood API Team",
         "url": [
-          "https://github.com/yourusername/feelgood-api"
+          "https://github.com/plpetkov-tech/feelgood-api"
         ]
       },
       "externalReferences": [
@@ -12133,7 +12133,7 @@
         },
         {
           "type": "website",
-          "url": "https://github.com/yourusername/feelgood-api"
+          "url": "https://github.com/plpetkov-tech/feelgood-api"
         }
       ]
     },

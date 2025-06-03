@@ -2,7 +2,7 @@
 name = "feelgood-api"
 version = "1.0.0"
 description = "A Feel Good Phrases API with Supply Chain Security"
-authors = ["Your Name <you@example.com>"]
+authors = ["Plamen Petkov <hello@plamen.works>"]
 readme = "README.md"
 packages = [{include = "src"}]
 

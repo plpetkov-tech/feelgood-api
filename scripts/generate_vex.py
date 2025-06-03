@@ -163,7 +163,7 @@ class VEXGenerator:
                 "id": "PLACEHOLDER-VEX",
                 "source": {
                     "name": "Internal Analysis",
-                    "url": "https://github.com/yourusername/feelgood-api"
+                    "url": "https://github.com/plpetkov-tech/feelgood-api"
                 },
                 "analysis": {
                     "state": "not_affected",

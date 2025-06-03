@@ -4,7 +4,7 @@
   "specVersion": "1.4",
   "version": 1,
   "metadata": {
-    "timestamp": "2025-06-02T22:13:33.693125",
+    "timestamp": "2025-06-03T10:50:25.212271",
     "tools": [
       {
         "vendor": "FeelGood API",
@@ -24,7 +24,7 @@
       "id": "PLACEHOLDER-VEX",
       "source": {
         "name": "Internal Analysis",
-        "url": "https://github.com/yourusername/feelgood-api"
+        "url": "https://github.com/plpetkov-tech/feelgood-api"
       },
       "analysis": {
         "state": "not_affected",

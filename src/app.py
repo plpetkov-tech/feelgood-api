@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     print("Feel Good API started with supply chain security features")
     yield
     # Shutdown
-    print("Feel Good API shutting down")
+    print("Feel Good API shutting down, bye ;)")
 
 
 app = FastAPI(
@@ -167,7 +167,7 @@ async def get_provenance():
         "buildType": "https://github.com/slsa-framework/slsa-github-generator",
         "invocation": {
             "configSource": {
-                "uri": "https://github.com/yourusername/feelgood-api",
+                "uri": "https://github.com/plpetkov-tech/feelgood-api",
                 "digest": {"sha1": "placeholder"},
                 "entryPoint": ".github/workflows/build-and-security.yml",
             }
