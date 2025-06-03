@@ -381,7 +381,7 @@ jobs:
         cosign attest \
           --yes \
           --key env://COSIGN_PRIVATE_KEY \
-          --type=vex \
+          --type=openvex \
           --predicate=consolidated.vex.json \
           --output-file=vex-attestation.jsonl \
           "$IMAGE_REF" || {
@@ -393,7 +393,7 @@ jobs:
           cosign attest \
             --yes \
             --key env://COSIGN_PRIVATE_KEY \
-            --type=vex \
+            --type=openvex \
             --predicate=consolidated.vex.json \
             --output-file=vex-attestation.jsonl \
             --no-upload \
@@ -421,7 +421,7 @@ jobs:
         ## To verify the standalone attestation:
         
         \`\`\`bash
-        cosign verify-attestation --type=vex --key cosign.pub $IMAGE_REF
+        cosign verify-attestation --type=openvex --key cosign.pub $IMAGE_REF
         \`\`\`
         
         ## Image Reference:
@@ -678,7 +678,7 @@ jobs:
         # Try to verify attached attestation first
         if cosign verify-attestation \
           --key cosign.pub \
-          --type=vex \
+          --type=openvex \
           "$IMAGE_REF" 2>/dev/null; then
           echo "✅ VEX attestation verified on image"
         else
