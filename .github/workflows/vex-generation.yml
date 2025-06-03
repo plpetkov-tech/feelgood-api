@@ -118,20 +118,6 @@ jobs:
                     limits:
                       memory: "256Mi"
                       cpu: "200m"
-                  livenessProbe:
-                    httpGet:
-                      path: /health
-                      port: 8080
-                    initialDelaySeconds: 30
-                    periodSeconds: 10
-                    failureThreshold: 3
-                  readinessProbe:
-                    httpGet:
-                      path: /ready
-                      port: 8080
-                    initialDelaySeconds: 5
-                    periodSeconds: 5
-                    failureThreshold: 3
                   securityContext:
                     runAsNonRoot: true
                     runAsUser: 65534
