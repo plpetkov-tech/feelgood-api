@@ -11,6 +11,7 @@ class PhraseGenerator:
         self.phrases = {
             "motivation": [
                 "You are capable of amazing things!",
+                "You're a SALSA mastermind!",
                 "Every day is a new beginning.",
                 "Believe in yourself and all that you are.",
                 "Your potential is endless.",
