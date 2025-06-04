@@ -68,7 +68,7 @@ if [ "$RAW_ATTESTATIONS" != "null" ] && [ -n "$RAW_ATTESTATIONS" ]; then
     echo ""
     echo "📋 Attestation Structure:"
     echo "$RAW_ATTESTATIONS" | jq -r 'if type == "array" then .[0] else . end | keys[]' 2>/dev/null | sed 's/^/  - /' || echo "  (Could not parse structure)"
-    
+    echo "$RAW_ATTESTATIONS"
     # Show predicate types
     echo ""
     echo "🎯 Predicate Types Found:"

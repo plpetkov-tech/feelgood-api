@@ -1,0 +1,189 @@
+# Policy 1: Basic Image Signature Verification
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signatures
+  annotations:
+    policies.kyverno.io/title: Verify Image Signatures
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/description: "Equivalent to cosign verify --key command"
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  rules:
+  - name: verify-signature
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - ReplicaSet
+          - StatefulSet
+          - DaemonSet
+          - Job
+          - CronJob
+          namespaces:
+          - bank-system
+    verifyImages:
+    - imageReferences:
+      - "*"
+      attestors:
+      - count: 1
+        entries:
+        - keys:
+            publicKeys: |-
+              -----BEGIN PUBLIC KEY-----
+              MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8omIiUVYHaLeiG4bWnuWmp40anOj
+              UsI/oK5K5ZklSFpYuDOtJGAk1Lpr/mKWRwz4glSHoeDwQbS6V+X/GeB7fA==
+              -----END PUBLIC KEY-----
+---
+# Policy 2: OpenVEX Attestation Verification
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-openvex-attestations
+  annotations:
+    policies.kyverno.io/title: Verify OpenVEX Attestations
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/description: "Equivalent to cosign verify-attestation --type=openvex command"
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  rules:
+  - name: verify-openvex-attestation
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - ReplicaSet
+          - StatefulSet
+          - DaemonSet
+          - Job
+          - CronJob
+          namespaces:
+          - bank-system
+    verifyImages:
+    - imageReferences:
+      - "ghcr.io/plpetkov-tech/*"
+      required: true
+      mutateDigest: true
+      verifyDigest: true
+      attestors:
+      - count: 1
+        entries:
+        - keys:
+            publicKeys: |-
+              -----BEGIN PUBLIC KEY-----
+              MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8omIiUVYHaLeiG4bWnuWmp40anOj
+              UsI/oK5K5ZklSFpYuDOtJGAk1Lpr/mKWRwz4glSHoeDwQbS6V+X/GeB7fA==
+              -----END PUBLIC KEY-----
+      attestations:
+      - type: "https://openvex.dev/ns"
+        attestors:
+        - count: 1
+          entries:
+          - keys:
+              publicKeys: |-
+                -----BEGIN PUBLIC KEY-----
+                MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8omIiUVYHaLeiG4bWnuWmp40anOj
+                UsI/oK5K5ZklSFpYuDOtJGAk1Lpr/mKWRwz4glSHoeDwQbS6V+X/GeB7fA==
+                -----END PUBLIC KEY-----
+---
+# Policy 3: GitHub Native Attestations Check (Audit Mode)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: github-attestation-check
+  annotations:
+    policies.kyverno.io/title: GitHub Attestation Check
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/description: "Equivalent to gh attestation verify functionality"
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  rules:
+  - name: check-github-attestations
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - bank-system
+    context:
+    - name: repoFromImage
+      variable:
+        jmesPath: "replace_all(replace_all(request.object.spec.containers[0].image, 'ghcr.io/', ''), ':.*', '') | split('@')[0]"
+    verifyImages:
+    - imageReferences:
+      - "ghcr.io/plpetkov-tech/*" # Only for GHCR images we are actually securing
+      mutateDigest: false
+      attestors:
+      - count: 1
+        entries:
+        - keys:
+            publicKeys: |-
+              -----BEGIN PUBLIC KEY-----
+              MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8omIiUVYHaLeiG4bWnuWmp40anOj
+              UsI/oK5K5ZklSFpYuDOtJGAk1Lpr/mKWRwz4glSHoeDwQbS6V+X/GeB7fA==
+              -----END PUBLIC KEY-----
+
+---
+# Policy 4: Restrict Images to Authorized Registry
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registries
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/description: "Only allow images from ghcr.io/plpetkov-tech/* in bank-system namespace"
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookTimeoutSeconds: 30
+  rules:
+  - name: validate-image-registry
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          - Deployment
+          - ReplicaSet
+          - StatefulSet
+          - DaemonSet
+          - Job
+          - CronJob
+          namespaces:
+          - bank-system
+    validate:
+      message: "Only images from ghcr.io/plpetkov-tech/* are allowed in bank-system namespace"
+      foreach:
+      - list: "request.object.spec.containers"
+        deny:
+          conditions:
+            all:
+            - key: "{{ element.image }}"
+              operator: NotEquals
+              value: "ghcr.io/plpetkov-tech/*"
+      - list: "request.object.spec.initContainers || `[]`"
+        deny:
+          conditions:
+            all:
+            - key: "{{ element.image }}"
+              operator: NotEquals
+              value: "ghcr.io/plpetkov-tech/*"
+      - list: "request.object.spec.ephemeralContainers || `[]`"
+        deny:
+          conditions:
+            all:
+            - key: "{{ element.image }}"
+              operator: NotEquals
+              value: "ghcr.io/plpetkov-tech/*"
