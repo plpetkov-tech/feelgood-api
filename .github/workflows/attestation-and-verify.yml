@@ -347,20 +347,21 @@ jobs:
         fi
 
   slsa-provenance:
-    needs: [final-vex-attestation, verify-image-accessibility]
-    if: github.event_name != 'pull_request'
-    permissions:
-      actions: read
-      id-token: write
-      packages: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a
-    with:
-      image: ${{ inputs.registry }}/${{ inputs.image-name }}
-      digest: ${{ inputs.image-digest }}
-      registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
-
+      needs: [final-vex-attestation, verify-image-accessibility]
+      if: github.event_name != 'pull_request'
+      permissions:
+        actions: read
+        id-token: write
+        packages: write
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+      with:
+        image: ${{ inputs.registry }}/${{ inputs.image-name }}
+        digest: ${{ inputs.image-digest }}
+        registry-username: ${{ github.actor }}
+        compile-generator: true  # 🔧 This fixes the v2.1.0 issues
+      secrets:
+        registry-password: ${{ secrets.GITHUB_TOKEN }}
+        
   verify-attestations:
     needs: [final-vex-attestation, slsa-provenance]
     if: github.event_name != 'pull_request'
