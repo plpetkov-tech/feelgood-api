@@ -7,6 +7,15 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Grant all necessary permissions for called workflows
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+  security-events: write
+  actions: read
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}

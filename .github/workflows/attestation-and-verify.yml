@@ -31,11 +31,6 @@ jobs:
   # Final VEX consolidation and attestation
   final-vex-attestation:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      packages: write
-      id-token: write
     outputs:
       final-vex-artifact: ${{ steps.upload-final-vex.outputs.artifact-id }}
     steps:
@@ -324,10 +319,6 @@ jobs:
 
   slsa-provenance:
     if: github.event_name != 'pull_request'
-    permissions:
-      actions: read
-      id-token: write
-      packages: write
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
     with:
       image: ${{ inputs.registry }}/${{ inputs.image-name }}

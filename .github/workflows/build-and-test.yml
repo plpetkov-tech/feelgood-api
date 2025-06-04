@@ -214,11 +214,6 @@ jobs:
   build-container:
     needs: test-and-scan
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-      attestations: write
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
       image-uri: ${{ steps.meta.outputs.tags }}

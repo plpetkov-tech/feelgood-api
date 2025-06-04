@@ -34,10 +34,6 @@ jobs:
   # Build-time VEX generation (static analysis)
   build-time-vex-analysis:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      packages: read
     outputs:
       build-vex-artifact: ${{ steps.upload-build-vex.outputs.artifact-id }}
     steps:
@@ -220,9 +216,6 @@ jobs:
   runtime-vex-generation:
     needs: build-time-vex-analysis
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
     outputs:
       runtime-vex-artifact: ${{ steps.upload-runtime-vex.outputs.artifact-id }}
     steps:
