@@ -1,0 +1,169 @@
+name: 'VEX Processor'
+description: 'Handle VEX document operations, validation, and consolidation'
+inputs:
+  action:
+    description: 'Action to perform (consolidate-build-vex, consolidate-final-vex, validate, merge)'
+    required: true
+  build-vex:
+    description: 'Path to build-time VEX document'
+    required: false
+  runtime-vex:
+    description: 'Path to runtime VEX document'
+    required: false
+  existing-vex-dir:
+    description: 'Directory containing existing VEX documents'
+    required: false
+  image-ref:
+    description: 'Container image reference'
+    required: false
+  output:
+    description: 'Output file path'
+    required: false
+    default: 'consolidated.vex.json'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Process VEX Documents
+      shell: bash
+      run: |
+        case "${{ inputs.action }}" in
+          "consolidate-build-vex")
+            echo "🔄 Creating initial consolidated VEX (build-time + existing)..."
+            
+            # Start with build-time VEX
+            if [ -f "${{ inputs.build-vex }}" ]; then
+              cp "${{ inputs.build-vex }}" "${{ inputs.output }}"
+              echo "### 🔄 VEX Consolidation Process" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Started with build-time VEX**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
+              cat > "${{ inputs.output }}" << EOF
+        {
+          "@context": "https://openvex.dev/ns/v0.2.0",
+          "@id": "https://openvex.dev/docs/public/vex-build-$(date +%Y%m%d%H%M%S)",
+          "author": "FeelGood API Security Team",
+          "timestamp": "$(date -Iseconds)",
+          "version": 1,
+          "statements": []
+        }
+        EOF
+            fi
+            
+            # Merge existing VEX documents if any exist
+            if [ -d "${{ inputs.existing-vex-dir }}" ] && [ "$(ls -A ${{ inputs.existing-vex-dir }}/*.vex.json 2>/dev/null)" ]; then
+              echo "🔗 **Merging with existing VEX documents...**" >> $GITHUB_STEP_SUMMARY
+              MERGED_COUNT=0
+              for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
+                if [ -f "$vex_file" ]; then
+                  echo "  📄 Merging: $(basename $vex_file)" >> $GITHUB_STEP_SUMMARY
+                  # Use vexctl to merge VEX documents
+                  vexctl merge \
+                    --product="pkg:oci/${{ inputs.image-ref }}" \
+                    "${{ inputs.output }}" \
+                    "$vex_file" > temp.vex.json
+                  mv temp.vex.json "${{ inputs.output }}"
+                  MERGED_COUNT=$((MERGED_COUNT + 1))
+                fi
+              done
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Merged $MERGED_COUNT existing VEX documents**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "ℹ️ **No existing VEX documents to merge**" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            FINAL_STATEMENTS=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎯 **Initial consolidation complete with $FINAL_STATEMENTS total statements**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          "consolidate-final-vex")
+            echo "🔄 Creating final consolidated VEX document..."
+            
+            echo "### 🔄 Final VEX Consolidation" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Start with build-time consolidated VEX or create new one
+            if [ -f "${{ inputs.build-vex }}" ]; then
+              cp "${{ inputs.build-vex }}" "${{ inputs.output }}"
+              echo "✅ **Started with build-time consolidated VEX**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
+              cat > "${{ inputs.output }}" << EOF
+        {
+          "@context": "https://openvex.dev/ns/v0.2.0",
+          "@id": "https://openvex.dev/docs/public/vex-final-$(date +%Y%m%d%H%M%S)",
+          "author": "FeelGood API Security Team",
+          "timestamp": "$(date -Iseconds)",
+          "version": 1,
+          "statements": []
+        }
+        EOF
+            fi
+            
+            # Merge runtime VEX if available
+            if [ -f "${{ inputs.runtime-vex }}" ] && jq empty "${{ inputs.runtime-vex }}" 2>/dev/null; then
+              echo "🔗 **Merging runtime VEX with build-time VEX...**" >> $GITHUB_STEP_SUMMARY
+              
+              # Use vexctl to merge runtime VEX
+              vexctl merge \
+                --product="pkg:oci/${{ inputs.image-ref }}" \
+                "${{ inputs.output }}" \
+                "${{ inputs.runtime-vex }}" > temp-final.vex.json
+              
+              mv temp-final.vex.json "${{ inputs.output }}"
+              echo "✅ **Runtime VEX merged successfully**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **No valid runtime VEX to merge**" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            FINAL_STATEMENTS=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
+            NOT_AFFECTED=$(jq '.statements | map(select(.status == "not_affected")) | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
+            AFFECTED=$(jq '.statements | map(select(.status == "affected")) | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎯 Final VEX Summary | Count | Percentage |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------------------|-------|------------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 📊 Total Statements | $FINAL_STATEMENTS | 100% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Not Affected | $NOT_AFFECTED | $((FINAL_STATEMENTS > 0 ? NOT_AFFECTED * 100 / FINAL_STATEMENTS : 0))% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚠️ Affected | $AFFECTED | $((FINAL_STATEMENTS > 0 ? AFFECTED * 100 / FINAL_STATEMENTS : 0))% |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          "validate")
+            echo "🔍 Validating VEX document..."
+            
+            if [ ! -f "${{ inputs.build-vex }}" ]; then
+              echo "❌ VEX document not found: ${{ inputs.build-vex }}"
+              exit 1
+            fi
+            
+            if jq empty "${{ inputs.build-vex }}" 2>/dev/null; then
+              STATEMENTS=$(jq '.statements | length' "${{ inputs.build-vex }}" 2>/dev/null || echo "0")
+              echo "✅ VEX document is valid JSON with $STATEMENTS statements"
+              
+              # Check required fields
+              if jq -e '.["@context"]' "${{ inputs.build-vex }}" >/dev/null 2>&1; then
+                echo "✅ @context field present"
+              else
+                echo "⚠️ Missing @context field"
+              fi
+              
+              if jq -e '.statements[]' "${{ inputs.build-vex }}" >/dev/null 2>&1; then
+                echo "✅ VEX statements present"
+              else
+                echo "⚠️ No VEX statements found"
+              fi
+            else
+              echo "❌ Invalid JSON in VEX document"
+              exit 1
+            fi
+            ;;
+            
+          *)
+            echo "❌ Unknown action: ${{ inputs.action }}"
+            exit 1
+            ;;
+        esac

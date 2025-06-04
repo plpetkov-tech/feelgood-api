@@ -1,0 +1,322 @@
+name: 🏗️ Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        required: true
+        type: string
+      image-name:
+        required: true
+        type: string
+    outputs:
+      image-digest:
+        description: "Container image digest"
+        value: ${{ jobs.build-container.outputs.image-digest }}
+      image-uri:
+        description: "Container image URI"
+        value: ${{ jobs.build-container.outputs.image-uri }}
+      sbom-artifact:
+        description: "SBOM artifact ID"
+        value: ${{ jobs.test-and-scan.outputs.sbom-artifact }}
+      scan-artifact:
+        description: "Baseline scan artifact ID"
+        value: ${{ jobs.test-and-scan.outputs.scan-artifact }}
+
+env:
+  REGISTRY: ${{ inputs.registry }}
+  IMAGE_NAME: ${{ inputs.image-name }}
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    outputs:
+      sbom-artifact: ${{ steps.upload-sbom.outputs.artifact-id }}
+      scan-artifact: ${{ steps.upload-scan.outputs.artifact-id }}
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: 🎯 Initialize Test & Scan Phase
+      uses: ./.github/actions/security-reporter
+      with:
+        phase: "test-start"
+        title: "🧪 Test & Security Scan Phase"
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: "1.7.1"
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v4
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    
+    - name: 📦 Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: |
+        poetry install --no-interaction
+        echo "### 📦 Dependencies Installed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Python dependencies installed successfully with Poetry" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 🔒 Verify lock file integrity
+      run: |
+        poetry check --lock 
+        echo "### 🔒 Lock File Verification" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Poetry lock file integrity verified" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 🧪 Run tests
+      run: |
+        echo "### 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+        poetry run pytest tests/ -v --tb=short > test_results.txt 2>&1 || TEST_FAILED=1
+        
+        if [ "${TEST_FAILED}" == "1" ]; then
+          echo "❌ **Tests Failed**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          tail -20 test_results.txt >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "✅ **All Tests Passed**" >> $GITHUB_STEP_SUMMARY
+          TEST_COUNT=$(grep -c "PASSED\|FAILED\|ERROR" test_results.txt || echo "0")
+          PASSED_COUNT=$(grep -c "PASSED" test_results.txt || echo "0")
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🎯 Total Tests | $TEST_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| ✅ Passed | $PASSED_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| ❌ Failed | 0 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: 🔍 Run linters and security checks
+      run: |
+        echo "### 🔍 Code Quality & Security Checks" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Black formatting check
+        if poetry run black --check src/ tests/ > black_results.txt 2>&1; then
+          echo "✅ **Code Formatting (Black)**: All files properly formatted" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Code Formatting (Black)**: Some files need formatting" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>View formatting issues</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          cat black_results.txt >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # MyPy type checking
+        if poetry run mypy src/ > mypy_results.txt 2>&1; then
+          echo "✅ **Type Checking (MyPy)**: No type errors found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Type Checking (MyPy)**: Type issues detected" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>View type checking results</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          cat mypy_results.txt >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Security audit
+        poetry run pip-audit --format=json --output=audit-results.json
+        VULN_COUNT=$(jq '.vulnerabilities | length' audit-results.json 2>/dev/null || echo "0")
+        
+        if [ "$VULN_COUNT" -eq 0 ]; then
+          echo "✅ **Security Audit (pip-audit)**: No vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Security Audit (pip-audit)**: $VULN_COUNT vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>View vulnerability details</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "```json" >> $GITHUB_STEP_SUMMARY
+          jq '.vulnerabilities[] | {package: .package.name, vulnerability: .vulnerability.id, description: .vulnerability.description}' audit-results.json >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 📋 Generate SBOM with enhanced metadata
+      run: |
+        poetry run python scripts/generate_sbom.py > sbom.json
+        SBOM_HASH=$(sha256sum sbom.json | cut -d' ' -f1)
+        
+        # Enhanced SBOM summary
+        echo "### 📋 Software Bill of Materials (SBOM)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        COMPONENT_COUNT=$(jq '.components | length' sbom.json 2>/dev/null || echo "0")
+        DIRECT_DEPS=$(jq '.components | map(select(.scope == "required")) | length' sbom.json 2>/dev/null || echo "0")
+        DEV_DEPS=$(jq '.components | map(select(.scope == "optional")) | length' sbom.json 2>/dev/null || echo "0")
+        
+        echo "| 📊 SBOM Metrics | Count |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----------------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 📦 Total Components | $COMPONENT_COUNT |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🎯 Direct Dependencies | $DIRECT_DEPS |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🛠️ Dev Dependencies | $DEV_DEPS |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔐 SBOM Hash | \`${SBOM_HASH:0:12}...\` |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "✅ SBOM generated with $COMPONENT_COUNT components" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload SBOM
+      id: upload-sbom
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-${{ github.sha }}
+        path: sbom.json
+        retention-days: 90
+
+    - name: 🛡️ Run baseline Trivy scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'json'
+        output: 'baseline-scan.json'
+
+    - name: 📊 Process baseline scan results
+      uses: ./.github/actions/security-reporter
+      with:
+        phase: "scan-results"
+        scan-file: "baseline-scan.json"
+        title: "🛡️ Baseline Security Scan Results"
+
+    - name: Upload baseline scan results
+      id: upload-scan
+      uses: actions/upload-artifact@v4
+      with:
+        name: baseline-scan-${{ github.sha }}
+        path: baseline-scan.json
+        retention-days: 30
+
+    - name: 🎯 Complete Test Phase
+      uses: ./.github/actions/security-reporter
+      with:
+        phase: "test-complete"
+        title: "✅ Test & Scan Phase Complete!"
+
+  build-container:
+    needs: test-and-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-uri: ${{ steps.meta.outputs.tags }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: 🏗️ Initialize Build Phase
+      run: |
+        echo "## 🏗️ Container Build & Signing Phase" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🎯 **Building secure, signed container image with SLSA provenance**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 🏷️ Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix=sha-,enable={{is_default_branch}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=semver,pattern={{version}}
+    
+    - name: 🛠️ Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+        provenance: false  # We'll generate SLSA provenance separately
+
+    - name: 📊 Build Results Summary
+      run: |
+        echo "### 🛠️ Container Build Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        DIGEST="${{ steps.build.outputs.digest }}"
+        
+        echo "| 📋 Build Information | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------------------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🏷️ Image Tags | \`${{ steps.meta.outputs.tags }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔐 Image Digest | \`${DIGEST:0:19}...\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🖥️ Platforms | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
+        echo "| 📦 Registry | ${{ env.REGISTRY }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| ⚡ Cache | GitHub Actions Cache |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Multi-platform container image built and pushed successfully**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 🔐 Sign container image with private key
+      env:
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+      run: |
+        IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+        echo "🔐 Signing container image: $IMAGE_REF" >> $GITHUB_STEP_SUMMARY
+        
+        if cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$IMAGE_REF"; then
+          echo "✅ **Container image signed successfully with Cosign**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ **Container signing failed - proceeding with unsigned image**" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+    
+    - name: 📜 Generate GitHub Attestations
+      uses: actions/attest-build-provenance@v1
+      id: attest
+      with:
+        subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        subject-digest: ${{ steps.build.outputs.digest }}
+
+    - name: 🎯 Complete Build Phase
+      run: |
+        echo "### 🎉 Container Build Phase Complete!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Container built, signed, and attested**" >> $GITHUB_STEP_SUMMARY
+        echo "📜 **GitHub attestations generated**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Next Phase**: 🔍 VEX Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,130 @@
+name: 'Security Reporter'
+description: 'Generate beautiful security reporting and markdown summaries'
+inputs:
+  phase:
+    description: 'Report phase (test-start, scan-results, container-scan, test-complete)'
+    required: true
+  scan-file:
+    description: 'Path to scan results JSON file'
+    required: false
+  title:
+    description: 'Title for the report section'
+    required: false
+  format:
+    description: 'Output format (github-summary, markdown, json)'
+    required: false
+    default: 'github-summary'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate Security Report
+      shell: bash
+      run: |
+        case "${{ inputs.phase }}" in
+          "test-start")
+            cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+        ## ${{ inputs.title }}
+        
+        | Stage | Status | Description |
+        |-------|--------|-------------|
+        | 🧪 Tests | 🔄 Running | Unit tests, integration tests |
+        | 🔍 Linting | 🔄 Running | Code quality checks |
+        | 🛡️ Security Audit | 🔄 Running | Dependency vulnerability scan |
+        | 📋 SBOM Generation | ⏳ Pending | Software bill of materials |
+        | 🔒 Baseline Scan | ⏳ Pending | Filesystem security scan |
+        
+        ---
+        
+        EOF
+            ;;
+            
+          "scan-results")
+            if [ -f "${{ inputs.scan-file }}" ]; then
+              echo "### ${{ inputs.title }}" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              TOTAL_VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              
+              echo "| 🎯 Severity Level | Count | Progress |" >> $GITHUB_STEP_SUMMARY
+              echo "|-------------------|-------|----------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔴 Critical | $CRITICAL | $(printf '█%.0s' $(seq 1 $((CRITICAL > 10 ? 10 : CRITICAL)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🟠 High | $HIGH | $(printf '█%.0s' $(seq 1 $((HIGH > 10 ? 10 : HIGH)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🟡 Medium | $MEDIUM | $(printf '█%.0s' $(seq 1 $((MEDIUM > 20 ? 20 : MEDIUM / 2)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🟢 Low | $LOW | $(printf '█%.0s' $(seq 1 $((LOW > 30 ? 30 : LOW / 3)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 📊 **Total** | **$TOTAL_VULNS** | |" >> $GITHUB_STEP_SUMMARY
+              
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              if [ "$TOTAL_VULNS" -eq 0 ]; then
+                echo "🎉 **No vulnerabilities detected in scan!**" >> $GITHUB_STEP_SUMMARY
+              elif [ "$CRITICAL" -gt 0 ]; then
+                echo "⚠️ **Critical vulnerabilities found - requires immediate attention**" >> $GITHUB_STEP_SUMMARY
+              elif [ "$HIGH" -gt 0 ]; then
+                echo "⚠️ **High severity vulnerabilities found - review recommended**" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "ℹ️ **Low to medium severity vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "❌ Scan results file not found: ${{ inputs.scan-file }}" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          "container-scan")
+            if [ -f "${{ inputs.scan-file }}" ]; then
+              echo "### ${{ inputs.title }}" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              TOTAL_VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              
+              # Create beautiful vulnerability chart
+              echo "| 🎯 Vulnerability Severity | Count | Visual |" >> $GITHUB_STEP_SUMMARY
+              echo "|---------------------------|-------|--------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔴 Critical | **$CRITICAL** | $(printf '🔴%.0s' $(seq 1 $((CRITICAL > 10 ? 10 : CRITICAL)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🟠 High | **$HIGH** | $(printf '🟠%.0s' $(seq 1 $((HIGH > 10 ? 10 : HIGH)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🟡 Medium | **$MEDIUM** | $(printf '🟡%.0s' $(seq 1 $((MEDIUM > 20 ? 20 : MEDIUM / 2)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🟢 Low | **$LOW** | $(printf '🟢%.0s' $(seq 1 $((LOW > 30 ? 30 : LOW / 3)))) |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🎯 **Total Vulnerabilities** | **$TOTAL_VULNS** | |" >> $GITHUB_STEP_SUMMARY
+              
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              # Risk assessment
+              if [ "$TOTAL_VULNS" -eq 0 ]; then
+                echo "🎉 **EXCELLENT**: No vulnerabilities detected!" >> $GITHUB_STEP_SUMMARY
+              elif [ "$CRITICAL" -gt 0 ]; then
+                echo "🚨 **HIGH RISK**: Critical vulnerabilities require immediate attention" >> $GITHUB_STEP_SUMMARY
+              elif [ "$HIGH" -gt 0 ]; then
+                echo "⚠️ **MEDIUM RISK**: High severity vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "ℹ️ **LOW RISK**: Only low to medium severity issues" >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "❌ Container scan results not found" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          "test-complete")
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## ${{ inputs.title }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎉 **All test and security scanning steps completed successfully**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Next Phase**: 🏗️ Container Build & Signing" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          *)
+            echo "Unknown phase: ${{ inputs.phase }}" >> $GITHUB_STEP_SUMMARY
+            ;;
+        esac

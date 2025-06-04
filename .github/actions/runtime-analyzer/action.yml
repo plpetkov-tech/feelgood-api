@@ -1,0 +1,289 @@
+name: 'Runtime Analyzer'
+description: 'Setup Kubescape runtime analysis environment and perform dynamic security analysis'
+inputs:
+  action:
+    description: 'Action to perform (setup-cluster, deploy-and-analyze, cleanup)'
+    required: true
+  cluster-name:
+    description: 'Kubernetes cluster name'
+    required: false
+    default: 'security-analysis-cluster'
+  image-ref:
+    description: 'Container image reference to analyze'
+    required: false
+  app-name:
+    description: 'Application name for deployment'
+    required: false
+  timeout:
+    description: 'Timeout for operations in seconds'
+    required: false
+    default: '300'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Runtime Analysis Operations
+      shell: bash
+      run: |
+        case "${{ inputs.action }}" in
+          "setup-cluster")
+            echo "🎲 Setting up Kubernetes Kind cluster for runtime analysis..."
+            
+            # Create Kind cluster
+            cat > kind-config.yaml << EOF
+        kind: Cluster
+        apiVersion: kind.x-k8s.io/v1alpha4
+        name: ${{ inputs.cluster-name }}
+        nodes:
+        - role: control-plane
+          kubeadmConfigPatches:
+          - |
+            kind: InitConfiguration
+            nodeRegistration:
+              kubeletExtraArgs:
+                node-labels: "ingress-ready=true"
+          extraPortMappings:
+          - containerPort: 30080
+            hostPort: 30080
+            protocol: TCP
+        EOF
+            
+            # Install Kind if not present
+            if ! command -v kind &> /dev/null; then
+              curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+              chmod +x ./kind
+              sudo mv ./kind /usr/local/bin/kind
+            fi
+            
+            # Create cluster
+            kind create cluster --config=kind-config.yaml --wait=60s
+            
+            # Verify cluster
+            kubectl cluster-info
+            NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
+            K8S_VERSION=$(kubectl version --client=false -o json | jq -r '.serverVersion.gitVersion')
+            
+            echo "### 🎲 Kubernetes Cluster Setup" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| 📋 Cluster Information | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|------------------------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎲 Cluster Name | ${{ inputs.cluster-name }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🖥️ Node Count | $NODE_COUNT |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚙️ Kubernetes Version | $K8S_VERSION |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔧 Runtime | Kind (Docker) |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Kubernetes cluster ready for deployment**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Install Kubescape Operator
+            echo "🛡️ Installing Kubescape Operator with VEX generation..."
+            helm repo add kubescape https://kubescape.github.io/helm-charts/
+            helm repo update
+            
+            echo "### 🛡️ Kubescape Operator Installation" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Install Kubescape with VEX generation enabled
+            if helm upgrade --install kubescape kubescape/kubescape-operator \
+              -n kubescape \
+              --create-namespace \
+              --set clusterName=${{ inputs.cluster-name }} \
+              --set capabilities.vexGeneration=enable \
+              --set capabilities.vulnerabilityScan=enable \
+              --set capabilities.relevancy=enable \
+              --set capabilities.runtimeObservability=enable \
+              --wait \
+              --timeout=${{ inputs.timeout }}s; then
+              
+              echo "✅ **Kubescape Operator installed successfully**" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔧 Capability | Status |" >> $GITHUB_STEP_SUMMARY
+              echo "|---------------|--------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 📋 VEX Generation | ✅ Enabled |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🛡️ Vulnerability Scan | ✅ Enabled |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🎯 Relevancy Analysis | ✅ Enabled |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔍 Runtime Observability | ✅ Enabled |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Kubescape installation failed**" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Verify Kubescape pods
+            echo "🔍 Verifying Kubescape deployment..."
+            if kubectl wait --for=condition=ready pod --all -n kubescape --timeout=${{ inputs.timeout }}s; then
+              POD_COUNT=$(kubectl get pods -n kubescape --no-headers | wc -l)
+              READY_COUNT=$(kubectl get pods -n kubescape --no-headers | grep -c "Running" || echo "0")
+              
+              echo "### 🔍 Kubescape Pod Status" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| 📊 Pod Metrics | Count |" >> $GITHUB_STEP_SUMMARY
+              echo "|----------------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🚀 Total Pods | $POD_COUNT |" >> $GITHUB_STEP_SUMMARY
+              echo "| ✅ Running Pods | $READY_COUNT |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🎯 Success Rate | $((READY_COUNT * 100 / POD_COUNT))% |" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **All Kubescape pods are running successfully**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Some Kubescape pods failed to start**" >> $GITHUB_STEP_SUMMARY
+              kubectl get pods -n kubescape
+              exit 1
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          "deploy-and-analyze")
+            echo "🚀 Deploying application for runtime analysis..."
+            
+            if [ -z "${{ inputs.image-ref }}" ] || [ -z "${{ inputs.app-name }}" ]; then
+              echo "❌ image-ref and app-name are required for deploy-and-analyze"
+              exit 1
+            fi
+            
+            echo "### 🚀 Application Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎯 **Deploying image for runtime analysis: ${{ inputs.image-ref }}**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Create deployment manifest
+            cat > app-deployment.yaml << EOF
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${{ inputs.app-name }}
+          labels:
+            app: ${{ inputs.app-name }}
+            vex-enabled: "true"
+        spec:
+          replicas: 2
+          selector:
+            matchLabels:
+              app: ${{ inputs.app-name }}
+          template:
+            metadata:
+              labels:
+                app: ${{ inputs.app-name }}
+              annotations:
+                vex.openvex.dev/available: "true"
+            spec:
+              containers:
+              - name: ${{ inputs.app-name }}
+                image: ${{ inputs.image-ref }}
+                imagePullPolicy: Always
+                ports:
+                - containerPort: 8000 
+                env:
+                - name: PORT
+                  value: "8000"
+                - name: ENV
+                  value: "production"
+                resources:
+                  requests:
+                    memory: "64Mi"
+                    cpu: "50m"
+                  limits:
+                    memory: "256Mi"
+                    cpu: "200m"
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 65534
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                  readOnlyRootFilesystem: true
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ${{ inputs.app-name }}-service
+        spec:
+          type: NodePort
+          ports:
+          - port: 80
+            targetPort: 8000
+            nodePort: 30080
+            protocol: TCP
+          selector:
+            app: ${{ inputs.app-name }}
+        EOF
+
+            # Deploy application
+            kubectl apply -f app-deployment.yaml
+            
+            # Wait for deployment
+            if kubectl wait --for=condition=available --timeout=${{ inputs.timeout }}s deployment/${{ inputs.app-name }}; then
+              REPLICAS=$(kubectl get deployment ${{ inputs.app-name }} -o jsonpath='{.status.replicas}')
+              READY_REPLICAS=$(kubectl get deployment ${{ inputs.app-name }} -o jsonpath='{.status.readyReplicas}')
+              
+              echo "| 📋 Deployment Info | Value |" >> $GITHUB_STEP_SUMMARY
+              echo "|-------------------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🚀 Application | ${{ inputs.app-name }} |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🖼️ Image | \`${{ inputs.image-ref }}\` |" >> $GITHUB_STEP_SUMMARY
+              echo "| 📊 Replicas | $REPLICAS |" >> $GITHUB_STEP_SUMMARY
+              echo "| ✅ Ready Replicas | $READY_REPLICAS |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔒 Security Context | Non-root, read-only filesystem |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🛡️ VEX Enabled | ✅ Yes |" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Application deployed successfully with security hardening**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Application deployment failed**" >> $GITHUB_STEP_SUMMARY
+              kubectl describe deployment ${{ inputs.app-name }}
+              exit 1
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Generate runtime load
+            echo "🔄 Generating runtime load for VEX analysis..."
+            NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+            
+            echo "### 🔄 Runtime Load Generation" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🎯 **Generating traffic to trigger runtime security analysis**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            SUCCESS_COUNT=0
+            TOTAL_REQUESTS=30
+            
+            for i in $(seq 1 $TOTAL_REQUESTS); do
+              if curl -s --max-time 5 "http://$NODE_IP:30080" > /dev/null 2>&1; then
+                SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+              fi
+              # Progress indicator
+              if [ $((i % 10)) -eq 0 ]; then
+                PROGRESS=$((i * 100 / TOTAL_REQUESTS))
+                echo "📊 Progress: $PROGRESS% ($i/$TOTAL_REQUESTS requests)" >> $GITHUB_STEP_SUMMARY
+              fi
+              sleep 2
+            done
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| 📊 Load Generation Results | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------------------------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎯 Total Requests | $TOTAL_REQUESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Successful Requests | $SUCCESS_COUNT |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📈 Success Rate | $((SUCCESS_COUNT * 100 / TOTAL_REQUESTS))% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏱️ Duration | $((TOTAL_REQUESTS * 2)) seconds |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          "cleanup")
+            echo "🧹 Cleaning up runtime analysis environment..."
+            
+            # Delete Kind cluster
+            if command -v kind &> /dev/null; then
+              kind delete cluster --name ${{ inputs.cluster-name }} || true
+              echo "✅ **Kind cluster deleted**" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            # Clean up temporary files
+            rm -f kind-config.yaml app-deployment.yaml || true
+            echo "✅ **Temporary files cleaned up**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            ;;
+            
+          *)
+            echo "❌ Unknown action: ${{ inputs.action }}"
+            exit 1
+            ;;
+        esac
