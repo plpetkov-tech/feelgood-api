@@ -13,7 +13,7 @@ on:
         description: "Fail build if vulnerabilities of specified severity or higher are found"
         required: false
         type: string
-        default: 'CRITICAL'
+        default: 'MEDIUM'
     outputs:
       image-digest:
         description: "Container image digest"
@@ -395,21 +395,31 @@ jobs:
           
           echo "✅ **Image patched successfully**" >> $GITHUB_STEP_SUMMARY
           
-          # Re-tag all original tags to point to patched image
+          # Re-tag and push all original tags to point to patched image
           TAGS="${{ steps.meta.outputs.tags }}"
+          PATCHED_DIGEST=""
+          
           for tag in $TAGS; do
             echo "🏷️ Re-tagging: $tag -> patched image"
             docker tag ${PATCHED_IMAGE} $tag
-            docker push $tag
+            # Capture digest from the first push
+            if [ -z "$PATCHED_DIGEST" ]; then
+              PUSH_OUTPUT=$(docker push $tag 2>&1)
+              PATCHED_DIGEST=$(echo "$PUSH_OUTPUT" | grep -o 'sha256:[a-f0-9]\{64\}' | head -1)
+            else
+              docker push $tag
+            fi
           done
           
           echo "patched_image=$PATCHED_IMAGE" >> $GITHUB_OUTPUT
-          echo "final_image=$IMAGE_REF" >> $GITHUB_OUTPUT
+          echo "patching_successful=true" >> $GITHUB_OUTPUT
+          echo "patched_digest=$PATCHED_DIGEST" >> $GITHUB_OUTPUT
           
         else
           echo "❌ **Patching failed - proceeding with original image**" >> $GITHUB_STEP_SUMMARY
           echo "patched_image=" >> $GITHUB_OUTPUT
-          echo "final_image=$IMAGE_REF" >> $GITHUB_OUTPUT
+          echo "patching_successful=false" >> $GITHUB_OUTPUT
+          echo "patched_digest=" >> $GITHUB_OUTPUT
         fi
 
     - name: 🔍 Final vulnerability verification
@@ -455,23 +465,30 @@ jobs:
     - name: 📊 Set final image details
       id: final-image
       run: |
-        if [ "${{ steps.vulnerability-scan.outputs.needs_patching }}" == "true" ]; then
-          if [ -n "${{ steps.patch.outputs.patched_image }}" ]; then
-            FINAL_IMAGE="${{ steps.vulnerability-scan.outputs.image_ref }}"
-            echo "🩹 Using patched image" >> $GITHUB_STEP_SUMMARY
-          else
-            FINAL_IMAGE="${{ steps.vulnerability-scan.outputs.image_ref }}"
-            echo "⚠️ Using original image (patching failed)" >> $GITHUB_STEP_SUMMARY
-          fi
-        else
+        # Determine final image and digest based on patching results
+        if [ "${{ steps.vulnerability-scan.outputs.needs_patching }}" == "true" ] && [ "${{ steps.patch.outputs.patching_successful }}" == "true" ]; then
+          # Use patched image digest
+          FINAL_DIGEST="${{ steps.patch.outputs.patched_digest }}"
           FINAL_IMAGE="${{ steps.vulnerability-scan.outputs.image_ref }}"
-          echo "✅ Using original image (no patching needed)" >> $GITHUB_STEP_SUMMARY
+          echo "🩹 Using patched image" >> $GITHUB_STEP_SUMMARY
+        else
+          # Use original build digest
+          FINAL_DIGEST="${{ steps.build.outputs.digest }}"
+          FINAL_IMAGE="${{ steps.vulnerability-scan.outputs.image_ref }}"
+          if [ "${{ steps.vulnerability-scan.outputs.needs_patching }}" == "true" ]; then
+            echo "⚠️ Using original image (patching failed)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Using original image (no patching needed)" >> $GITHUB_STEP_SUMMARY
+          fi
         fi
         
-        # Get digest of final image
-        DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $FINAL_IMAGE | cut -d'@' -f2)
+        # Validate digest format
+        if [[ ! "$FINAL_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+          echo "❌ Invalid digest format: $FINAL_DIGEST"
+          exit 1
+        fi
         
-        echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+        echo "digest=$FINAL_DIGEST" >> $GITHUB_OUTPUT
         echo "uri=$FINAL_IMAGE" >> $GITHUB_OUTPUT
         
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -480,7 +497,7 @@ jobs:
         echo "| 📋 Property | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|-------------|-------|" >> $GITHUB_STEP_SUMMARY
         echo "| 🏷️ Image URI | \`$FINAL_IMAGE\` |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔐 Digest | \`${DIGEST:0:19}...\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔐 Digest | \`${FINAL_DIGEST:0:19}...\` |" >> $GITHUB_STEP_SUMMARY
         echo "| 🩹 Patched | ${{ steps.vulnerability-scan.outputs.needs_patching }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
