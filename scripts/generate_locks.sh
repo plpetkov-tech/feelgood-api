@@ -1,4 +1,6 @@
 #!/bin/bash
+# Use Make, this thing is just for visibility
+# Do not use!
 set -euo pipefail
 
 echo "🔒 Enhanced lock file generation with security checks..."

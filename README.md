@@ -1,169 +1,162 @@
-# Feel Good Phrases API - Supply Chain Security PoC
+# 🛡️ FeelGood API – Supply Chain Security & DevSecOps Showcase
 
-A Python FastAPI application demonstrating comprehensive supply chain security practices including immutable builds, SLSA provenance, SBOM generation, and VEX documents.
+Welcome to the **FeelGood API**! While the API itself is a simple motivational phrase service, this repository is a real-world demonstration of modern, end-to-end supply chain security, SLSA compliance, and DevSecOps automation.
 
-## Features
+---
 
-### Application
-- FastAPI-based REST API serving motivational phrases
-- Categories: motivation, gratitude, kindness, growth
-- Health checks and security endpoints
-- Comprehensive test coverage
+## 🚦 What Makes This Project Special?
 
-### Supply Chain Security
-- **Immutable Builds**: Poetry lock files ensure reproducible builds
-- **SLSA Level 3 Provenance**: Automated attestation generation
-- **SBOM Generation**: CycloneDX format with full dependency tree
-- **VEX Documents**: Vulnerability exploitability assessments
-- **Container Signing**: Cosign signatures for all images
-- **Security Scanning**: Trivy vulnerability scanning
+This repo is not just about code – it’s about **trust**. Every artifact, dependency, and workflow is:
+- **Audited**
+- **Signed**
+- **Attested**
+- **Tracked**
+- **Verified**
 
-## Quick Start
+with industry best practices and open standards.
 
-### Local Development
-```bash
+---
+
+## 🔒 SLSA Level 3 Compliance
+- **Isolated, reproducible builds** using GitHub Actions and multi-stage Docker builds
+- **Provenance generation** with [SLSA](https://slsa.dev/) GitHub generator workflows
+- **Container signing** and attestation with [Cosign](https://github.com/sigstore/cosign)
+- **Automated verification** of signatures and provenance in CI
+
+**Relevant files:**
+- `.github/workflows/build-and-security.yml`
+- `.github/workflows/slsa-provenance.yml`
+- `scripts/verify_attestations.py`
+- `Dockerfile`
+
+---
+
+## 📦 SBOM (Software Bill of Materials)
+- **Automated SBOM generation** at build time (CycloneDX format)
+- **Enhanced SBOM** includes SLSA metadata, GitHub Actions context, and git commit info
+- **SBOM hash verification** for tamper detection
+- **Dependency SBOM** for lock file transparency
+
+**Relevant files:**
+- `scripts/generate_sbom.py`
+- `sbom.json`, `sbom-deps.json`
+- `.github/workflows/build-and-security.yml`
+
+---
+
+## 🦺 VEX (Vulnerability Exploitability eXchange)
+- **Build-time VEX**: Static vulnerability analysis with Trivy, output as OpenVEX
+- **Runtime VEX**: Dynamic analysis using [Kubescape](https://github.com/kubescape/kubescape) in ephemeral Kubernetes clusters
+- **VEX consolidation**: All VEX docs are validated, merged, and attached to images as signed attestations
+- **Production VEX**: Real-world VEX from production can be added and automatically integrated
+
+**Relevant files:**
+- `scripts/generate_vex.py`, `.vex/`, `.vex/README.md`
+- `.github/workflows/build-and-security.yml`, `.github/workflows/vex-integration.yml`
+- Example: `.vex/production/example.vex.json`
+
+---
+
+## 🔍 Automated Security Scanning & Lock Management
+- **Dependency audits** with pip-audit (pre/post lock generation)
+- **Container scans** with Trivy
+- **Lock file generation** with integrity and hash verification
+- **Automated lock refresh, update, and verification**
+
+**Relevant files:**
+- `scripts/generate_locks.sh`, `Makefile`
+- `.github/workflows/dependency-review.yml`
+
+---
+
+## 🛠️ Makefile Commands
+
+All security, compliance, and build tasks are managed via the Makefile. Here are the available commands:
+
+### 📦 Dependencies
+- `make install` – Install dependencies (via Poetry)
+- `make lock` – Generate all lock files (`requirements.txt`, `requirements-lock.txt`, `requirements-dev.txt`)
+- `make refresh-locks` – Clear caches and regenerate all lock files
+- `make update-deps` – Update dependencies and regenerate locks
+- `make verify-lock` – Verify lock file integrity
+
+### 🧪 Testing & Quality
+- `make test` – Run all tests
+- `make lint` – Run code formatters and type checks (black, mypy)
+
+### 🔒 Security
+- `make security-check` – Run basic security checks (pip-audit)
+- `make security-full` – Run the full security pipeline: audit, SBOM, VEX, attestation verification
+- `make trivy-scan` – Run Trivy vulnerability scan (filesystem)
+- `make verify-local IMAGE=...` – Verify signatures and attestations locally for a given image
+
+### 📋 Documentation & Compliance
+- `make sbom` – Generate a basic SBOM (CycloneDX)
+- `make sbom-enhanced` – Generate an enhanced SBOM with build metadata
+- `make vex` – Generate a basic VEX document
+- `make vex-enhanced` – Generate an enhanced VEX document (uses Trivy scan and SBOM if available)
+- `make slsa-check` – Check SLSA Level 3 compliance (runs SBOM/VEX generation and prints compliance status)
+
+### 🐳 Docker
+- `make build` – Build the Docker image
+- `make run` – Run the Docker container (port 8000)
+
+### 🧹 Utilities
+- `make clean` – Clean up cache files and Python bytecode
+
+---
+
+## 🚦 Quick Start
+```zsh
 # Install dependencies
 make install
 
-# Run tests
-make test
+# Generate and verify lock files
+make lock
+make verify-lock
 
-# Run linters
-make lint
+# Run all security checks and generate SBOM/VEX
+make security-full
 
-# Generate SBOM locally
-make sbom
-
-# Build container
+# Build and run the container
 make build
-
-# Run container
 make run
 ```
 
-### API Endpoints
-- `GET /` - API information
-- `GET /health` - Health check with build info
-- `GET /phrase` - Get random feel-good phrase
-- `GET /phrase?category=motivation` - Get phrase from specific category
-- `GET /phrases/categories` - List all categories
-- `GET /security` - Security information
-- `GET /security/sbom` - Download SBOM
-- `GET /security/vex` - Download VEX document
-- `GET /security/provenance` - View provenance information
+---
 
-## Supply Chain Security Implementation
+## 🗂️ VEX Document Management
+- `.vex/production/`: VEX from production runtime
+- `.vex/README.md`: Naming conventions, update instructions, OpenVEX format
+- VEX docs are validated with `vexctl` before commit
 
-### 1. Dependency Management
-- Uses Poetry for deterministic dependency resolution
-- Lock files (`poetry.lock` and `requirements-lock.txt`) ensure reproducible builds
-- Regular dependency updates via Dependabot
+---
 
-### 2. Build Process
-- Multi-stage Docker builds for minimal attack surface
-- Non-root container execution
-- Build-time SBOM generation
-- Comprehensive security headers
+## 🏗️ CI/CD Pipeline Overview
+- **Test & Scan**: Lint, test, pip-audit, Trivy
+- **Build**: Multi-stage Docker build, SBOM generation
+- **Attest & Sign**: Cosign signing, SLSA provenance, VEX attestation
+- **VEX Analysis**: Build-time and runtime VEX, consolidation, and artifact upload
+- **Verification**: Automated signature, provenance, and VEX verification
+- **Security Monitoring**: Scheduled scans and dependency reviews
 
-### 3. SLSA Provenance
-- GitHub Actions workflow generates SLSA Level 3 provenance
-- Provenance includes:
-  - Source repository information
-  - Build environment details
-  - Build parameters
-  - Cryptographic signatures
+---
 
-### 4. SBOM (Software Bill of Materials)
-- Generated in CycloneDX format
-- Includes all direct and transitive dependencies
-- Embedded in container image
-- Accessible via API endpoint
+## 🌈 Why This Matters
+- **Transparency**: Know exactly what’s in your software and how it was built
+- **Trust**: Every artifact is signed, attested, and verified
+- **Resilience**: Both static and runtime vulnerabilities are tracked and mitigated
+- **Modern DevSecOps**: Real-world SLSA, SBOM, and VEX integration
 
-### 5. VEX (Vulnerability Exploitability eXchange)
-- Documents known vulnerabilities and their exploitability
-- Reduces false positives in security scans
-- Updated independently of builds
-- Machine-readable format
+---
 
-### 6. Container Security
-- Signed with Cosign (keyless signing via OIDC)
-- Vulnerability scanning with Trivy
-- Security findings uploaded to GitHub Security tab
-- Minimal base image (python:3.11-slim)
+## 📚 Learn More
+- [SLSA Framework](https://slsa.dev/)
+- [OpenVEX](https://openvex.dev/)
+- [Sigstore/Cosign](https://docs.sigstore.dev/cosign/overview/)
+- [CycloneDX SBOM](https://cyclonedx.org/)
+- [Kubescape](https://github.com/kubescape/kubescape)
 
-## Verification
+---
 
-### Verify Container Signatures
-```bash
-# Install cosign
-brew install cosign  # or your package manager
-
-# Verify signature
-cosign verify --certificate-identity-regexp=".*" \
-  --certificate-oidc-issuer-regexp=".*" \
-  ghcr.io/plpetkov-tech/feelgood-api:latest
-
-# Verify SLSA provenance
-cosign verify-attestation --type slsaprovenance \
-  --certificate-identity-regexp=".*" \
-  --certificate-oidc-issuer-regexp=".*" \
-  ghcr.io/plpetkov-tech/feelgood-api:latest
-```
-
-### Verify SBOM
-```bash
-# Download and verify SBOM
-curl http://localhost:8000/security/sbom | jq .
-
-# Scan with Grype
-grype sbom:./sbom.json
-```
-
-### Verify Build Reproducibility
-```bash
-# Clone repository
-git clone https://github.com/plpetkov-tech/feelgood-api.git
-cd feelgood-api
-
-# Checkout specific commit
-git checkout <commit-sha>
-
-# Install exact dependencies
-poetry install --no-dev
-
-# Verify installed packages match lock file
-poetry show --tree
-```
-
-## CI/CD Pipeline
-
-The GitHub Actions workflow performs:
-1. **Test & Scan**: Run tests, linters, and security audits
-2. **Build**: Create container image with embedded SBOM
-3. **Sign**: Sign container with Cosign
-4. **Generate Provenance**: Create SLSA attestations
-5. **Scan**: Run Trivy vulnerability scanner
-6. **Generate VEX**: Create exploitability assessments
-
-## Security Best Practices Demonstrated
-
-1. **Principle of Least Privilege**: Non-root container user
-2. **Defense in Depth**: Multiple security layers
-3. **Supply Chain Transparency**: Full visibility into dependencies
-4. **Immutable Infrastructure**: Reproducible builds
-5. **Continuous Security**: Automated scanning and updates
-6. **Cryptographic Verification**: Signed artifacts
-7. **Security Headers**: OWASP recommended headers
-8. **Minimal Attack Surface**: Slim base images, only required dependencies
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Run tests and linters
-4. Update SBOM if dependencies change
-5. Submit pull request
-
-## License
-
-MIT License - See LICENSE file for details
+> **FeelGood API** – Where even Hello World is built like a fortress. 🏰
