@@ -44,29 +44,29 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
     
     - name: Log in to Container Registry
-      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+      uses: docker/login-action@v3
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
     
     - name: Install vexctl
-      uses: openvex/setup-vexctl@e85ca48f3c8a376289f6476129d59cda82147e71
+      uses: openvex/setup-vexctl@main
       with:
         vexctl-release: '0.3.0'
     
     - name: Install Cosign
-      uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb
+      uses: sigstore/cosign-installer@v3
     
     # Download all VEX artifacts
     - name: 📥 Download build-time VEX artifacts
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      uses: actions/download-artifact@v4
       with:
         name: build-time-vex-${{ github.sha }}
         path: build-vex/
     
     - name: 📥 Download runtime VEX artifacts
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      uses: actions/download-artifact@v4
       with:
         name: runtime-vex-${{ github.sha }}
         path: runtime-vex/
@@ -184,7 +184,7 @@ jobs:
 
     # Upload filtered SARIF results to GitHub Security
     - name: 📤 Upload filtered SARIF results to GitHub Security
-      uses: github/codeql-action/upload-sarif@bc02a25f6449997c5e9d5a368879b28f56ae19a1
+      uses: github/codeql-action/upload-sarif@v3
       if: always() && hashFiles('filtered.sarif') != ''
       with:
         sarif_file: 'filtered.sarif'
@@ -293,7 +293,7 @@ jobs:
     # Upload final VEX documents and results
     - name: 📤 Upload final VEX artifacts
       id: upload-final-vex
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      uses: actions/upload-artifact@v4
       with:
         name: final-consolidated-vex-${{ github.sha }}
         path: |
@@ -317,9 +317,43 @@ jobs:
         echo "**Next Phase**: 📜 SLSA Provenance Generation" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-  slsa-provenance:
+  # Verify image accessibility before SLSA
+  verify-image-accessibility:
+    needs: final-vex-attestation
     if: github.event_name != 'pull_request'
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a
+    runs-on: ubuntu-latest
+    steps:
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+    
+    - name: 🔍 Verify image exists and is accessible
+      run: |
+        IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
+        echo "🔍 Verifying image accessibility for SLSA: $IMAGE_REF"
+        
+        # Wait a bit for image to be fully available
+        sleep 30
+        
+        # Try to inspect the image
+        if docker manifest inspect "$IMAGE_REF"; then
+          echo "✅ Image is accessible for SLSA provenance generation"
+        else
+          echo "❌ Image not accessible - SLSA generation may fail"
+          exit 1
+        fi
+
+  slsa-provenance:
+    needs: [final-vex-attestation, verify-image-accessibility]
+    if: github.event_name != 'pull_request'
+    permissions:
+      actions: read
+      id-token: write
+      packages: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.0.0
     with:
       image: ${{ inputs.registry }}/${{ inputs.image-name }}
       digest: ${{ inputs.image-digest }}
@@ -342,13 +376,13 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
     
     - name: Install Cosign
-      uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb
+      uses: sigstore/cosign-installer@v3
       
     - name: Install SLSA Verifier
-      uses: slsa-framework/slsa-verifier/actions/installer@6657aada084353c65e5dde35394b1a010289fab0
+      uses: slsa-framework/slsa-verifier/actions/installer@v2.5.1
 
     - name: Install vexctl
-      uses: openvex/setup-vexctl@e85ca48f3c8a376289f6476129d59cda82147e71
+      uses: openvex/setup-vexctl@main
       with:
         vexctl-release: '0.3.0'
     
@@ -448,12 +482,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 📊 Download final VEX summary
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      uses: actions/download-artifact@v4
       with:
         name: final-consolidated-vex-${{ github.sha }}
 
     - name: 💬 Comment final VEX summary on PR
-      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+      uses: actions/github-script@v7
       with:
         script: |
           const fs = require('fs');
@@ -471,3 +505,4 @@ jobs:
             console.log('✅ VEX summary posted to PR successfully');
           } catch (error) {
             console.log('❌ Could not read final VEX summary:', error);
+          }
