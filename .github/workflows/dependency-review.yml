@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@da24556b548a50705dd671f47852072ea4c105d9
         with:
           # Fail on any vulnerable dependency
           fail-on-severity: low
@@ -33,7 +33,7 @@ jobs:
           deny-licenses: AGPL-3.0, GPL-3.0, LGPL-3.0
           
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
       
