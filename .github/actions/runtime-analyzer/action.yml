@@ -186,7 +186,7 @@ runs:
                     cpu: "200m"
                 securityContext:
                   runAsNonRoot: true
-                  runAsUser: 65534
+                  runAsUser: 65532 
                   allowPrivilegeEscalation: false
                   capabilities:
                     drop:
