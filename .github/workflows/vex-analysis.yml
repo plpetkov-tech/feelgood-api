@@ -18,6 +18,10 @@ on:
       scan-artifact:
         required: true
         type: string
+      vex-analysis-time:
+        required: false
+        type: string
+        default: '2m'
     outputs:
       build-vex-artifact:
         description: "Build-time VEX artifact ID"
@@ -245,6 +249,7 @@ jobs:
         with:
           action: "setup-cluster"
           cluster-name: "feelgood-cluster"
+          vex-analysis-time: ${{ inputs.vex-analysis-time }}
 
       - name: 🛡️ Deploy and analyze application
         uses: ./.github/actions/runtime-analyzer
@@ -253,19 +258,161 @@ jobs:
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
           app-name: "${{ github.event.repository.name }}"
 
+      - name: 🎭 Start background runtime testing
+        run: |
+          echo "🎭 Starting continuous runtime testing during VEX analysis..."
+          
+          # Get node IP for testing
+          NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+          
+          echo "### 🎭 Background Runtime Testing" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔄 **Starting continuous testing to enhance VEX analysis**" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Target**: http://${NODE_IP}:30080" >> $GITHUB_STEP_SUMMARY
+          echo "⏱️ **Duration**: Will run during VEX analysis period (${{ inputs.vex-analysis-time }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Convert analysis time to seconds for background testing
+          ANALYSIS_TIME="${{ inputs.vex-analysis-time }}"
+          if [[ "$ANALYSIS_TIME" =~ ^([0-9]+)m$ ]]; then
+            BACKGROUND_DURATION=$((${BASH_REMATCH[1]} * 60))
+          elif [[ "$ANALYSIS_TIME" =~ ^([0-9]+)s$ ]]; then
+            BACKGROUND_DURATION=${BASH_REMATCH[1]}
+          elif [[ "$ANALYSIS_TIME" =~ ^([0-9]+)h$ ]]; then
+            BACKGROUND_DURATION=$((${BASH_REMATCH[1]} * 3600))
+          else
+            echo "⚠️ Invalid time format, defaulting to 120 seconds"
+            BACKGROUND_DURATION=120
+          fi
+          
+          echo "⚙️ **Background test duration**: ${BACKGROUND_DURATION} seconds" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Start background testing script that will run for the entire VEX analysis period
+          if [ -f "scripts/test-during-runtime.sh" ]; then
+            echo "🚀 Starting comprehensive background testing..."
+            
+            # Create a background testing script that repeats the test suite
+            cat > background-runtime-test.sh << 'EOF'
+          #!/bin/bash
+          NODE_IP="$1"
+          PORT="$2"
+          DURATION="$3"
+          
+          echo "🎭 Background runtime testing started at $(date)"
+          echo "🎯 Target: http://${NODE_IP}:${PORT}"
+          echo "⏱️ Duration: ${DURATION} seconds"
+          
+          START_TIME=$(date +%s)
+          CYCLE=1
+          TOTAL_REQUESTS=0
+          TOTAL_SUCCESS=0
+          
+          while true; do
+            CURRENT_TIME=$(date +%s)
+            ELAPSED=$((CURRENT_TIME - START_TIME))
+            
+            if [ $ELAPSED -ge $DURATION ]; then
+              echo "⏰ Background testing duration reached, stopping..."
+              break
+            fi
+            
+            echo "🔄 Test cycle $CYCLE (elapsed: ${ELAPSED}s/${DURATION}s)"
+            
+            # Run a smaller subset of tests for continuous testing
+            bash scripts/test-during-runtime.sh "$NODE_IP" "$PORT" > "cycle-${CYCLE}-output.log" 2>&1 &
+            TEST_PID=$!
+            
+            # Wait for test to complete or timeout after 60 seconds
+            timeout 60 wait $TEST_PID 2>/dev/null || {
+              echo "⚠️ Test cycle $CYCLE timed out, killing..."
+              kill $TEST_PID 2>/dev/null || true
+            }
+            
+            # Extract stats if available
+            if [ -f "cycle-${CYCLE}-output.log" ]; then
+              CYCLE_REQUESTS=$(grep "Total Requests:" "cycle-${CYCLE}-output.log" | awk '{print $NF}' || echo "0")
+              CYCLE_SUCCESS=$(grep "Successful:" "cycle-${CYCLE}-output.log" | awk '{print $NF}' || echo "0")
+              TOTAL_REQUESTS=$((TOTAL_REQUESTS + CYCLE_REQUESTS))
+              TOTAL_SUCCESS=$((TOTAL_SUCCESS + CYCLE_SUCCESS))
+            fi
+            
+            CYCLE=$((CYCLE + 1))
+            
+            # Short pause between cycles
+            sleep 10
+          done
+          
+          echo "🎊 Background testing completed!"
+          echo "📊 Total cycles: $((CYCLE - 1))"
+          echo "📊 Total requests: $TOTAL_REQUESTS"
+          echo "📊 Total successful: $TOTAL_SUCCESS"
+          echo "📊 Overall success rate: $((TOTAL_REQUESTS > 0 ? TOTAL_SUCCESS * 100 / TOTAL_REQUESTS : 0))%"
+          
+          # Save final stats
+          cat > background-test-stats.json << STATS_EOF
+          {
+            "cycles": $((CYCLE - 1)),
+            "total_requests": $TOTAL_REQUESTS,
+            "total_success": $TOTAL_SUCCESS,
+            "success_rate": $((TOTAL_REQUESTS > 0 ? TOTAL_SUCCESS * 100 / TOTAL_REQUESTS : 0)),
+            "duration_seconds": $DURATION,
+            "end_time": "$(date)"
+          }
+          STATS_EOF
+          EOF
+            
+            chmod +x background-runtime-test.sh
+            
+            # Start background testing
+            nohup bash background-runtime-test.sh "$NODE_IP" "30080" "$BACKGROUND_DURATION" > background-test.log 2>&1 &
+            BACKGROUND_PID=$!
+            
+            echo "✅ **Background testing started** (PID: $BACKGROUND_PID)" >> $GITHUB_STEP_SUMMARY
+            echo "🔄 **Will run continuously during VEX analysis period**" >> $GITHUB_STEP_SUMMARY
+            
+            # Save PID for later cleanup
+            echo "$BACKGROUND_PID" > background-test.pid
+          else
+            echo "⚠️ **Runtime test script not found, skipping background testing**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
       - name: ⏳ Wait for runtime VEX generation
         run: |
           echo "⏳ Waiting for Kubescape to generate runtime VEX documents..."
           echo "🕐 Start time: $(date)"
+          echo "⚙️ VEX analysis duration: ${{ inputs.vex-analysis-time }}"
           
           echo "### ⏳ Waiting for Runtime VEX Generation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🔍 **Monitoring Kubescape for VEX document generation...**" >> $GITHUB_STEP_SUMMARY
+          echo "⚙️ **Configured analysis time: ${{ inputs.vex-analysis-time }}**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Wait for VEX documents with timeout
-          for i in {1..5}; do
-            echo "⏱️  Minute $i/5 - $(date)"
+          # Convert analysis time to seconds for timeout calculation
+          ANALYSIS_TIME="${{ inputs.vex-analysis-time }}"
+          if [[ "$ANALYSIS_TIME" =~ ^([0-9]+)m$ ]]; then
+            ANALYSIS_SECONDS=$((${BASH_REMATCH[1]} * 60))
+          elif [[ "$ANALYSIS_TIME" =~ ^([0-9]+)s$ ]]; then
+            ANALYSIS_SECONDS=${BASH_REMATCH[1]}
+          elif [[ "$ANALYSIS_TIME" =~ ^([0-9]+)h$ ]]; then
+            ANALYSIS_SECONDS=$((${BASH_REMATCH[1]} * 3600))
+          else
+            echo "⚠️ Invalid time format, defaulting to 120 seconds"
+            ANALYSIS_SECONDS=120
+          fi
+          
+          # Add buffer time (50% more than analysis time)
+          WAIT_SECONDS=$((ANALYSIS_SECONDS + ANALYSIS_SECONDS / 2))
+          WAIT_MINUTES=$((WAIT_SECONDS / 60))
+          
+          echo "📊 **Wait strategy**: ${WAIT_MINUTES} minutes (analysis: ${ANALYSIS_SECONDS}s + buffer)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Wait for VEX documents with dynamic timeout
+          for i in $(seq 1 $WAIT_MINUTES); do
+            echo "⏱️  Minute $i/$WAIT_MINUTES - $(date)"
             
             VEX_COUNT=$(kubectl get openvulnerabilityexchangecontainer -n kubescape 2>/dev/null | wc -l || echo "0")
             if [ "$VEX_COUNT" -gt 1 ]; then
@@ -274,11 +421,61 @@ jobs:
               break
             else
               echo "📄 No VEX documents generated yet..."
-              echo "⏱️ **Minute $i/5**: No VEX documents yet..." >> $GITHUB_STEP_SUMMARY
+              echo "⏱️ **Minute $i/$WAIT_MINUTES**: No VEX documents yet..." >> $GITHUB_STEP_SUMMARY
             fi
             
             sleep 60
           done
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📊 Collect background test results
+        run: |
+          echo "📊 Collecting background runtime test results..."
+          
+          echo "### 📊 Background Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check if background testing completed and collect results
+          if [ -f "background-test-stats.json" ]; then
+            CYCLES=$(jq -r '.cycles // 0' background-test-stats.json)
+            TOTAL_REQUESTS=$(jq -r '.total_requests // 0' background-test-stats.json)
+            TOTAL_SUCCESS=$(jq -r '.total_success // 0' background-test-stats.json)
+            SUCCESS_RATE=$(jq -r '.success_rate // 0' background-test-stats.json)
+            
+            echo "✅ **Background testing completed successfully**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎭 Background Test Results | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------------------------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔄 Test Cycles | $CYCLES |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📊 Total Requests | $TOTAL_REQUESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Successful Requests | $TOTAL_SUCCESS |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📈 Success Rate | ${SUCCESS_RATE}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎯 Test Coverage | Health, API, Security, Fuzzing, Load, Edge Cases |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+          elif [ -f "background-test.pid" ]; then
+            BACKGROUND_PID=$(cat background-test.pid)
+            if ps -p "$BACKGROUND_PID" > /dev/null 2>&1; then
+              echo "🔄 **Background testing still running, stopping gracefully...**" >> $GITHUB_STEP_SUMMARY
+              kill -TERM "$BACKGROUND_PID" 2>/dev/null || true
+              sleep 5
+              kill -KILL "$BACKGROUND_PID" 2>/dev/null || true
+            fi
+            
+            # Try to get partial results
+            if [ -f "background-test.log" ]; then
+              PARTIAL_CYCLES=$(grep -c "Test cycle" background-test.log || echo "0")
+              echo "⚠️ **Background testing stopped early**" >> $GITHUB_STEP_SUMMARY
+              echo "📊 **Partial results**: $PARTIAL_CYCLES test cycles completed" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **Background testing did not complete**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "ℹ️ **No background testing was performed**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Background testing enhanced runtime behavior analysis for VEX generation**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: 📊 Extract runtime VEX documents
@@ -356,6 +553,13 @@ jobs:
           name: runtime-vex-${{ github.sha }}
           path: runtime.vex.json
           retention-days: 30
+
+      - name: 🧹 Cleanup Runtime Environment
+        if: always()
+        uses: ./.github/actions/runtime-analyzer
+        with:
+          action: "cleanup"
+          cluster-name: "feelgood-cluster"
 
       - name: 🎯 Complete Runtime VEX Phase
         run: |

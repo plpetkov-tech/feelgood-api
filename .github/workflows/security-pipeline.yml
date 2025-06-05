@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      vex-analysis-time:
+        description: 'VEX analysis runtime duration (e.g., "2m", "5m", "10m")'
+        required: false
+        default: '2m'
+        type: string
 
 # Grant all necessary permissions for called workflows
 permissions:
@@ -65,6 +71,7 @@ jobs:
       image-digest: ${{ needs.build-and-test.outputs.image-digest }}
       sbom-artifact: ${{ needs.build-and-test.outputs.sbom-artifact }}
       scan-artifact: ${{ needs.build-and-test.outputs.scan-artifact }}
+      vex-analysis-time: ${{ inputs.vex-analysis-time || '2m' }}
 
   # Phase 3: Final Attestation and Verification
   attestation-and-verify:
