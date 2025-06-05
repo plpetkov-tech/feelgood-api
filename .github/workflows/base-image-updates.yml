@@ -116,7 +116,7 @@ jobs:
           echo ""
           
           echo "📝 Detailed changes:"
-          git diff --no-pager
+          git --no-pager diff
           echo ""
           
           # Create a summary of the changes
