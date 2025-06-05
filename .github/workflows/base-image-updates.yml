@@ -163,6 +163,12 @@ jobs:
           echo ""
           echo "📝 Creating Pull Request..."
           
+          # Determine trigger info
+          TRIGGER_INFO="${{ github.event_name }}"
+          if [[ "${{ github.event.inputs.force_update }}" == "true" ]]; then
+            TRIGGER_INFO="$TRIGGER_INFO (forced)"
+          fi
+          
           # Create detailed PR body
           PR_BODY="## 🐳 Automated Base Image Updates
 
@@ -172,7 +178,7 @@ jobs:
             - **Updated Images**: $UPDATED_IMAGES
             - **Files Modified**: $CHANGED_FILES
             - **Update Date**: $(date)
-            - **Trigger**: ${{ github.event_name }}$(if [[ \"${{ github.event.inputs.force_update }}\" == \"true\" ]]; then echo \" (forced)\"; fi)
+            - **Trigger**: $TRIGGER_INFO
 
             ### 🔍 What Changed
             "
