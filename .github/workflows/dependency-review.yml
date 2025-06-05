@@ -38,9 +38,11 @@ jobs:
           python-version: '3.11'
       
       - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+        uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a
+        with:
+          version: "1.7.1"
+          virtualenvs-create: true
+          virtualenvs-in-project: true
       
       - name: Verify lock file integrity
         run: |
@@ -57,11 +59,8 @@ jobs:
       - name: Generate and check SBOM diff
         if: github.event_name == 'pull_request'
         run: |
-          # Install CycloneDX
-          poetry add --group dev cyclonedx-bom
-
-          # Generate SBOM for current branch
-          poetry run cyclonedx-py poetry -o current-sbom.json --of json
+          # Generate enhanced SBOM for current branch
+          poetry run python scripts/generate_sbom.py > current-sbom.json
 
           # Checkout base branch
           git checkout ${{ github.base_ref }}
@@ -69,8 +68,8 @@ jobs:
           # Install dependencies for base branch
           poetry install
 
-          # Generate SBOM for base branch
-          poetry run cyclonedx-py poetry -o base-sbom.json --of json
+          # Generate enhanced SBOM for base branch
+          poetry run python scripts/generate_sbom.py > base-sbom.json
 
           # Compare SBOMs
           echo "## SBOM Comparison" >> $GITHUB_STEP_SUMMARY

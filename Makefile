@@ -21,10 +21,8 @@ help:
 	@echo "  make verify-local  Verify attestations locally (requires IMAGE=...)"
 	@echo ""
 	@echo "📋 Documentation & Compliance:"
-	@echo "  make sbom          Generate basic SBOM"
-	@echo "  make sbom-enhanced Generate enhanced SBOM with build metadata"
-	@echo "  make vex           Generate basic VEX document"
-	@echo "  make vex-enhanced  Generate enhanced VEX document"
+	@echo "  make sbom          Generate SBOM with build metadata"
+	@echo "  make vex           Generate VEX document"
 	@echo "  make slsa-check    Check SLSA Level 3 compliance"
 	@echo ""
 	@echo "🐳 Docker:"
@@ -81,13 +79,6 @@ security-check:
 build:
 	docker build -t feelgood-api:latest .
 
-sbom:
-	poetry run cyclonedx-py poetry -o sbom.json --of json
-	@echo "SBOM generated: sbom.json"
-
-vex:
-	python scripts/generate_vex.py > vex.json
-	@echo "VEX document generated: vex.json"
 
 run:
 	docker run -p 8000:8000 feelgood-api:latest
@@ -97,24 +88,24 @@ clean:
 	find . -type f -name "*.pyc" -delete
 # Add to existing Makefile
 
-# Enhanced security targets
+# Security targets
 security-full: security-check sbom vex verify-local
 	@echo "✅ Full security pipeline completed"
 
-# Generate enhanced SBOM
-sbom-enhanced:
+# Generate SBOM with build metadata
+sbom:
 	poetry run python scripts/generate_sbom.py > sbom.json
-	@echo "Enhanced SBOM generated: sbom.json"
+	@echo "SBOM generated: sbom.json"
 
-# Generate dynamic VEX
-vex-enhanced:
-	@echo "🔍 Generating enhanced VEX document..."
+# Generate VEX document
+vex:
+	@echo "🔍 Generating VEX document..."
 	@if [ -f "trivy-results.json" ] && [ -f "sbom.json" ]; then \
 		python scripts/generate_vex.py --trivy-results trivy-results.json --sbom sbom.json --output vex.json; \
 	else \
 		python scripts/generate_vex.py --output vex.json; \
 	fi
-	@echo "✅ Enhanced VEX document generated: vex.json"
+	@echo "✅ VEX document generated: vex.json"
 
 # Run Trivy scan locally
 trivy-scan:
@@ -131,7 +122,7 @@ verify-local:
 	python scripts/verify_attestations.py $(IMAGE) --source-uri github.com/$$(git config --get remote.origin.url | sed 's/.*github.com[:\/]\([^.]*\).*/\1/')
 
 # SLSA compliance check
-slsa-check: sbom-enhanced vex-enhanced
+slsa-check: sbom vex
 	@echo "🎯 SLSA Level 3 Compliance Check:"
 	@echo "  ✅ Build process documented (Dockerfile, GitHub Actions)"
 	@echo "  ✅ Provenance generation enabled (SLSA generator)"

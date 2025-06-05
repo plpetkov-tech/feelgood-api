@@ -5341,7 +5341,7 @@
       "version": "1.1.0"
     },
     {
-      "bom-ref": "packageurl-python@0.16.0",
+      "bom-ref": "packageurl-python@0.17.0",
       "description": "A purl aka. Package URL parser and builder",
       "externalReferences": [
         {
@@ -5349,28 +5349,28 @@
           "hashes": [
             {
               "alg": "SHA-256",
-              "content": "5c3872638b177b0f1cf01c3673017b7b27ebee485693ae12a8bed70fa7fa7c35"
+              "content": "c2a8e48d7b393b18806fd096abe326260b3aed82a07eda6c6628689b36ba52c4"
             }
           ],
           "type": "distribution",
-          "url": "https://pypi.org/simple/packageurl-python/#packageurl_python-0.16.0-py3-none-any.whl"
+          "url": "https://pypi.org/simple/packageurl-python/#packageurl_python-0.17.0-py3-none-any.whl"
         },
         {
           "comment": "from legacy-api",
           "hashes": [
             {
               "alg": "SHA-256",
-              "content": "69e3bf8a3932fe9c2400f56aaeb9f86911ecee2f9398dbe1b58ec34340be365d"
+              "content": "3cc44a01c9549c237f14c34981bae1008eb57c858c0af9039f4f13091807e1f3"
             }
           ],
           "type": "distribution",
-          "url": "https://pypi.org/simple/packageurl-python/#packageurl_python-0.16.0.tar.gz"
+          "url": "https://pypi.org/simple/packageurl-python/#packageurl_python-0.17.0.tar.gz"
         }
       ],
       "name": "packageurl-python",
-      "purl": "pkg:pypi/packageurl-python@0.16.0",
+      "purl": "pkg:pypi/packageurl-python@0.17.0",
       "type": "library",
-      "version": "0.16.0"
+      "version": "0.17.0"
     },
     {
       "bom-ref": "packaging@25.0",
@@ -12202,7 +12202,7 @@
     },
     {
       "dependsOn": [
-        "packageurl-python@0.16.0",
+        "packageurl-python@0.17.0",
         "rich@14.0.0"
       ],
       "ref": "csaf-tool@0.3.2"
@@ -12211,7 +12211,7 @@
       "dependsOn": [
         "chardet@5.2.0",
         "cyclonedx-python-lib@9.1.0",
-        "packageurl-python@0.16.0",
+        "packageurl-python@0.17.0",
         "packaging@25.0",
         "pip-requirements-parser@32.0.1"
       ],
@@ -12222,7 +12222,7 @@
         "jsonschema@4.24.0",
         "license-expression@30.4.1",
         "lxml@5.4.0",
-        "packageurl-python@0.16.0",
+        "packageurl-python@0.17.0",
         "py-serializable@2.0.0",
         "sortedcontainers@2.4.0"
       ],
@@ -12335,7 +12335,7 @@
       "dependsOn": [
         "csaf-tool@0.3.2",
         "lib4sbom@0.8.4",
-        "packageurl-python@0.16.0"
+        "packageurl-python@0.17.0"
       ],
       "ref": "lib4vex@0.2.0"
     },
@@ -12372,7 +12372,7 @@
       "ref": "mypy@1.16.0"
     },
     {
-      "ref": "packageurl-python@0.16.0"
+      "ref": "packageurl-python@0.17.0"
     },
     {
       "ref": "packaging@25.0"
@@ -12622,7 +12622,7 @@
         }
       ]
     },
-    "timestamp": "2025-06-04T16:56:59.124138",
+    "timestamp": "2025-06-05T09:30:03.062935",
     "tools": {
       "components": [
         {
@@ -12728,7 +12728,7 @@
     "properties": [
       {
         "name": "build.timestamp",
-        "value": "2025-06-04T16:56:59.124138"
+        "value": "2025-06-05T09:30:03.062935"
       },
       {
         "name": "build.tool",
@@ -12744,7 +12744,7 @@
       },
       {
         "name": "source.commit.sha",
-        "value": "5eac29c67f38586cca2919f7c8443133b3f0cfa9"
+        "value": "ed6d26b29115e3bd893edb8e6da20e71ba39ad68"
       },
       {
         "name": "source.repository.url",
@@ -12752,7 +12752,7 @@
       }
     ]
   },
-  "serialNumber": "urn:uuid:d58a2aa2-af99-433a-b81e-645278f47d1e",
+  "serialNumber": "urn:uuid:b6013c19-3272-4d39-9cf8-6bd3810af933",
   "version": 1,
   "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
   "bomFormat": "CycloneDX",

@@ -172,21 +172,36 @@ jobs:
             echo "new-vulnerabilities=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Generate SBOM (if missing)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a
+        with:
+          version: "1.7.1"
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      
+      - name: Install dependencies
+        run: poetry install
+      
+      - name: Generate enhanced SBOM (if missing)
         run: |
           if [ ! -f sbom.json ]; then
-            echo "📦 Generating Software Bill of Materials (SBOM)..."
-            echo "🎯 Target: ghcr.io/${{ github.repository }}:latest"
+            echo "📦 Generating enhanced Software Bill of Materials (SBOM)..."
+            echo "🎯 Target: Enhanced SBOM with SLSA metadata"
             
-            trivy image --format cyclonedx --output sbom.json \
-              ghcr.io/${{ github.repository }}:latest
+            poetry run python scripts/generate_sbom.py > sbom.json
             
-            echo "✅ SBOM generated successfully!"
+            echo "✅ Enhanced SBOM generated successfully!"
             
             # Quick SBOM analysis
             if [ -f sbom.json ]; then
               COMPONENT_COUNT=$(jq '.components | length' sbom.json 2>/dev/null || echo "0")
               echo "   📊 Components catalogued: $COMPONENT_COUNT"
+              echo "   🏗️ SBOM includes build metadata and SLSA context"
             fi
           else
             echo "✅ SBOM already exists, skipping generation"

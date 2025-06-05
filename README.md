@@ -26,7 +26,9 @@ with industry best practices and open standards.
 - **Automated verification** of signatures and provenance in CI
 
 **Relevant files:**
-- `.github/workflows/build-and-security.yml`
+- `.github/workflows/security-pipeline.yml` (main orchestrator)
+- `.github/workflows/build-and-test.yml` 
+- `.github/workflows/attestation-and-verify.yml`
 - `.github/workflows/slsa-provenance.yml`
 - `scripts/verify_attestations.py`
 - `Dockerfile`
@@ -41,8 +43,8 @@ with industry best practices and open standards.
 
 **Relevant files:**
 - `scripts/generate_sbom.py`
-- `sbom.json`, `sbom-deps.json`
-- `.github/workflows/build-and-security.yml`
+- `sbom.json`
+- `.github/workflows/build-and-test.yml`
 
 ---
 
@@ -54,8 +56,8 @@ with industry best practices and open standards.
 
 **Relevant files:**
 - `scripts/generate_vex.py`, `.vex/`, `.vex/README.md`
-- `.github/workflows/build-and-security.yml`, `.github/workflows/vex-integration.yml`
-- Example: `.vex/production/example.vex.json`
+- `.github/workflows/vex-analysis.yml`, `.github/workflows/vex-integration.yml`
+- `.vex/production/example.vex.json`, `.vex/validate-vex.sh`
 
 ---
 
@@ -66,8 +68,9 @@ with industry best practices and open standards.
 - **Automated lock refresh, update, and verification**
 
 **Relevant files:**
-- `scripts/generate_locks.sh`, `Makefile`
+- `Makefile` (see `refresh-locks`, `update-deps` targets)
 - `.github/workflows/dependency-review.yml`
+- `.github/workflows/security-monitoring.yml`
 
 ---
 
@@ -83,20 +86,18 @@ All security, compliance, and build tasks are managed via the Makefile. Here are
 - `make verify-lock` – Verify lock file integrity
 
 ### 🧪 Testing & Quality
-- `make test` – Run all tests
+- `make test` – Run tests with pytest
 - `make lint` – Run code formatters and type checks (black, mypy)
 
 ### 🔒 Security
 - `make security-check` – Run basic security checks (pip-audit)
-- `make security-full` – Run the full security pipeline: audit, SBOM, VEX, attestation verification
+- `make security-full` – Run the full security pipeline: audit, SBOM, VEX, verification
 - `make trivy-scan` – Run Trivy vulnerability scan (filesystem)
 - `make verify-local IMAGE=...` – Verify signatures and attestations locally for a given image
 
 ### 📋 Documentation & Compliance
-- `make sbom` – Generate a basic SBOM (CycloneDX)
-- `make sbom-enhanced` – Generate an enhanced SBOM with build metadata
-- `make vex` – Generate a basic VEX document
-- `make vex-enhanced` – Generate an enhanced VEX document (uses Trivy scan and SBOM if available)
+- `make sbom` – Generate SBOM with build metadata
+- `make vex` – Generate VEX document (uses Trivy scan and SBOM if available)
 - `make slsa-check` – Check SLSA Level 3 compliance (runs SBOM/VEX generation and prints compliance status)
 
 ### 🐳 Docker
@@ -127,20 +128,96 @@ make run
 
 ---
 
+## 🌐 API Endpoints
+
+The Feel Good API provides the following endpoints:
+
+- **`GET /`** - Root endpoint with API information
+- **`GET /health`** - Health check with build information and SLSA metadata
+- **`GET /phrase?category={category}`** - Get a random motivational phrase (optional category filter)
+- **`GET /phrases/categories`** - List all available phrase categories
+- **`GET /security`** - Security and supply chain information overview
+- **`GET /security/sbom`** - Software Bill of Materials (SBOM) in CycloneDX format
+- **`GET /security/vex`** - Vulnerability Exploitability eXchange (VEX) document
+- **`GET /security/provenance`** - SLSA provenance information
+
+**Interactive API docs:** Available at `/docs` when running the server.
+
+---
+
 ## 🗂️ VEX Document Management
-- `.vex/production/`: VEX from production runtime
+- `.vex/production/`: VEX documents from production runtime
+  - `example.vex.json`: Example production VEX document
 - `.vex/README.md`: Naming conventions, update instructions, OpenVEX format
-- VEX docs are validated with `vexctl` before commit
+- `.vex/validate-vex.sh`: Script to validate VEX documents with `vexctl`
+- `.vex/add-production-vex.sh`: Helper script for adding new production VEX documents
+- VEX docs are validated before commit and integrated into the CI/CD pipeline
 
 ---
 
 ## 🏗️ CI/CD Pipeline Overview
-- **Test & Scan**: Lint, test, pip-audit, Trivy
-- **Build**: Multi-stage Docker build, SBOM generation
-- **Attest & Sign**: Cosign signing, SLSA provenance, VEX attestation
-- **VEX Analysis**: Build-time and runtime VEX, consolidation, and artifact upload
-- **Verification**: Automated signature, provenance, and VEX verification
-- **Security Monitoring**: Scheduled scans and dependency reviews
+
+**Main Security Pipeline** (`security-pipeline.yml`) orchestrates a 3-phase SLSA Level 3 process:
+
+```mermaid
+flowchart TD
+    A[🚀 Push/PR Trigger] --> B[security-pipeline.yml]
+    
+    B --> C[📦 Phase 1: Build & Test]
+    C --> C1[🧪 Lint & Test]
+    C --> C2[🔍 Trivy Scan]
+    C --> C3[🏗️ Multi-platform Build<br/>linux/amd64, linux/arm64]
+    C --> C4[🩹 Copa Patching]
+    C --> C5[📋 Enhanced SBOM<br/>+ SLSA metadata]
+    C --> C6[✍️ Cosign Signing]
+    
+    C --> D[🔬 Phase 2: VEX Analysis]
+    D --> D1[📊 Build-time VEX<br/>Static Analysis]
+    D --> D2[⚡ Runtime VEX<br/>Kubescape + K8s]
+    D --> D3[🔄 VEX Consolidation<br/>OpenVEX Format]
+    
+    D --> E[🛡️ Phase 3: Attestation & Verification]
+    E --> E1[📜 SLSA Provenance<br/>slsa-provenance.yml]
+    E --> E2[🔐 VEX Attestation<br/>Signing & Attachment]
+    E --> E3[✅ Comprehensive<br/>Verification]
+    E --> E4[📤 SARIF Upload<br/>GitHub Security]
+    
+    F[⏰ security-monitoring.yml<br/>Scheduled Scans] --> B
+    G[🔍 dependency-review.yml<br/>PR Analysis] --> B
+    H[📝 vex-integration.yml<br/>Production VEX] --> D
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#f1f8e9
+    style G fill:#f1f8e9
+    style H fill:#fff8e1
+```
+
+**Phase 1: Build & Test** (`build-and-test.yml`)
+- Lint, test, vulnerability scanning with Trivy
+- Multi-platform container builds (linux/amd64, linux/arm64)  
+- Automatic patching with Copa (project-copacetic)
+- Enhanced SBOM generation with SLSA metadata
+- Container signing with Cosign
+
+**Phase 2: VEX Analysis** (`vex-analysis.yml`)
+- **Build-time VEX**: Static analysis from container scans
+- **Runtime VEX**: Dynamic analysis using Kubescape in ephemeral K8s clusters
+- VEX consolidation and OpenVEX format compliance
+
+**Phase 3: Attestation & Verification** (`attestation-and-verify.yml`)
+- SLSA Level 3 provenance generation (`slsa-provenance.yml`)
+- VEX attestation signing and attachment
+- Comprehensive verification of all signatures and attestations
+- SARIF upload to GitHub Security tab
+
+**Additional Workflows:**
+- **Security Monitoring** (`security-monitoring.yml`): Scheduled scans
+- **Dependency Review** (`dependency-review.yml`): PR dependency analysis
+- **VEX Integration** (`vex-integration.yml`): Production VEX processing
 
 ---
 
