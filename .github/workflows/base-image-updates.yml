@@ -147,7 +147,7 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           
           # Add and commit changes (exclude log files)
-          git add Dockerfile* **/Dockerfile*
+          git add Dockerfile
           git commit -m "🐳 Update Docker base images to latest SHA digests
           - Updated $UPDATED_IMAGES base image(s) to latest available versions
           - Files modified: $CHANGED_FILES
