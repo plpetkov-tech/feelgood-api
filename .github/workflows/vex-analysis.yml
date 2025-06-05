@@ -149,10 +149,14 @@ jobs:
         echo "🔧 Generating build-time VEX document..."
         IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
         
+        # Get commit author for VEX document
+        COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
+        
         python scripts/generate_vex.py \
           --trivy-results container-scan.json \
           --sbom sbom.json \
           --image-ref "$IMAGE_REF" \
+          --author "$COMMIT_AUTHOR" \
           --output build-time.vex.json
         
         echo "### 🔧 Build-time VEX Generation" >> $GITHUB_STEP_SUMMARY
@@ -291,12 +295,13 @@ jobs:
             echo "🔧 **Creating placeholder runtime VEX document...**" >> $GITHUB_STEP_SUMMARY
             
             IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
+            COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
             
             cat > runtime.vex.json << EOF
           {
             "@context": "https://openvex.dev/ns/v0.2.0",
             "@id": "https://openvex.dev/docs/public/vex-runtime-$(date +%Y%m%d%H%M%S)",
-            "author": "Kubescape Runtime Analysis",
+            "author": "$COMMIT_AUTHOR",
             "timestamp": "$(date -Iseconds)",
             "version": 1,
             "statements": [

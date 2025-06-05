@@ -39,11 +39,12 @@ runs:
               echo "✅ **Started with build-time VEX**" >> $GITHUB_STEP_SUMMARY
             else
               echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
+              COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
               cat > "${{ inputs.output }}" << EOF
         {
           "@context": "https://openvex.dev/ns/v0.2.0",
           "@id": "https://openvex.dev/docs/public/vex-build-$(date +%Y%m%d%H%M%S)",
-          "author": "FeelGood API Security Team",
+          "author": "$COMMIT_AUTHOR",
           "timestamp": "$(date -Iseconds)",
           "version": 1,
           "statements": []
@@ -91,11 +92,12 @@ runs:
               echo "✅ **Started with build-time consolidated VEX**" >> $GITHUB_STEP_SUMMARY
             else
               echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
+              COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
               cat > "${{ inputs.output }}" << EOF
         {
           "@context": "https://openvex.dev/ns/v0.2.0",
           "@id": "https://openvex.dev/docs/public/vex-final-$(date +%Y%m%d%H%M%S)",
-          "author": "FeelGood API Security Team",
+          "author": "$COMMIT_AUTHOR",
           "timestamp": "$(date -Iseconds)",
           "version": 1,
           "statements": []
