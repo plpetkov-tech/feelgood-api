@@ -17,7 +17,7 @@ inputs:
   timeout:
     description: 'Timeout for operations in seconds'
     required: false
-    default: '300'
+    default: '600'
 
 runs:
   using: 'composite'

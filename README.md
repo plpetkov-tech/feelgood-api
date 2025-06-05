@@ -1,10 +1,12 @@
-# 🛡️ FeelGood API – Supply Chain Security & DevSecOps Showcase
+# 🛡️ FeelGood API – SLSA Level 3 Supply Chain Security Showcase
 
-Welcome to the **FeelGood API**! While the API itself is a simple motivational phrase service, this repository is a real-world demonstration of modern, end-to-end supply chain security, SLSA compliance, and DevSecOps automation.
+**A production-ready demonstration of modern DevSecOps and supply chain security.**
+
+While the API itself is a simple motivational phrase service, this repository showcases a **complete SLSA Level 3 implementation** with build-time + runtime vulnerability analysis, comprehensive attestation, and automated security verification.
 
 ---
 
-## 🚦 What Makes This Project Special?
+## 🎯 Why This Project Matters
 
 This repo is not just about code – it’s about **trust**. Every artifact, dependency, and workflow is:
 - **Audited**
