@@ -1,0 +1,23 @@
+[0;34mDocker Base Image Update Script[0m
+===============================
+
+🔍 Finding Dockerfiles...
+Found 1 Dockerfile(s):
+  ./Dockerfile
+
+[1;33m🔍 DRY RUN MODE - No changes will be made[0m
+
+[0;34mProcessing: ./Dockerfile[0m
+  📦 Line 2: Found image python:3.11-slim
+  🔍 Checking python:3.11-slim for updates...     [0;32m✓ Latest digest available[0m
+    📝 Update available:
+      Current: python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c
+      Latest:  python:3.11-slim@sha256:7a3ed1226224bcc1fe5443262363d42f48cf832a540c1836ba8ccbeaadf8637c
+    [1;33mWOULD CHANGE:[0m
+      FROM: FROM python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c as builder
+      TO:   FROM python:3.11-slim@sha256:7a3ed1226224bcc1fe5443262363d42f48cf832a540c1836ba8ccbeaadf8637c as builder
+  📦 Line 21: Found image gcr.io/distroless/python3-debian12:nonroot
+  🔍 Checking gcr.io/distroless/python3-debian12:nonroot for updates...     [0;32m✓ Latest digest available[0m
+    ✅ Already using latest digest
+
+[1;33m🔍 Dry run completed. Use without --dry-run to apply changes.[0m
