@@ -161,7 +161,66 @@ scripts/
 ├── compare_scans.py              # Vulnerability comparison
 ├── verify_attestations.py       # Local verification
 ├── sbom_diff.py                 # SBOM comparison
-└── fix_vex_timestamps.sh        # VEX timestamp correction
+├── fix_vex_timestamps.sh        # VEX timestamp correction
+└── pin-and-upgrader-gh-actions.sh # GitHub Actions pinning and upgrading
+```
+
+### GitHub Actions Pinning Script
+
+The `pin-and-upgrader-gh-actions.sh` script is crucial for maintaining supply chain security by pinning GitHub Actions to their SHA commits instead of using mutable tag references.
+
+**What it does:**
+- **Pins Actions**: Converts `uses: actions/checkout@v4` to `uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608`
+- **Upgrades Actions**: Checks for newer versions and updates pinned actions to latest SHA digests
+- **Bulk Processing**: Handles all `.github/**/*.yml` and `.github/**/*.yaml` files automatically
+
+**Usage Examples:**
+
+```bash
+# Make the script executable
+chmod +x scripts/pin-and-upgrader-gh-actions.sh
+
+# Preview what would be changed (safe)
+./scripts/pin-and-upgrader-gh-actions.sh --dry-run
+
+# Pin all GitHub Actions to their current SHA digests
+./scripts/pin-and-upgrader-gh-actions.sh --yes
+
+# Check for upgrades and preview changes
+./scripts/pin-and-upgrader-gh-actions.sh --upgrade --dry-run
+
+# Auto-upgrade all actions to latest versions
+./scripts/pin-and-upgrader-gh-actions.sh --upgrade --yes
+
+# Interactive mode (prompts for each change)
+./scripts/pin-and-upgrader-gh-actions.sh --upgrade
+```
+
+**Why Pin GitHub Actions?**
+- **Supply Chain Security**: Prevents malicious updates to third-party actions
+- **SLSA Level 3 Compliance**: Required for build integrity verification
+- **Reproducible Builds**: Ensures consistent CI/CD behavior
+- **Audit Trail**: Clear record of exactly which code versions were used
+
+**Setting up GitHub Token (Optional but Recommended):**
+```bash
+# Set GitHub token to avoid rate limiting
+export GITHUB_TOKEN="your_github_token_here"
+
+# Or pass it directly
+./scripts/pin-and-upgrader-gh-actions.sh --token your_github_token_here --upgrade
+```
+
+**Recommended Workflow:**
+1. **Initial Setup**: Pin all actions when setting up the repository
+2. **Monthly Maintenance**: Check for upgrades and review changes
+3. **Security Updates**: Run immediately when security advisories are published
+
+```bash
+# Monthly maintenance routine
+./scripts/pin-and-upgrader-gh-actions.sh --upgrade --dry-run
+# Review the proposed changes
+./scripts/pin-and-upgrader-gh-actions.sh --upgrade --yes
 ```
 
 ## Required Dependencies
@@ -195,22 +254,95 @@ The workflows automatically install these tools:
 
 ## Application Requirements
 
-### 1. Dockerfile
+### 1. Dockerfile with Pinned Base Images
 
-Your application must have a `Dockerfile` for containerization. Example:
+Your application must have a `Dockerfile` for containerization. **CRITICAL**: For SLSA Level 3 compliance and supply chain security, you MUST pin base images to their SHA256 digests, not just tags.
+
+**Example Dockerfile with pinned images:**
 
 ```dockerfile
-FROM python:3.11-slim
+# Multi-stage build for security and minimal size
+FROM python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c as builder
+
+# Install only essential build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+WORKDIR /build
+
+# Copy dependency files first for better caching
+COPY requirements-lock.txt ./
+RUN pip install --no-cache-dir --user -r requirements-lock.txt
+
+# Copy and prepare source code
+COPY src/ ./src/
+
+# Final stage - use Google's distroless image for minimal attack surface
+FROM gcr.io/distroless/python3-debian12:nonroot@sha256:4f8b42850389c3d3fc274df755d956448b81d4996d5328551893070e16616f1c
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /home/nonroot/.local
+
+# Copy application code
+COPY --from=builder /build/src /app/src
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ ./src/
+# Set Python path for user-installed packages
+ENV PATH=/home/nonroot/.local/bin:$PATH
+ENV PYTHONPATH=/app
+
+# Use distroless non-root user (UID 65532)
+USER nonroot
+
+# Expose port
 EXPOSE 8000
 
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Add security labels
+LABEL org.opencontainers.image.source="https://github.com/your-username/your-repo"
+LABEL org.opencontainers.image.description="Your App - Ultra-Minimal Secure Build"
+LABEL org.opencontainers.image.licenses="MIT"
+
+# Run application
+ENTRYPOINT ["python", "-m", "uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
+
+**How to Pin Base Images to SHA Digests:**
+
+1. **Find the current digest for your base image:**
+   ```bash
+   # Pull the image you want to use
+   docker pull python:3.11-slim
+   
+   # Get the digest
+   docker inspect python:3.11-slim --format='{{index .RepoDigests 0}}'
+   # Output: python@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c
+   ```
+
+2. **Update your Dockerfile:**
+   ```dockerfile
+   # Instead of:
+   FROM python:3.11-slim
+   
+   # Use:
+   FROM python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c
+   ```
+
+3. **For distroless images:**
+   ```bash
+   # Pull and inspect distroless images
+   docker pull gcr.io/distroless/python3-debian12:nonroot
+   docker inspect gcr.io/distroless/python3-debian12:nonroot --format='{{index .RepoDigests 0}}'
+   ```
+
+**Why Pin Base Images?**
+- **Supply Chain Security**: Prevents malicious updates to base images
+- **SLSA Level 3 Compliance**: Required for provenance verification
+- **Reproducible Builds**: Ensures consistent builds across environments
+- **Vulnerability Management**: VEX documents can accurately track base image CVEs
 
 ### 2. Application Structure
 
@@ -333,6 +465,21 @@ cat cosign.pub | head -1  # Should be: -----BEGIN PUBLIC KEY-----
 - Ensure all required scripts are copied to your repository
 - Verify Python dependencies are properly specified
 - Check that external actions are accessible
+- Run `./scripts/pin-and-upgrader-gh-actions.sh --dry-run` to verify all actions can be resolved
+
+**5. Base Image Issues:**
+- Verify base image digests are current and accessible
+- Check that pinned digests match expected images:
+  ```bash
+  # Verify a pinned digest
+  docker pull python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c
+  docker inspect python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c
+  ```
+
+**6. Action Pinning Issues:**
+- If actions fail to resolve, check GitHub API rate limits
+- Use GitHub token: `export GITHUB_TOKEN="your_token"`
+- Verify action repository exists and is accessible
 
 ### Debug Commands
 
@@ -383,10 +530,30 @@ gh auth status
 ## Support and Maintenance
 
 ### Regular Tasks
-- **Weekly**: Review security monitoring reports
-- **Monthly**: Update dependencies and base images
-- **Quarterly**: Rotate cosign keys and review access permissions
-- **As needed**: Update workflow files when new security tools are available
+
+**Weekly Tasks:**
+- Review security monitoring reports
+- Check for new vulnerability alerts in GitHub Security tab
+
+**Monthly Tasks:**
+- Update dependencies and base images with new SHA digests
+- Run GitHub Actions upgrade script: `./scripts/pin-and-upgrader-gh-actions.sh --upgrade`
+- Review and update base image pins in Dockerfile:
+  ```bash
+  # Check for new base image versions
+  docker pull python:3.11-slim
+  docker inspect python:3.11-slim --format='{{index .RepoDigests 0}}'
+  # Update Dockerfile with new digest if needed
+  ```
+
+**Quarterly Tasks:**
+- Rotate cosign keys and review access permissions
+- Full security audit of pinned dependencies and actions
+- Update workflow files when new security tools are available
+
+**As Needed:**
+- Run GitHub Actions pinning script after security advisories: `./scripts/pin-and-upgrader-gh-actions.sh --upgrade --yes`
+- Update base image digests when critical CVEs are patched
 
 ### Updates
 - Monitor this repository for updates to workflow files
