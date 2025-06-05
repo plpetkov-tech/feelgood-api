@@ -1,5 +1,5 @@
 # Multi-stage build for security and minimal size
-FROM python:3.11-slim@sha256:dbf1de478a55d6763afaa39c2f3d7b54b25230614980276de5cacdde79529d0c as builder
+FROM python:3.11-slim@sha256:7a3ed1226224bcc1fe5443262363d42f48cf832a540c1836ba8ccbeaadf8637c as builder
 
 # Install only essential build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
