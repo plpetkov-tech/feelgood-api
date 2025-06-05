@@ -227,9 +227,6 @@ jobs:
             --body "$PR_BODY" \
             --head "$BRANCH_NAME" \
             --base main \
-            --label "dependencies" \
-            --label "security" \
-            --label "automated" \
             && echo "✅ Pull request created successfully!" \
             || {
               echo "❌ Failed to create pull request"
