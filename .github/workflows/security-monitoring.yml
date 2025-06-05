@@ -286,7 +286,13 @@ jobs:
               --head "$BRANCH_NAME" \
               --base main \
               && echo "✅ Pull request created successfully!" \
-              || echo "❌ PR creation failed or already exists"
+              || {
+                echo "❌ PR creation failed - GitHub Actions bot cannot create PRs by default"
+                echo "📋 Manual action required:"
+                echo "   1. Go to: https://github.com/${{ github.repository }}/pull/new/$BRANCH_NAME"
+                echo "   2. Or enable 'Allow GitHub Actions to create and approve pull requests' in repository settings"
+                echo "   3. Branch '$BRANCH_NAME' is ready for PR creation"
+              }
               
           else
             echo "❌ Failed to generate VEX document"
