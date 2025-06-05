@@ -1,0 +1,292 @@
+# .github/workflows/base-image-updates.yml
+name: Base Image Updates
+
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM UTC
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if current images are recent'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  check-base-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2
+        with:
+          version: latest
+          driver-opts: image=moby/buildkit:buildx-stable-1
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Check for base image updates
+        id: check-updates
+        run: |
+          echo "🔍 Checking for base image updates..."
+          echo ""
+          
+          # Determine if this is a force update
+          FORCE_FLAG=""
+          if [[ "${{ github.event.inputs.force_update }}" == "true" ]]; then
+            FORCE_FLAG="--force"
+            echo "🔧 Force update mode enabled"
+          fi
+          
+          # Run the update script in dry-run mode first to see what would change
+          echo "📋 Checking what updates are available..."
+          ./scripts/update-base-images.sh --dry-run $FORCE_FLAG > update-check.log 2>&1 || true
+          
+          # Display the dry-run results
+          cat update-check.log
+          echo ""
+          
+          # Check if any updates would be made
+          if grep -q "WOULD CHANGE:" update-check.log; then
+            echo "✅ Updates are available!"
+            echo "updates-available=true" >> $GITHUB_OUTPUT
+            
+            # Extract summary of what would be updated
+            SUMMARY=$(grep -A 1 "WOULD CHANGE:" update-check.log | head -10 || echo "Base image updates available")
+            echo "update-summary<<EOF" >> $GITHUB_OUTPUT
+            echo "$SUMMARY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ No updates available"
+            echo "updates-available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Apply base image updates
+        if: steps.check-updates.outputs.updates-available == 'true'
+        run: |
+          echo "🔄 Applying base image updates..."
+          echo ""
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Determine force flag
+          FORCE_FLAG=""
+          if [[ "${{ github.event.inputs.force_update }}" == "true" ]]; then
+            FORCE_FLAG="--force"
+          fi
+          
+          # Apply the updates
+          ./scripts/update-base-images.sh --yes $FORCE_FLAG
+          
+          echo ""
+          echo "✅ Base image updates applied successfully!"
+
+      - name: Verify changes and create summary
+        if: steps.check-updates.outputs.updates-available == 'true'
+        id: verify-changes
+        run: |
+          echo "🔍 Verifying changes made to Dockerfiles..."
+          echo ""
+          
+          # Check if any files were actually changed
+          if git diff --quiet; then
+            echo "ℹ️ No changes were made to tracked files"
+            echo "changes-made=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "📋 Files changed:"
+          git diff --name-only
+          echo ""
+          
+          echo "📝 Detailed changes:"
+          git diff --no-pager
+          echo ""
+          
+          # Create a summary of the changes
+          CHANGED_FILES=$(git diff --name-only | tr '\n' ' ')
+          echo "changed-files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "changes-made=true" >> $GITHUB_OUTPUT
+          
+          # Count how many FROM lines were updated
+          UPDATED_IMAGES=$(git diff | grep "^-FROM\|^+FROM" | wc -l)
+          UPDATED_IMAGES=$((UPDATED_IMAGES / 2)) # Divide by 2 since each change shows as - and +
+          echo "updated-images=$UPDATED_IMAGES" >> $GITHUB_OUTPUT
+          
+          # Get current date for branch naming
+          BRANCH_NAME="base-images/update-$(date +%Y%m%d-%H%M%S)"
+          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create pull request
+        if: steps.verify-changes.outputs.changes-made == 'true'
+        run: |
+          echo "🌿 Creating pull request for base image updates..."
+          echo ""
+          
+          BRANCH_NAME="${{ steps.verify-changes.outputs.branch-name }}"
+          UPDATED_IMAGES="${{ steps.verify-changes.outputs.updated-images }}"
+          CHANGED_FILES="${{ steps.verify-changes.outputs.changed-files }}"
+          
+          # Create new branch
+          git checkout -b "$BRANCH_NAME"
+          
+          # Add and commit changes
+          git add .
+          git commit -m "🐳 Update Docker base images to latest SHA digests
+
+- Updated $UPDATED_IMAGES base image(s) to latest available versions
+- Files modified: $CHANGED_FILES
+- Automated update ensures latest security patches and improvements
+- All images pinned to specific SHA digests for supply chain security
+
+Generated by base-image-updates workflow on $(date)"
+          
+          # Push the branch
+          git push origin "$BRANCH_NAME"
+          echo "✅ Branch pushed successfully: $BRANCH_NAME"
+          
+          echo ""
+          echo "📝 Creating Pull Request..."
+          
+          # Create detailed PR body
+          PR_BODY="## 🐳 Automated Base Image Updates
+
+This automated pull request updates Docker base images to their latest SHA digests to ensure we're using the most recent versions with security patches and improvements.
+
+### 📊 Update Summary
+- **Updated Images**: $UPDATED_IMAGES
+- **Files Modified**: $CHANGED_FILES
+- **Update Date**: $(date)
+- **Trigger**: ${{ github.event_name }}$(if [[ \"${{ github.event.inputs.force_update }}\" == \"true\" ]]; then echo \" (forced)\"; fi)
+
+### 🔍 What Changed
+"
+          
+          # Add diff details to PR body
+          PR_BODY="$PR_BODY
+\`\`\`diff
+$(git diff HEAD~1 | head -50)
+\`\`\`
+"
+          
+          if [[ $(git diff HEAD~1 | wc -l) -gt 50 ]]; then
+            PR_BODY="$PR_BODY
+*(Diff truncated - see full changes in the Files Changed tab)*
+"
+          fi
+          
+          PR_BODY="$PR_BODY
+
+### 🛡️ Security Benefits
+- **Latest Security Patches**: Updated base images include the latest security fixes
+- **Supply Chain Security**: All images pinned to specific SHA digests
+- **SLSA Level 3 Compliance**: Maintains build reproducibility and integrity
+- **Vulnerability Management**: VEX documents will accurately track any new CVEs
+
+### 🧪 Testing Recommendations
+1. ✅ Security pipeline will automatically run to validate changes
+2. ✅ Container builds will be tested with new base images
+3. ✅ Vulnerability scans will check for any new issues
+4. 🔧 Manual testing recommended for application functionality
+
+### 📋 Review Checklist
+- [ ] Review the specific image updates in the Files Changed tab
+- [ ] Verify that security pipeline passes successfully
+- [ ] Check for any new vulnerabilities in scan results
+- [ ] Test application functionality if significant base image changes
+- [ ] Merge once all checks pass
+
+---
+🤖 *This PR was automatically created by the base-image-updates workflow*
+🔄 *Next automatic check: $(date -d 'next monday 2:00' '+%Y-%m-%d at %H:%M UTC')*"
+          
+          # Create the pull request
+          gh pr create \
+            --title "🐳 Update Docker base images ($(date +%Y-%m-%d))" \
+            --body "$PR_BODY" \
+            --head "$BRANCH_NAME" \
+            --base main \
+            --label "dependencies" \
+            --label "security" \
+            --label "automated" \
+            && echo "✅ Pull request created successfully!" \
+            || {
+              echo "❌ Failed to create pull request"
+              echo "📋 Manual action required:"
+              echo "   1. Go to: https://github.com/${{ github.repository }}/pull/new/$BRANCH_NAME"
+              echo "   2. Branch '$BRANCH_NAME' is ready for PR creation"
+              exit 1
+            }
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create workflow summary
+        if: always()
+        run: |
+          echo "# 🐳 Base Image Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository**: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event.inputs.force_update }}" == "true" ]]; then
+            echo "**Mode**: Force update" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.check-updates.outputs.updates-available }}" == "true" ]]; then
+            if [[ "${{ steps.verify-changes.outputs.changes-made }}" == "true" ]]; then
+              echo "## ✅ Updates Applied" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "- **Images Updated**: ${{ steps.verify-changes.outputs.updated-images }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Files Modified**: ${{ steps.verify-changes.outputs.changed-files }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Branch Created**: \`${{ steps.verify-changes.outputs.branch-name }}\`" >> $GITHUB_STEP_SUMMARY
+              echo "- **Pull Request**: Created automatically" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "### 📋 Next Steps" >> $GITHUB_STEP_SUMMARY
+              echo "1. Review the created pull request" >> $GITHUB_STEP_SUMMARY
+              echo "2. Wait for security pipeline to complete" >> $GITHUB_STEP_SUMMARY
+              echo "3. Merge the PR if all checks pass" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "## ⚠️ No Changes Made" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Updates were available but no changes were applied. This may indicate:" >> $GITHUB_STEP_SUMMARY
+              echo "- Current images are already recent enough" >> $GITHUB_STEP_SUMMARY
+              echo "- Script encountered issues during update" >> $GITHUB_STEP_SUMMARY
+              echo "- Manual review may be needed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "## ✅ No Updates Available" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All Docker base images are already using the latest available versions." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Next Check**: $(date -d 'next monday 2:00' '+%Y-%m-%d at %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*🤖 This summary was automatically generated by the base-image-updates workflow*" >> $GITHUB_STEP_SUMMARY
+
+      - name: Cleanup on failure
+        if: failure() && steps.verify-changes.outputs.branch-name != ''
+        run: |
+          echo "🧹 Cleaning up failed branch..."
+          git push origin --delete "${{ steps.verify-changes.outputs.branch-name }}" || true
+          echo "✅ Cleanup completed"
+        continue-on-error: true
