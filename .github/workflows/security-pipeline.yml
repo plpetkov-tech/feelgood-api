@@ -15,7 +15,7 @@ on:
 
 # Grant all necessary permissions for called workflows
 permissions:
-  contents: read
+  contents: write
   packages: write
   id-token: write
   attestations: write
