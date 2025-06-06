@@ -34,6 +34,7 @@ jobs:
     permissions:
       contents: write
       packages: read
+      security-events: write
     outputs:
       final-vex-artifact: ${{ steps.upload-final-vex.outputs.artifact-id }}
     steps:
