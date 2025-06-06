@@ -1,0 +1,1290 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "c271ddaebd7a9e93d695af12523c8aeb6463fc6b171fba5ffbd8f0eaea7728c7",
+  "author": "kubescape.io",
+  "last_updated": "2025-06-06T09:27:04+03:00",
+  "role": "smart vulnerability scanner :-)",
+  "statements": [
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2010-4756",
+        "aliases": [
+          "CVE-2010-4756"
+        ],
+        "description": "The glob implementation in the GNU C Library (aka glibc or libc6) allows remote authenticated users to cause a denial of service (CPU and memory consumption) via crafted glob expressions that do not match any pathnames, as demonstrated by glob expressions in STAT commands to an FTP daemon, a different vulnerability than CVE-2010-2632.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2010-4756"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2018-20796",
+        "aliases": [
+          "CVE-2018-20796"
+        ],
+        "description": "In the GNU C Library (aka glibc or libc6) through 2.29, check_dst_limits_calc_pos_1 in posix/regexec.c has Uncontrolled Recursion, as demonstrated by '(\\227|)(\\\\1\\\\1|t1|\\\\\\2537)+' in grep.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2018-20796"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libgssapi-krb5-2@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2018-5709",
+        "aliases": [
+          "CVE-2018-5709"
+        ],
+        "description": "An issue was discovered in MIT Kerberos 5 (aka krb5) through 1.16. There is a variable \"dbentry->n_key_data\" in kadmin/dbutil/dump.c that can store 16-bit data but unknowingly the developer has assigned a \"u4\" variable to it, which is for 32-bit data. An attacker can use this vulnerability to affect other artifacts of the database as we know that a Kerberos database dump file contains trusted data.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2018-5709"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libk5crypto3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2018-5709",
+        "aliases": [
+          "CVE-2018-5709"
+        ],
+        "description": "An issue was discovered in MIT Kerberos 5 (aka krb5) through 1.16. There is a variable \"dbentry->n_key_data\" in kadmin/dbutil/dump.c that can store 16-bit data but unknowingly the developer has assigned a \"u4\" variable to it, which is for 32-bit data. An attacker can use this vulnerability to affect other artifacts of the database as we know that a Kerberos database dump file contains trusted data.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2018-5709"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5-3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2018-5709",
+        "aliases": [
+          "CVE-2018-5709"
+        ],
+        "description": "An issue was discovered in MIT Kerberos 5 (aka krb5) through 1.16. There is a variable \"dbentry->n_key_data\" in kadmin/dbutil/dump.c that can store 16-bit data but unknowingly the developer has assigned a \"u4\" variable to it, which is for 32-bit data. An attacker can use this vulnerability to affect other artifacts of the database as we know that a Kerberos database dump file contains trusted data.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2018-5709"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5support0@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2018-5709",
+        "aliases": [
+          "CVE-2018-5709"
+        ],
+        "description": "An issue was discovered in MIT Kerberos 5 (aka krb5) through 1.16. There is a variable \"dbentry->n_key_data\" in kadmin/dbutil/dump.c that can store 16-bit data but unknowingly the developer has assigned a \"u4\" variable to it, which is for 32-bit data. An attacker can use this vulnerability to affect other artifacts of the database as we know that a Kerberos database dump file contains trusted data.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2018-5709"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2019-1010022",
+        "aliases": [
+          "CVE-2019-1010022"
+        ],
+        "description": "GNU Libc current is affected by: Mitigation bypass. The impact is: Attacker may bypass stack guard protection. The component is: nptl. The attack vector is: Exploit stack buffer overflow vulnerability and use this bypass vulnerability to bypass stack guard. NOTE: Upstream comments indicate \"this is being treated as a non-security bug and no real threat.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2019-1010022"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2019-1010023",
+        "aliases": [
+          "CVE-2019-1010023"
+        ],
+        "description": "GNU Libc current is affected by: Re-mapping current loaded library with malicious ELF file. The impact is: In worst case attacker may evaluate privileges. The component is: libld. The attack vector is: Attacker sends 2 ELF files to victim and asks to run ldd on it. ldd execute code. NOTE: Upstream comments indicate \"this is being treated as a non-security bug and no real threat.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2019-1010023"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2019-1010024",
+        "aliases": [
+          "CVE-2019-1010024"
+        ],
+        "description": "GNU Libc current is affected by: Mitigation bypass. The impact is: Attacker may bypass ASLR using cache of thread stack and heap. The component is: glibc. NOTE: Upstream comments indicate \"this is being treated as a non-security bug and no real threat.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2019-1010024"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2019-1010025",
+        "aliases": [
+          "CVE-2019-1010025"
+        ],
+        "description": "GNU Libc current is affected by: Mitigation bypass. The impact is: Attacker may guess the heap addresses of pthread_created thread. The component is: glibc. NOTE: the vendor's position is \"ASLR bypass itself is not a vulnerability.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2019-1010025"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2019-9192",
+        "aliases": [
+          "CVE-2019-9192"
+        ],
+        "description": "In the GNU C Library (aka glibc or libc6) through 2.29, check_dst_limits_calc_pos_1 in posix/regexec.c has Uncontrolled Recursion, as demonstrated by '(|)(\\\\1\\\\1)*' in grep, a different issue than CVE-2018-20796. NOTE: the software maintainer disputes that this is a vulnerability because the behavior occurs only with a crafted pattern",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2019-9192"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.40.1-2%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2021-45346",
+        "aliases": [
+          "CVE-2021-45346"
+        ],
+        "description": "A Memory Leak vulnerability exists in SQLite Project SQLite3 3.35.1 and 3.37.0 via maliciously crafted SQL Queries (made via editing the Database File), it is possible to query a record, and leak subsequent bytes of memory that extend beyond the record, which could let a malicious user obtain sensitive information. NOTE: The developer disputes this as a vulnerability stating that If you give SQLite a corrupted database file and submit a query against the database, it might read parts of the database that you did not intend or expect.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2021-45346"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libuuid1@2.38.1-5%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=util-linux"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2022-0563",
+        "aliases": [
+          "CVE-2022-0563"
+        ],
+        "description": "A flaw was found in the util-linux chfn and chsh utilities when compiled with Readline support. The Readline library uses an \"INPUTRC\" environment variable to get a path to the library config file. When the library cannot parse the specified file, it prints an error message containing data from the file. This flaw allows an unprivileged user to read root-owned files, potentially leading to privilege escalation. This flaw affects util-linux versions prior to 2.37.4.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2022-0563"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/gcc-12-base@12.2.0-14%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=gcc-12"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2022-27943",
+        "aliases": [
+          "CVE-2022-27943"
+        ],
+        "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2022-27943"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libgcc-s1@12.2.0-14%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=gcc-12"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2022-27943",
+        "aliases": [
+          "CVE-2022-27943"
+        ],
+        "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2022-27943"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libgomp1@12.2.0-14%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=gcc-12"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2022-27943",
+        "aliases": [
+          "CVE-2022-27943"
+        ],
+        "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2022-27943"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libstdc%2B%2B6@12.2.0-14%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=gcc-12"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2022-27943",
+        "aliases": [
+          "CVE-2022-27943"
+        ],
+        "description": "libiberty/rust-demangle.c in GNU GCC 11.2 allows stack consumption in demangle_const, as demonstrated by nm-new.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2022-27943"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/zlib1g@1:1.2.13.dfsg-1?arch=amd64&distro=debian-12&upstream=zlib"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2023-45853",
+        "aliases": [
+          "CVE-2023-45853"
+        ],
+        "description": "MiniZip in zlib through 1.3 has an integer overflow and resultant heap-based buffer overflow in zipOpenNewFileInZip4_64 via a long filename, comment, or extra field. NOTE: MiniZip is not a supported part of the zlib product. NOTE: pyminizip through 0.2.6 is also vulnerable because it bundles an affected zlib version, and exposes the applicable MiniZip code through its compress API.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2023-45853"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libncursesw6@6.4-4?arch=amd64&distro=debian-12&upstream=ncurses"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2023-50495",
+        "aliases": [
+          "CVE-2023-50495"
+        ],
+        "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2023-50495"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libtinfo6@6.4-4?arch=amd64&distro=debian-12&upstream=ncurses"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2023-50495",
+        "aliases": [
+          "CVE-2023-50495"
+        ],
+        "description": "NCurse v6.4-20230418 was discovered to contain a segmentation fault via the component _nc_wrap_entry().",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2023-50495"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1@2.5.0-1%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=expat"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2023-52425",
+        "aliases": [
+          "CVE-2023-52425"
+        ],
+        "description": "libexpat through 2.5.0 allows a denial of service (resource consumption) because many full reparsings are required in the case of a large token for which multiple buffer fills are needed.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2023-52425"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1@2.5.0-1%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=expat"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2023-52426",
+        "aliases": [
+          "CVE-2023-52426"
+        ],
+        "description": "libexpat through 2.5.0 allows recursive XML Entity Expansion if XML_DTD is undefined at compile time.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2023-52426"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2024-12718",
+        "aliases": [
+          "CVE-2024-12718"
+        ],
+        "description": "Allows modifying some file metadata (e.g. last modified) with filter=\"data\" or file permissions (chmod) with filter=\"tar\" of files outside the extraction directory. You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-12718"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-stdlib@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2024-12718",
+        "aliases": [
+          "CVE-2024-12718"
+        ],
+        "description": "Allows modifying some file metadata (e.g. last modified) with filter=\"data\" or file permissions (chmod) with filter=\"tar\" of files outside the extraction directory. You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-12718"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/python3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-12718",
+        "aliases": [
+          "CVE-2024-12718"
+        ],
+        "description": "Allows modifying some file metadata (e.g. last modified) with filter=\"data\" or file permissions (chmod) with filter=\"tar\" of files outside the extraction directory. You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-12718"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libgssapi-krb5-2@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26458",
+        "aliases": [
+          "CVE-2024-26458"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak in /krb5/src/lib/rpc/pmap_rmt.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26458"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libk5crypto3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26458",
+        "aliases": [
+          "CVE-2024-26458"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak in /krb5/src/lib/rpc/pmap_rmt.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26458"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5-3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26458",
+        "aliases": [
+          "CVE-2024-26458"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak in /krb5/src/lib/rpc/pmap_rmt.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26458"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5support0@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26458",
+        "aliases": [
+          "CVE-2024-26458"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak in /krb5/src/lib/rpc/pmap_rmt.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26458"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libgssapi-krb5-2@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26461",
+        "aliases": [
+          "CVE-2024-26461"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak vulnerability in /krb5/src/lib/gssapi/krb5/k5sealv3.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26461"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libk5crypto3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26461",
+        "aliases": [
+          "CVE-2024-26461"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak vulnerability in /krb5/src/lib/gssapi/krb5/k5sealv3.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26461"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5-3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26461",
+        "aliases": [
+          "CVE-2024-26461"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak vulnerability in /krb5/src/lib/gssapi/krb5/k5sealv3.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26461"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5support0@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2024-26461",
+        "aliases": [
+          "CVE-2024-26461"
+        ],
+        "description": "Kerberos 5 (aka krb5) 1.21.2 contains a memory leak vulnerability in /krb5/src/lib/gssapi/krb5/k5sealv3.c.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-26461"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1@2.5.0-1%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=expat"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2024-28757",
+        "aliases": [
+          "CVE-2024-28757"
+        ],
+        "description": "libexpat through 2.6.1 allows an XML Entity Expansion attack when there is isolated use of external parsers (created via XML_ExternalEntityParserCreate).",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-28757"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1@2.5.0-1%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=expat"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2024-50602",
+        "aliases": [
+          "CVE-2024-50602"
+        ],
+        "description": "An issue was discovered in libexpat before 2.6.4. There is a crash within the XML_ResumeParser function because XML_StopParser can stop/suspend an unstarted parser.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-50602"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libexpat1@2.5.0-1%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=expat"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2024-8176",
+        "aliases": [
+          "CVE-2024-8176"
+        ],
+        "description": "A stack overflow vulnerability exists in the libexpat library due to the way it handles recursive entity expansion in XML documents. When parsing an XML document with deeply nested entity references, libexpat can be forced to recurse indefinitely, exhausting the stack space and causing a crash. This issue could lead to denial of service (DoS) or, in some cases, exploitable memory corruption, depending on the environment and library usage.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2024-8176"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libsqlite3-0@3.40.1-2%2Bdeb12u1?arch=amd64&distro=debian-12&upstream=sqlite3"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-29088",
+        "aliases": [
+          "CVE-2025-29088"
+        ],
+        "description": "In SQLite 3.49.0 before 3.49.1, certain argument values to sqlite3_db_config (in the C-language API) can cause a denial of service (application crash). An sz*nBig multiplication is not cast to a 64-bit integer, and consequently some memory allocations may be incorrect.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-29088"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libgssapi-krb5-2@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-3576",
+        "aliases": [
+          "CVE-2025-3576"
+        ],
+        "description": "A vulnerability in the MIT Kerberos implementation allows GSSAPI-protected messages using RC4-HMAC-MD5 to be spoofed due to weaknesses in the MD5 checksum design. If RC4 is preferred over stronger encryption types, an attacker could exploit MD5 collisions to forge message integrity codes. This may lead to unauthorized message tampering.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-3576"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libk5crypto3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-3576",
+        "aliases": [
+          "CVE-2025-3576"
+        ],
+        "description": "A vulnerability in the MIT Kerberos implementation allows GSSAPI-protected messages using RC4-HMAC-MD5 to be spoofed due to weaknesses in the MD5 checksum design. If RC4 is preferred over stronger encryption types, an attacker could exploit MD5 collisions to forge message integrity codes. This may lead to unauthorized message tampering.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-3576"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5-3@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-3576",
+        "aliases": [
+          "CVE-2025-3576"
+        ],
+        "description": "A vulnerability in the MIT Kerberos implementation allows GSSAPI-protected messages using RC4-HMAC-MD5 to be spoofed due to weaknesses in the MD5 checksum design. If RC4 is preferred over stronger encryption types, an attacker could exploit MD5 collisions to forge message integrity codes. This may lead to unauthorized message tampering.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-3576"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libkrb5support0@1.20.1-2%2Bdeb12u3?arch=amd64&distro=debian-12&upstream=krb5"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-3576",
+        "aliases": [
+          "CVE-2025-3576"
+        ],
+        "description": "A vulnerability in the MIT Kerberos implementation allows GSSAPI-protected messages using RC4-HMAC-MD5 to be spoofed due to weaknesses in the MD5 checksum design. If RC4 is preferred over stronger encryption types, an attacker could exploit MD5 collisions to forge message integrity codes. This may lead to unauthorized message tampering.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-3576"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4138",
+        "aliases": [
+          "CVE-2025-4138"
+        ],
+        "description": "Allows the extraction filter to be ignored, allowing symlink targets to point outside the destination directory, and the modification of some file metadata.   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4138"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-stdlib@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4138",
+        "aliases": [
+          "CVE-2025-4138"
+        ],
+        "description": "Allows the extraction filter to be ignored, allowing symlink targets to point outside the destination directory, and the modification of some file metadata.   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4138"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/python3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4138",
+        "aliases": [
+          "CVE-2025-4138"
+        ],
+        "description": "Allows the extraction filter to be ignored, allowing symlink targets to point outside the destination directory, and the modification of some file metadata.   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4138"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4330",
+        "aliases": [
+          "CVE-2025-4330"
+        ],
+        "description": "Allows the extraction filter to be ignored, allowing symlink targets to point outside the destination directory, and the modification of some file metadata.   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4330"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-stdlib@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4330",
+        "aliases": [
+          "CVE-2025-4330"
+        ],
+        "description": "Allows the extraction filter to be ignored, allowing symlink targets to point outside the destination directory, and the modification of some file metadata.   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4330"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/python3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4330",
+        "aliases": [
+          "CVE-2025-4330"
+        ],
+        "description": "Allows the extraction filter to be ignored, allowing symlink targets to point outside the destination directory, and the modification of some file metadata.   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4330"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4435",
+        "aliases": [
+          "CVE-2025-4435"
+        ],
+        "description": "When using a TarFile.errorlevel = 0 and extracting with a filter the documented behavior is that any filtered members would be skipped and not extracted. However the actual behavior of TarFile.errorlevel = 0 in affected versions is that the member would still be extracted and not skipped.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4435"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-stdlib@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4435",
+        "aliases": [
+          "CVE-2025-4435"
+        ],
+        "description": "When using a TarFile.errorlevel = 0 and extracting with a filter the documented behavior is that any filtered members would be skipped and not extracted. However the actual behavior of TarFile.errorlevel = 0 in affected versions is that the member would still be extracted and not skipped.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4435"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/python3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4435",
+        "aliases": [
+          "CVE-2025-4435"
+        ],
+        "description": "When using a TarFile.errorlevel = 0 and extracting with a filter the documented behavior is that any filtered members would be skipped and not extracted. However the actual behavior of TarFile.errorlevel = 0 in affected versions is that the member would still be extracted and not skipped.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4435"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4516",
+        "aliases": [
+          "CVE-2025-4516"
+        ],
+        "description": "There is an issue in CPython when using `bytes.decode(\"unicode_escape\", error=\"ignore|replace\")`. If you are not using the \"unicode_escape\" encoding or an error handler your usage is not affected. To work-around this issue you may stop using the error= handler and instead wrap the bytes.decode() call in a try-except catching the DecodeError.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4516"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-stdlib@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4516",
+        "aliases": [
+          "CVE-2025-4516"
+        ],
+        "description": "There is an issue in CPython when using `bytes.decode(\"unicode_escape\", error=\"ignore|replace\")`. If you are not using the \"unicode_escape\" encoding or an error handler your usage is not affected. To work-around this issue you may stop using the error= handler and instead wrap the bytes.decode() call in a try-except catching the DecodeError.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4516"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/python3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4516",
+        "aliases": [
+          "CVE-2025-4516"
+        ],
+        "description": "There is an issue in CPython when using `bytes.decode(\"unicode_escape\", error=\"ignore|replace\")`. If you are not using the \"unicode_escape\" encoding or an error handler your usage is not affected. To work-around this issue you may stop using the error= handler and instead wrap the bytes.decode() call in a try-except catching the DecodeError.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4516"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4517",
+        "aliases": [
+          "CVE-2025-4517"
+        ],
+        "description": "Allows arbitrary filesystem writes outside the extraction directory during extraction with filter=\"data\".   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4517"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libpython3.11-stdlib@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4517",
+        "aliases": [
+          "CVE-2025-4517"
+        ],
+        "description": "Allows arbitrary filesystem writes outside the extraction directory during extraction with filter=\"data\".   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4517"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is not loaded into the memory",
+      "justification": "vulnerable_code_not_present",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/python3.11-minimal@3.11.2-6%2Bdeb12u6?arch=amd64&distro=debian-12&upstream=python3.11"
+            }
+          ]
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4517",
+        "aliases": [
+          "CVE-2025-4517"
+        ],
+        "description": "Allows arbitrary filesystem writes outside the extraction directory during extraction with filter=\"data\".   You are affected by this vulnerability if using the tarfile module to extract untrusted tar archives using TarFile.extractall() or TarFile.extract() using the filter= parameter with a value of \"data\" or \"tar\". See the tarfile  extraction filters documentation https://docs.python.org/3/library/tarfile.html#tarfile-extraction-filter  for more information. Only Python versions 3.12 or later are affected by these vulnerabilities, earlier versions don't include the extraction filter feature.  Note that for Python 3.14 or later the default value of filter= changed from \"no filtering\" to `\"data\", so if you are relying on this new default behavior then your usage is also affected.  Note that none of these vulnerabilities significantly affect the installation of source distributions which are tar archives as source distributions already allow arbitrary code execution during the build process. However when evaluating source distributions it's important to avoid installing source distributions with suspicious links.",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4517"
+      }
+    },
+    {
+      "impact_statement": "Vulnerable component is loaded into the memory",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@sha256:db7376a2c1e63c235c4f0c3954c64f5e25b1ab71dbb28a3e841f9ef582a255d7?repository_url=ghcr.io%2Fplpetkov-tech",
+          "subcomponents": [
+            {
+              "@id": "pkg:deb/debian/libc6@2.36-9%2Bdeb12u10?arch=amd64&distro=debian-12&upstream=glibc"
+            }
+          ]
+        }
+      ],
+      "status": "affected",
+      "vulnerability": {
+        "@id": "CVE-2025-4802",
+        "aliases": [
+          "CVE-2025-4802"
+        ],
+        "description": "Untrusted LD_LIBRARY_PATH environment variable vulnerability in the GNU C Library version 2.27 to 2.38 allows attacker controlled loading of dynamically shared library in statically compiled setuid binaries that call dlopen (including internal dlopen calls after setlocale or calls to NSS functions such as getaddrinfo).",
+        "name": "https://security-tracker.debian.org/tracker/CVE-2025-4802"
+      }
+    }
+  ],
+  "timestamp": "2025-06-06T09:27:04+03:00",
+  "tooling": "kubescape-vulnerability-analyzer",
+  "version": 0
+}
