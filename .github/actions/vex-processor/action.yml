@@ -29,14 +29,16 @@ runs:
       run: |
         case "${{ inputs.action }}" in
           "consolidate-build-vex")
-            echo "🔄 Creating initial consolidated VEX (build-time + existing)..."
+            echo "🔄 Creating initial consolidated VEX (build-time only, no existing merge)..."
             
-            # Start with build-time VEX
+            echo "### 🔄 VEX Consolidation Process" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Start with build-time VEX ONLY - no merging with existing to avoid product ID conflicts
             if [ -f "${{ inputs.build-vex }}" ]; then
               cp "${{ inputs.build-vex }}" "${{ inputs.output }}"
-              echo "### 🔄 VEX Consolidation Process" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "✅ **Started with build-time VEX**" >> $GITHUB_STEP_SUMMARY
+              BUILD_STATEMENTS=$(jq '.statements | length' "${{ inputs.build-vex }}" 2>/dev/null || echo "0")
+              echo "✅ **Started with build-time VEX** ($BUILD_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
             else
               echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
               COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
@@ -50,55 +52,15 @@ runs:
           "statements": []
         }
         EOF
+              BUILD_STATEMENTS=0
             fi
             
-            # Merge existing VEX documents if any exist
-            if [ -d "${{ inputs.existing-vex-dir }}" ] && [ "$(ls -A ${{ inputs.existing-vex-dir }}/*.vex.json 2>/dev/null)" ]; then
-              echo "🔗 **Merging with existing VEX documents...**" >> $GITHUB_STEP_SUMMARY
-              MERGED_COUNT=0
-              for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
-                if [ -f "$vex_file" ]; then
-                  STATEMENTS_COUNT=$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")
-                  echo "  📄 Merging: $(basename $vex_file) ($STATEMENTS_COUNT statements)" >> $GITHUB_STEP_SUMMARY
-                  # Use vexctl to merge VEX documents if they have valid content
-                  if jq empty "$vex_file" 2>/dev/null && [ "$STATEMENTS_COUNT" -gt 0 ]; then
-                    # Debug: Show before merge count
-                    BEFORE_COUNT=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
-                    
-                    # Merge with error handling
-                    if vexctl merge \
-                      --product="pkg:oci/${{ inputs.image-ref }}" \
-                      "${{ inputs.output }}" \
-                      "$vex_file" > temp.vex.json 2>&1; then
-                      
-                      # Verify merge worked
-                      if jq empty temp.vex.json 2>/dev/null; then
-                        mv temp.vex.json "${{ inputs.output }}"
-                        AFTER_COUNT=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
-                        MERGED_COUNT=$((MERGED_COUNT + 1))
-                        echo "    ✅ Successfully merged $STATEMENTS_COUNT statements ($BEFORE_COUNT → $AFTER_COUNT total)" >> $GITHUB_STEP_SUMMARY
-                      else
-                        echo "    ❌ Merge produced invalid JSON, skipping $(basename $vex_file)" >> $GITHUB_STEP_SUMMARY
-                        rm -f temp.vex.json
-                      fi
-                    else
-                      echo "    ❌ Merge failed for $(basename $vex_file), skipping" >> $GITHUB_STEP_SUMMARY
-                      rm -f temp.vex.json
-                    fi
-                  else
-                    echo "    ⚠️ Skipped: $(basename $vex_file) (0 statements or invalid JSON)" >> $GITHUB_STEP_SUMMARY
-                  fi
-                fi
-              done
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "✅ **Merged $MERGED_COUNT existing VEX documents**" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "ℹ️ **No existing VEX documents to merge**" >> $GITHUB_STEP_SUMMARY
-            fi
+            # SKIP merging existing VEX documents due to product ID format conflicts
+            echo "⚠️ **Skipping existing VEX merge due to product identifier format conflicts**" >> $GITHUB_STEP_SUMMARY
+            echo "🎯 **Build-time VEX provides static analysis, runtime VEX handled separately**" >> $GITHUB_STEP_SUMMARY
             
-            FINAL_STATEMENTS=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "🎯 **Initial consolidation complete with $FINAL_STATEMENTS total statements**" >> $GITHUB_STEP_SUMMARY
+            echo "🎯 **Initial consolidation complete with $BUILD_STATEMENTS total statements**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             ;;
             
@@ -108,16 +70,42 @@ runs:
             echo "### 🔄 Final VEX Consolidation" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Start with build-time consolidated VEX or create new one
-            if [ -f "${{ inputs.build-vex }}" ]; then
-              # Validate the input VEX has valid content
-              if jq empty "${{ inputs.build-vex }}" 2>/dev/null; then
+            # Use RUNTIME VEX as primary source (it's the only reliable one)
+            RUNTIME_VEX_USED=false
+            if [ -f "${{ inputs.runtime-vex }}" ] && jq empty "${{ inputs.runtime-vex }}" 2>/dev/null; then
+              RUNTIME_STATEMENTS=$(jq '.statements | length' "${{ inputs.runtime-vex }}" 2>/dev/null || echo "0")
+              if [ "$RUNTIME_STATEMENTS" -gt 0 ]; then
+                echo "🔗 **Using runtime VEX as primary source** ($RUNTIME_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
+                cp "${{ inputs.runtime-vex }}" "${{ inputs.output }}"
+                RUNTIME_VEX_USED=true
+              fi
+            fi
+            
+            # Check if we found reliable runtime VEX in existing sources
+            if [ "$RUNTIME_VEX_USED" = "false" ] && [ -n "${{ inputs.existing-vex-dir }}" ] && [ -d "${{ inputs.existing-vex-dir }}" ]; then
+              echo "🔍 **Looking for reliable runtime VEX in existing sources...**" >> $GITHUB_STEP_SUMMARY
+              for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
+                if [ -f "$vex_file" ] && [[ "$(basename $vex_file)" == *"runtime"* ]]; then
+                  STATEMENTS_COUNT=$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")
+                  if jq empty "$vex_file" 2>/dev/null && [ "$STATEMENTS_COUNT" -gt 0 ]; then
+                    echo "📄 **Found reliable runtime VEX**: $(basename $vex_file) ($STATEMENTS_COUNT statements)" >> $GITHUB_STEP_SUMMARY
+                    cp "$vex_file" "${{ inputs.output }}"
+                    RUNTIME_VEX_USED=true
+                    break
+                  fi
+                fi
+              done
+            fi
+            
+            # If no runtime VEX found, use build-time as fallback
+            if [ "$RUNTIME_VEX_USED" = "false" ]; then
+              echo "⚠️ **No reliable runtime VEX found, using build-time VEX as fallback**" >> $GITHUB_STEP_SUMMARY
+              if [ -f "${{ inputs.build-vex }}" ] && jq empty "${{ inputs.build-vex }}" 2>/dev/null; then
                 BUILD_STATEMENTS=$(jq '.statements | length' "${{ inputs.build-vex }}" 2>/dev/null || echo "0")
                 cp "${{ inputs.build-vex }}" "${{ inputs.output }}"
-                echo "✅ **Started with build-time consolidated VEX** ($BUILD_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
+                echo "✅ **Using build-time VEX** ($BUILD_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
               else
-                echo "⚠️ **Build-time VEX has invalid JSON, creating new document**" >> $GITHUB_STEP_SUMMARY
-                BUILD_STATEMENTS=0
+                echo "❌ **No valid VEX sources found, creating minimal document**" >> $GITHUB_STEP_SUMMARY
                 COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
                 cat > "${{ inputs.output }}" << EOF
         {
@@ -129,106 +117,6 @@ runs:
           "statements": []
         }
         EOF
-              fi
-            else
-              echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
-              BUILD_STATEMENTS=0
-              COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
-              cat > "${{ inputs.output }}" << EOF
-        {
-          "@context": "https://openvex.dev/ns/v0.2.0",
-          "@id": "https://openvex.dev/docs/public/vex-final-$(date +%Y%m%d%H%M%S)",
-          "author": "$COMMIT_AUTHOR",
-          "timestamp": "$(date -Iseconds)",
-          "version": 1,
-          "statements": []
-        }
-        EOF
-            fi
-            
-            # Merge runtime VEX if available
-            if [ -f "${{ inputs.runtime-vex }}" ] && jq empty "${{ inputs.runtime-vex }}" 2>/dev/null; then
-              RUNTIME_STATEMENTS=$(jq '.statements | length' "${{ inputs.runtime-vex }}" 2>/dev/null || echo "0")
-              if [ "$RUNTIME_STATEMENTS" -gt 0 ]; then
-                echo "🔗 **Merging runtime VEX** ($RUNTIME_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
-                
-                # Debug: Show current output file content before merge
-                BEFORE_MERGE=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
-                echo "📊 **Before runtime merge**: $BEFORE_MERGE statements" >> $GITHUB_STEP_SUMMARY
-                
-                # Use vexctl to merge runtime VEX with better error handling
-                if vexctl merge \
-                  --product="pkg:oci/${{ inputs.image-ref }}" \
-                  "${{ inputs.output }}" \
-                  "${{ inputs.runtime-vex }}" > temp-final.vex.json 2>&1; then
-                  
-                  # Verify the merge worked
-                  if jq empty temp-final.vex.json 2>/dev/null; then
-                    mv temp-final.vex.json "${{ inputs.output }}"
-                    AFTER_MERGE=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
-                    echo "✅ **Runtime VEX merged successfully** (now $AFTER_MERGE statements)" >> $GITHUB_STEP_SUMMARY
-                  else
-                    echo "❌ **Runtime VEX merge produced invalid JSON, keeping original**" >> $GITHUB_STEP_SUMMARY
-                    rm -f temp-final.vex.json
-                  fi
-                else
-                  echo "❌ **Runtime VEX merge failed, keeping original**" >> $GITHUB_STEP_SUMMARY
-                  rm -f temp-final.vex.json
-                fi
-              else
-                echo "⚠️ **Runtime VEX found but contains 0 statements**" >> $GITHUB_STEP_SUMMARY
-              fi
-            else
-              echo "⚠️ **No valid runtime VEX to merge**" >> $GITHUB_STEP_SUMMARY
-            fi
-            
-            # Also merge any additional VEX documents from existing-vex-dir if specified
-            if [ -n "${{ inputs.existing-vex-dir }}" ] && [ -d "${{ inputs.existing-vex-dir }}" ]; then
-              echo "🔗 **Merging additional VEX documents from ${{ inputs.existing-vex-dir }}...**" >> $GITHUB_STEP_SUMMARY
-              ADDITIONAL_COUNT=0
-              for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
-                if [ -f "$vex_file" ]; then
-                  STATEMENTS_COUNT=$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")
-                  if jq empty "$vex_file" 2>/dev/null && [ "$STATEMENTS_COUNT" -gt 0 ]; then
-                    # Skip if this file was already processed in build-time consolidation
-                    if [ "$(basename $vex_file)" != "$(basename ${{ inputs.build-vex }})" ] && [ "$(basename $vex_file)" != "$(basename ${{ inputs.runtime-vex }})" ]; then
-                      echo "  📄 Adding: $(basename $vex_file) ($STATEMENTS_COUNT statements)" >> $GITHUB_STEP_SUMMARY
-                      
-                      # Debug: Show before merge count
-                      BEFORE_ADDITIONAL=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
-                      
-                      # Merge with error handling
-                      if vexctl merge \
-                        --product="pkg:oci/${{ inputs.image-ref }}" \
-                        "${{ inputs.output }}" \
-                        "$vex_file" > temp-additional.vex.json 2>&1; then
-                        
-                        # Verify merge worked
-                        if jq empty temp-additional.vex.json 2>/dev/null; then
-                          mv temp-additional.vex.json "${{ inputs.output }}"
-                          AFTER_ADDITIONAL=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
-                          echo "    ✅ Merged successfully ($BEFORE_ADDITIONAL → $AFTER_ADDITIONAL statements)" >> $GITHUB_STEP_SUMMARY
-                          ADDITIONAL_COUNT=$((ADDITIONAL_COUNT + 1))
-                        else
-                          echo "    ❌ Merge produced invalid JSON, skipping" >> $GITHUB_STEP_SUMMARY
-                          rm -f temp-additional.vex.json
-                        fi
-                      else
-                        echo "    ❌ Merge failed, skipping" >> $GITHUB_STEP_SUMMARY
-                        rm -f temp-additional.vex.json
-                      fi
-                    else
-                      echo "  📄 Skipping: $(basename $vex_file) (already processed)" >> $GITHUB_STEP_SUMMARY
-                    fi
-                  else
-                    echo "  📄 Skipping: $(basename $vex_file) (0 statements or invalid JSON)" >> $GITHUB_STEP_SUMMARY
-                  fi
-                fi
-              done
-              if [ $ADDITIONAL_COUNT -gt 0 ]; then
-                echo "✅ **Merged $ADDITIONAL_COUNT additional VEX documents**" >> $GITHUB_STEP_SUMMARY
-              else
-                echo "ℹ️ **No additional VEX documents to merge**" >> $GITHUB_STEP_SUMMARY
               fi
             fi
             

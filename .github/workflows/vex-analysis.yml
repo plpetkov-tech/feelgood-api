@@ -122,26 +122,14 @@ jobs:
         echo "🔍 Collecting existing VEX documents from repository..."
         mkdir -p vex-sources
         
-        # Priority 1: Collect from .vex/production (consolidated production VEX)
+        # ONLY collect from .vex/production (reliable runtime VEX)
         if [ -d ".vex/production" ]; then
-          echo "🎯 Found .vex/production directory - collecting production VEX documents..."
+          echo "🎯 Found .vex/production directory - collecting ONLY reliable production VEX documents..."
           find .vex/production -name "*.vex.json" -exec cp {} vex-sources/ \;
         fi
         
-        # Priority 2: Collect from .vex/consolidated (pipeline-generated consolidated VEX)
-        if [ -d ".vex/consolidated" ]; then
-          echo "🎯 Found .vex/consolidated directory - collecting consolidated VEX documents..."
-          find .vex/consolidated -name "*.vex.json" -exec cp {} vex-sources/ \;
-        fi
-        
-        # Priority 3: Collect from .vex/prod (alternative prod location)
-        if [ -d ".vex/prod" ]; then
-          echo "🎯 Found .vex/prod directory - collecting production VEX documents..."
-          find .vex/prod -name "*.vex.json" -exec cp {} vex-sources/ \;
-        fi
-        
-        # Priority 4: Collect any other VEX documents in the repo
-        find . -name "*.vex.json" -not -path "./vex-sources/*" -not -path "./.vex/*" -exec cp {} vex-sources/ \;
+        # Skip all other sources - they are causing pollution
+        echo "⚠️ Skipping .vex/consolidated and other sources to avoid placeholder pollution"
         
         echo "### 📄 Existing VEX Documents" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -519,38 +507,12 @@ jobs:
           VEX_RESOURCES=$(kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers 2>/dev/null || echo "")
           
           if [ -z "$VEX_RESOURCES" ]; then
-            echo "⚠️ **No runtime VEX documents found**" >> $GITHUB_STEP_SUMMARY
-            echo "🔧 **Creating placeholder runtime VEX document...**" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **No runtime VEX documents found from Kubescape**" >> $GITHUB_STEP_SUMMARY
+            echo "📋 **Skipping placeholder creation - will rely on existing production VEX**" >> $GITHUB_STEP_SUMMARY
             
-            IMAGE_REF="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
-            COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
-            
-            cat > runtime.vex.json << EOF
-          {
-            "@context": "https://openvex.dev/ns/v0.2.0",
-            "@id": "https://openvex.dev/docs/public/vex-runtime-$(date +%Y%m%d%H%M%S)",
-            "author": "$COMMIT_AUTHOR",
-            "timestamp": "$(date -Iseconds)",
-            "version": 1,
-            "statements": [
-              {
-                "vulnerability": {
-                  "name": "RUNTIME-ANALYSIS-COMPLETE"
-                },
-                "timestamp": "$(date -Iseconds)",
-                "products": [
-                  {
-                    "@id": "pkg:oci/${IMAGE_REF#*/}"
-                  }
-                ],
-                "status": "not_affected",
-                "justification": "protected_at_runtime",
-                "detail": "Runtime analysis completed - no exploitable vulnerabilities detected during execution"
-              }
-            ]
-          }
-          EOF
-            echo "🎯 **Status**: Placeholder VEX created" >> $GITHUB_STEP_SUMMARY
+            # Create empty placeholder to avoid workflow failures
+            echo '{"@context": "https://openvex.dev/ns/v0.2.0", "statements": []}' > runtime.vex.json
+            echo "📄 **Created minimal placeholder for workflow continuity**" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ **Found runtime VEX documents**" >> $GITHUB_STEP_SUMMARY
             

@@ -121,30 +121,21 @@ class VEXGenerator:
         }
 
     def create_product_identifier(self, image_ref: Optional[str], pkg_name: str, pkg_version: str) -> str:
-        """Create a proper product identifier (PURL format)"""
+        """Create a proper product identifier (PURL format) - always use OCI format for consistency"""
         if image_ref:
-            # If we have an image reference, use OCI PURL
+            # Always use the full OCI image reference as the main product ID
             if image_ref.startswith("pkg:"):
                 return image_ref
             else:
-                # Clean up image reference for PURL
-                clean_ref = image_ref.replace("ghcr.io/", "").replace("docker.io/", "")
-                return f"pkg:oci/{clean_ref}"
+                # Use the full image reference to match runtime VEX format
+                if image_ref.startswith("ghcr.io/"):
+                    # For ghcr.io images, create a PURL that matches Kubescape format
+                    return f"pkg:oci/{image_ref.replace('ghcr.io/', '')}"
+                else:
+                    return f"pkg:oci/{image_ref}"
         else:
-            # Fall back to package-level PURL
-            # Detect package type from common patterns
-            if any(marker in pkg_name for marker in [".jar", "maven"]):
-                return f"pkg:maven/{pkg_name}@{pkg_version}"
-            elif any(marker in pkg_name for marker in ["node_modules", "npm"]):
-                return f"pkg:npm/{pkg_name}@{pkg_version}"
-            elif any(marker in pkg_name for marker in ["site-packages", "pypi"]):
-                return f"pkg:pypi/{pkg_name}@{pkg_version}"
-            elif any(marker in pkg_name for marker in ["apk", "alpine"]):
-                return f"pkg:apk/alpine/{pkg_name}@{pkg_version}"
-            elif any(marker in pkg_name for marker in ["deb", "ubuntu", "debian"]):
-                return f"pkg:deb/ubuntu/{pkg_name}@{pkg_version}"
-            else:
-                return f"pkg:generic/{pkg_name}@{pkg_version}"
+            # Without image reference, create a generic OCI PURL for the feelgood-api
+            return f"pkg:oci/feelgood-api@latest"
 
     def generate_vex_from_trivy(self, trivy_file: Path, sbom_file: Optional[Path] = None, 
                                image_ref: Optional[str] = None) -> Dict[str, Any]:
