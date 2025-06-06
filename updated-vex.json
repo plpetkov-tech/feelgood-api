@@ -1,0 +1,865 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://openvex.dev/docs/public/vex-20250606062058",
+  "author": "FeelGood API Security Team",
+  "timestamp": "2025-06-06T06:20:58.960244+00:00",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T06:20:58.959116+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/gcc-12-base@12.2.0-14+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4802"
+      },
+      "timestamp": "2025-06-06T06:20:58.959144+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2010-4756"
+      },
+      "timestamp": "2025-06-06T06:20:58.959162+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-20796"
+      },
+      "timestamp": "2025-06-06T06:20:58.959181+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010022"
+      },
+      "timestamp": "2025-06-06T06:20:58.959197+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010023"
+      },
+      "timestamp": "2025-06-06T06:20:58.959213+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010024"
+      },
+      "timestamp": "2025-06-06T06:20:58.959230+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010025"
+      },
+      "timestamp": "2025-06-06T06:20:58.959252+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-9192"
+      },
+      "timestamp": "2025-06-06T06:20:58.959294+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-5702"
+      },
+      "timestamp": "2025-06-06T06:20:58.959315+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-5702 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-5745"
+      },
+      "timestamp": "2025-06-06T06:20:58.959331+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libc6@2.36-9+deb12u10"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-5745 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-52425"
+      },
+      "timestamp": "2025-06-06T06:20:58.959349+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libexpat1@2.5.0-1+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-8176"
+      },
+      "timestamp": "2025-06-06T06:20:58.959366+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libexpat1@2.5.0-1+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-50602"
+      },
+      "timestamp": "2025-06-06T06:20:58.959382+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libexpat1@2.5.0-1+deb12u1"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2024-50602 in component libexpat1@2.5.0-1+deb12u1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-52426"
+      },
+      "timestamp": "2025-06-06T06:20:58.959399+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libexpat1@2.5.0-1+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-28757"
+      },
+      "timestamp": "2025-06-06T06:20:58.959413+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libexpat1@2.5.0-1+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T06:20:58.959428+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libgcc-s1@12.2.0-14+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T06:20:58.959443+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libgomp1@12.2.0-14+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T06:20:58.959460+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libgssapi-krb5-2@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libgssapi-krb5-2@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T06:20:58.959475+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libgssapi-krb5-2@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T06:20:58.959489+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libgssapi-krb5-2@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T06:20:58.959503+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libgssapi-krb5-2@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T06:20:58.959523+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libk5crypto3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libk5crypto3@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T06:20:58.959537+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libk5crypto3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T06:20:58.959551+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libk5crypto3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T06:20:58.959568+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libk5crypto3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T06:20:58.959584+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5-3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5-3@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T06:20:58.959598+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5-3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T06:20:58.959612+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5-3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T06:20:58.959628+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5-3@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T06:20:58.959646+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5support0@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5support0@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T06:20:58.959661+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5support0@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T06:20:58.959675+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5support0@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T06:20:58.959690+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libkrb5support0@1.20.1-2+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-50495"
+      },
+      "timestamp": "2025-06-06T06:20:58.959706+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libncursesw6@6.4-4"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2023-50495 in component libncursesw6@6.4-4"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-12718"
+      },
+      "timestamp": "2025-06-06T06:20:58.959757+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4138"
+      },
+      "timestamp": "2025-06-06T06:20:58.959786+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4517"
+      },
+      "timestamp": "2025-06-06T06:20:58.959810+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4330"
+      },
+      "timestamp": "2025-06-06T06:20:58.959832+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4330 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4435"
+      },
+      "timestamp": "2025-06-06T06:20:58.959850+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4435 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2025-06-06T06:20:58.959871+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-12718"
+      },
+      "timestamp": "2025-06-06T06:20:58.959895+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-stdlib@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4138"
+      },
+      "timestamp": "2025-06-06T06:20:58.959917+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-stdlib@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4517"
+      },
+      "timestamp": "2025-06-06T06:20:58.959939+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-stdlib@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4330"
+      },
+      "timestamp": "2025-06-06T06:20:58.959961+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-stdlib@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4330 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4435"
+      },
+      "timestamp": "2025-06-06T06:20:58.959978+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-stdlib@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4435 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2025-06-06T06:20:58.959993+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libpython3.11-stdlib@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-29088"
+      },
+      "timestamp": "2025-06-06T06:20:58.960010+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libsqlite3-0@3.40.1-2+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2021-45346"
+      },
+      "timestamp": "2025-06-06T06:20:58.960027+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libsqlite3-0@3.40.1-2+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T06:20:58.960042+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libstdc++6@12.2.0-14+deb12u1"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-50495"
+      },
+      "timestamp": "2025-06-06T06:20:58.960059+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libtinfo6@6.4-4"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2023-50495 in component libtinfo6@6.4-4"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-0563"
+      },
+      "timestamp": "2025-06-06T06:20:58.960074+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/libuuid1@2.38.1-5+deb12u3"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-12718"
+      },
+      "timestamp": "2025-06-06T06:20:58.960101+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/python3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4138"
+      },
+      "timestamp": "2025-06-06T06:20:58.960126+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/python3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4517"
+      },
+      "timestamp": "2025-06-06T06:20:58.960148+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/python3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4330"
+      },
+      "timestamp": "2025-06-06T06:20:58.960170+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/python3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4330 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4435"
+      },
+      "timestamp": "2025-06-06T06:20:58.960187+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/python3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4435 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2025-06-06T06:20:58.960203+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/python3.11-minimal@3.11.2-6+deb12u6"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-45853"
+      },
+      "timestamp": "2025-06-06T06:20:58.960220+00:00",
+      "products": [
+        {
+          "@id": "pkg:generic/zlib1g@1:1.2.13.dfsg-1"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    }
+  ]
+}
