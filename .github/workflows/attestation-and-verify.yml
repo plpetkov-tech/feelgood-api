@@ -384,12 +384,17 @@ jobs:
 
           Co-Authored-By: Claude <noreply@anthropic.com>"
           
-          # Push the changes
-          git push
+          # Push the changes (only if we're on a branch, not detached HEAD)
+          if git symbolic-ref -q HEAD >/dev/null 2>&1; then
+            git push
+            echo "✅ **Consolidated VEX documents committed to repository**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **Skipping push: Running on detached HEAD (tag/commit)**" >> $GITHUB_STEP_SUMMARY
+            echo "📋 **VEX documents committed locally but not pushed**" >> $GITHUB_STEP_SUMMARY
+          fi
           
           echo "### 💾 VEX Repository Update" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **Consolidated VEX documents committed to repository**" >> $GITHUB_STEP_SUMMARY
           echo "🔄 **Future pipeline runs will include these VEX documents**" >> $GITHUB_STEP_SUMMARY
           echo "📂 **Location**: .vex/consolidated/ and .vex/build-time/" >> $GITHUB_STEP_SUMMARY
         else
