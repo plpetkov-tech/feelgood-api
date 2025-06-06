@@ -58,16 +58,18 @@ runs:
               MERGED_COUNT=0
               for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
                 if [ -f "$vex_file" ]; then
-                  echo "  📄 Merging: $(basename $vex_file)" >> $GITHUB_STEP_SUMMARY
+                  STATEMENTS_COUNT=$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")
+                  echo "  📄 Merging: $(basename $vex_file) ($STATEMENTS_COUNT statements)" >> $GITHUB_STEP_SUMMARY
                   # Use vexctl to merge VEX documents if they have valid content
-                  if jq empty "$vex_file" 2>/dev/null && [ "$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")" -gt 0 ]; then
+                  if jq empty "$vex_file" 2>/dev/null && [ "$STATEMENTS_COUNT" -gt 0 ]; then
                     vexctl merge \
                       --product="pkg:oci/${{ inputs.image-ref }}" \
                       "${{ inputs.output }}" \
                       "$vex_file" > temp.vex.json && mv temp.vex.json "${{ inputs.output }}"
                     MERGED_COUNT=$((MERGED_COUNT + 1))
+                    echo "    ✅ Successfully merged $STATEMENTS_COUNT statements" >> $GITHUB_STEP_SUMMARY
                   else
-                    echo "  ⚠️ Skipping invalid/empty VEX: $(basename $vex_file)" >> $GITHUB_STEP_SUMMARY
+                    echo "    ⚠️ Skipped: $(basename $vex_file) (0 statements or invalid JSON)" >> $GITHUB_STEP_SUMMARY
                   fi
                 fi
               done
