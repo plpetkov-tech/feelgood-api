@@ -1,0 +1,866 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://openvex.dev/docs/public/vex-20250606203403",
+  "author": "Plamen <plpetkov@tutanota.com>",
+  "timestamp": "2025-06-06T20:34:03.817369+00:00",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T20:34:03.816421+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4802"
+      },
+      "timestamp": "2025-06-06T20:34:03.816449+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2010-4756"
+      },
+      "timestamp": "2025-06-06T20:34:03.816467+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-20796"
+      },
+      "timestamp": "2025-06-06T20:34:03.816481+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010022"
+      },
+      "timestamp": "2025-06-06T20:34:03.816495+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010023"
+      },
+      "timestamp": "2025-06-06T20:34:03.816511+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010024"
+      },
+      "timestamp": "2025-06-06T20:34:03.816524+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-1010025"
+      },
+      "timestamp": "2025-06-06T20:34:03.816536+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2019-9192"
+      },
+      "timestamp": "2025-06-06T20:34:03.816550+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-5702"
+      },
+      "timestamp": "2025-06-06T20:34:03.816568+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-5702 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-5745"
+      },
+      "timestamp": "2025-06-06T20:34:03.816583+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-5745 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-52425"
+      },
+      "timestamp": "2025-06-06T20:34:03.816597+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-8176"
+      },
+      "timestamp": "2025-06-06T20:34:03.816611+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-50602"
+      },
+      "timestamp": "2025-06-06T20:34:03.816625+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2024-50602 in component libexpat1@2.5.0-1+deb12u1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-52426"
+      },
+      "timestamp": "2025-06-06T20:34:03.816638+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-28757"
+      },
+      "timestamp": "2025-06-06T20:34:03.816650+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T20:34:03.816666+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T20:34:03.816678+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T20:34:03.816693+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libgssapi-krb5-2@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T20:34:03.816705+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T20:34:03.816717+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T20:34:03.816731+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T20:34:03.816745+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libk5crypto3@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T20:34:03.816757+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T20:34:03.816771+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T20:34:03.816787+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T20:34:03.816800+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5-3@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T20:34:03.816813+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T20:34:03.816825+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T20:34:03.816837+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-3576"
+      },
+      "timestamp": "2025-06-06T20:34:03.816851+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5support0@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2018-5709"
+      },
+      "timestamp": "2025-06-06T20:34:03.816865+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26458"
+      },
+      "timestamp": "2025-06-06T20:34:03.816880+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-26461"
+      },
+      "timestamp": "2025-06-06T20:34:03.816892+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-50495"
+      },
+      "timestamp": "2025-06-06T20:34:03.816906+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2023-50495 in component libncursesw6@6.4-4"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-12718"
+      },
+      "timestamp": "2025-06-06T20:34:03.816931+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4138"
+      },
+      "timestamp": "2025-06-06T20:34:03.816953+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4517"
+      },
+      "timestamp": "2025-06-06T20:34:03.816972+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4330"
+      },
+      "timestamp": "2025-06-06T20:34:03.816992+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4330 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4435"
+      },
+      "timestamp": "2025-06-06T20:34:03.817009+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4435 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2025-06-06T20:34:03.817026+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-12718"
+      },
+      "timestamp": "2025-06-06T20:34:03.817048+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4138"
+      },
+      "timestamp": "2025-06-06T20:34:03.817067+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4517"
+      },
+      "timestamp": "2025-06-06T20:34:03.817088+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4330"
+      },
+      "timestamp": "2025-06-06T20:34:03.817108+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4330 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4435"
+      },
+      "timestamp": "2025-06-06T20:34:03.817123+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4435 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2025-06-06T20:34:03.817138+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-29088"
+      },
+      "timestamp": "2025-06-06T20:34:03.817152+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2021-45346"
+      },
+      "timestamp": "2025-06-06T20:34:03.817167+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-27943"
+      },
+      "timestamp": "2025-06-06T20:34:03.817179+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-50495"
+      },
+      "timestamp": "2025-06-06T20:34:03.817208+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2023-50495 in component libtinfo6@6.4-4"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2022-0563"
+      },
+      "timestamp": "2025-06-06T20:34:03.817224+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-12718"
+      },
+      "timestamp": "2025-06-06T20:34:03.817246+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4138"
+      },
+      "timestamp": "2025-06-06T20:34:03.817265+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4517"
+      },
+      "timestamp": "2025-06-06T20:34:03.817284+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4330"
+      },
+      "timestamp": "2025-06-06T20:34:03.817303+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4330 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4435"
+      },
+      "timestamp": "2025-06-06T20:34:03.817321+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4435 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2025-06-06T20:34:03.817334+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2023-45853"
+      },
+      "timestamp": "2025-06-06T20:34:03.817350+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    }
+  ],
+  "document_notes": "VEX document generated for container image: ghcr.io/plpetkov-tech/feelgood-api@sha256:10199d931fdea7d76f36cc47918b99d6eb3c3df2ec265a7f245bfb74e412b114"
+}
