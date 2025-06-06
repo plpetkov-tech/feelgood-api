@@ -39,7 +39,7 @@ jobs:
   build-time-vex-analysis:
     runs-on: ubuntu-latest
     outputs:
-      build-vex-artifact: ${{ steps.upload-build-vex.outputs.artifact-id }}
+      build-vex-artifact: build-time-vex-${{ github.sha }}
     steps:
     - uses: actions/checkout@v4
     
@@ -256,7 +256,7 @@ jobs:
     needs: build-time-vex-analysis
     runs-on: ubuntu-latest
     outputs:
-      runtime-vex-artifact: ${{ steps.upload-runtime-vex.outputs.artifact-id }}
+      runtime-vex-artifact: runtime-vex-${{ github.sha }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
