@@ -218,7 +218,7 @@ jobs:
       if: always() && hashFiles('filtered.sarif') != ''
       with:
         sarif_file: 'filtered.sarif'
-        category: 'trivy-final-vex-filtered'
+        category: 'trivy-final-vex-filtered-test'
 
     # Sign and attest final consolidated VEX to container image
     - name: 🔐 Attest final VEX document to container image
