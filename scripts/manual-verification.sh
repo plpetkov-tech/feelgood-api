@@ -42,9 +42,25 @@ for att_type in "${ATTESTATION_TYPES[@]}"; do
     if cosign verify-attestation --key "$COSIGN_PUBLIC_KEY" --type="$att_type" "$IMAGE" >/dev/null 2>&1; then
         echo "✅ FOUND"
         
-        # Show sample of the attestation
-        echo "    Sample content:"
-        cosign verify-attestation --key "$COSIGN_PUBLIC_KEY" --type "$att_type" "$IMAGE" -o json 2>/dev/null | jq -r 'if type == "array" then .[0].payload else .payload end | @base64d | fromjson ' 2>/dev/null 
+        # Show VEX summary instead of full content
+        echo "    VEX Summary:"
+        PAYLOAD=$(cosign verify-attestation --key "$COSIGN_PUBLIC_KEY" --type "$att_type" "$IMAGE" -o json 2>/dev/null | jq -r 'if type == "array" then .[0].payload else .payload end | @base64d | fromjson' 2>/dev/null)
+        if echo "$PAYLOAD" | jq -e '.predicate.statements' >/dev/null 2>&1; then
+            STMT_COUNT=$(echo "$PAYLOAD" | jq '.predicate.statements | length' 2>/dev/null || echo "0")
+            NOT_AFFECTED=$(echo "$PAYLOAD" | jq '.predicate.statements | map(select(.status == "not_affected")) | length' 2>/dev/null || echo "0")
+            AFFECTED=$(echo "$PAYLOAD" | jq '.predicate.statements | map(select(.status == "affected")) | length' 2>/dev/null || echo "0")
+            AUTHOR=$(echo "$PAYLOAD" | jq -r '.predicate.author // "unknown"' 2>/dev/null)
+            echo "      📊 Total statements: $STMT_COUNT"
+            echo "      ✅ Not affected: $NOT_AFFECTED"
+            echo "      ⚠️  Affected: $AFFECTED"
+            echo "      👤 Author: $AUTHOR"
+            
+            # Show sample vulnerabilities (first 3)
+            echo "      🔍 Sample vulnerabilities:"
+            echo "$PAYLOAD" | jq -r '.predicate.statements[0:3][] | "        - \(.vulnerability."@id" // .vulnerability.name): \(.status)"' 2>/dev/null || echo "        (Could not extract sample vulnerabilities)"
+        else
+            echo "      ⚠️  Could not parse VEX statements"
+        fi 
     else
         echo "❌ Not found"
     fi
@@ -68,7 +84,6 @@ if [ "$RAW_ATTESTATIONS" != "null" ] && [ -n "$RAW_ATTESTATIONS" ]; then
     echo ""
     echo "📋 Attestation Structure:"
     echo "$RAW_ATTESTATIONS" | jq -r 'if type == "array" then .[0] else . end | keys[]' 2>/dev/null | sed 's/^/  - /' || echo "  (Could not parse structure)"
-    echo "$RAW_ATTESTATIONS"
     # Show predicate types
     echo ""
     echo "🎯 Predicate Types Found:"
