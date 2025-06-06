@@ -66,13 +66,13 @@ jobs:
     - name: 📥 Download build-time VEX artifacts
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
-        name: build-time-vex-${{ github.sha }}
+        name: ${{ inputs.build-vex-artifact }}
         path: build-vex/
     
     - name: 📥 Download runtime VEX artifacts
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
-        name: runtime-vex-${{ github.sha }}
+        name: ${{ inputs.runtime-vex-artifact }}
         path: runtime-vex/
 
     - name: 📊 Analyze Input VEX Documents
@@ -97,6 +97,31 @@ jobs:
         echo "| 🚀 Runtime VEX | $RUNTIME_STATEMENTS | $([ -f "runtime-vex/runtime.vex.json" ] && echo "✅ Available" || echo "❌ Missing") |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
     
+    # Collect ALL VEX sources for final consolidation
+    - name: 📄 Collect all VEX sources for final consolidation
+      run: |
+        echo "🔍 Collecting all available VEX sources for final consolidation..."
+        mkdir -p final-vex-sources
+        
+        # Copy any VEX files from the repo root that weren't already processed
+        find . -maxdepth 1 -name "*.vex.json" -exec cp {} final-vex-sources/ \; 2>/dev/null || true
+        
+        # Copy any VEX files from .vex directories
+        find .vex -name "*.vex.json" -exec cp {} final-vex-sources/ \; 2>/dev/null || true
+        
+        # List what we found
+        if [ -d "final-vex-sources" ] && [ "$(ls -A final-vex-sources 2>/dev/null)" ]; then
+          echo "📋 Additional VEX sources found:"
+          for vex_file in final-vex-sources/*.vex.json; do
+            if [ -f "$vex_file" ]; then
+              STATEMENTS=$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")
+              echo "  - $(basename $vex_file): $STATEMENTS statements"
+            fi
+          done
+        else
+          echo "📋 No additional VEX sources found"
+        fi
+
     # Create final consolidated VEX
     - name: 🔄 Create final consolidated VEX document
       uses: ./.github/actions/vex-processor
@@ -104,6 +129,7 @@ jobs:
         action: "consolidate-final-vex"
         build-vex: "build-vex/initial-consolidated.vex.json"
         runtime-vex: "runtime-vex/runtime.vex.json"
+        existing-vex-dir: "final-vex-sources"
         image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
         output: "final-consolidated.vex.json"
 

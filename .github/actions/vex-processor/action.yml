@@ -94,7 +94,8 @@ runs:
             # Start with build-time consolidated VEX or create new one
             if [ -f "${{ inputs.build-vex }}" ]; then
               cp "${{ inputs.build-vex }}" "${{ inputs.output }}"
-              echo "✅ **Started with build-time consolidated VEX**" >> $GITHUB_STEP_SUMMARY
+              BUILD_STATEMENTS=$(jq '.statements | length' "${{ inputs.build-vex }}" 2>/dev/null || echo "0")
+              echo "✅ **Started with build-time consolidated VEX** ($BUILD_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
             else
               echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
               COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
@@ -112,18 +113,48 @@ runs:
             
             # Merge runtime VEX if available
             if [ -f "${{ inputs.runtime-vex }}" ] && jq empty "${{ inputs.runtime-vex }}" 2>/dev/null; then
-              echo "🔗 **Merging runtime VEX with build-time VEX...**" >> $GITHUB_STEP_SUMMARY
-              
-              # Use vexctl to merge runtime VEX
-              vexctl merge \
-                --product="pkg:oci/${{ inputs.image-ref }}" \
-                "${{ inputs.output }}" \
-                "${{ inputs.runtime-vex }}" > temp-final.vex.json
-              
-              mv temp-final.vex.json "${{ inputs.output }}"
-              echo "✅ **Runtime VEX merged successfully**" >> $GITHUB_STEP_SUMMARY
+              RUNTIME_STATEMENTS=$(jq '.statements | length' "${{ inputs.runtime-vex }}" 2>/dev/null || echo "0")
+              if [ "$RUNTIME_STATEMENTS" -gt 0 ]; then
+                echo "🔗 **Merging runtime VEX** ($RUNTIME_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
+                
+                # Use vexctl to merge runtime VEX
+                vexctl merge \
+                  --product="pkg:oci/${{ inputs.image-ref }}" \
+                  "${{ inputs.output }}" \
+                  "${{ inputs.runtime-vex }}" > temp-final.vex.json
+                
+                mv temp-final.vex.json "${{ inputs.output }}"
+                echo "✅ **Runtime VEX merged successfully**" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "⚠️ **Runtime VEX found but contains 0 statements**" >> $GITHUB_STEP_SUMMARY
+              fi
             else
               echo "⚠️ **No valid runtime VEX to merge**" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            # Also merge any additional VEX documents from existing-vex-dir if specified
+            if [ -n "${{ inputs.existing-vex-dir }}" ] && [ -d "${{ inputs.existing-vex-dir }}" ]; then
+              echo "🔗 **Merging additional VEX documents from ${{ inputs.existing-vex-dir }}...**" >> $GITHUB_STEP_SUMMARY
+              ADDITIONAL_COUNT=0
+              for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
+                if [ -f "$vex_file" ]; then
+                  STATEMENTS_COUNT=$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")
+                  if jq empty "$vex_file" 2>/dev/null && [ "$STATEMENTS_COUNT" -gt 0 ]; then
+                    # Skip if this file was already processed in build-time consolidation
+                    if [ "$(basename $vex_file)" != "$(basename ${{ inputs.build-vex }})" ] && [ "$(basename $vex_file)" != "$(basename ${{ inputs.runtime-vex }})" ]; then
+                      echo "  📄 Adding: $(basename $vex_file) ($STATEMENTS_COUNT statements)" >> $GITHUB_STEP_SUMMARY
+                      vexctl merge \
+                        --product="pkg:oci/${{ inputs.image-ref }}" \
+                        "${{ inputs.output }}" \
+                        "$vex_file" > temp-additional.vex.json && mv temp-additional.vex.json "${{ inputs.output }}"
+                      ADDITIONAL_COUNT=$((ADDITIONAL_COUNT + 1))
+                    fi
+                  fi
+                fi
+              done
+              if [ $ADDITIONAL_COUNT -gt 0 ]; then
+                echo "✅ **Merged $ADDITIONAL_COUNT additional VEX documents**" >> $GITHUB_STEP_SUMMARY
+              fi
             fi
             
             FINAL_STATEMENTS=$(jq '.statements | length' "${{ inputs.output }}" 2>/dev/null || echo "0")
