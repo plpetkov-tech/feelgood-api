@@ -59,13 +59,16 @@ runs:
               for vex_file in ${{ inputs.existing-vex-dir }}/*.vex.json; do
                 if [ -f "$vex_file" ]; then
                   echo "  📄 Merging: $(basename $vex_file)" >> $GITHUB_STEP_SUMMARY
-                  # Use vexctl to merge VEX documents
-                  vexctl merge \
-                    --product="pkg:oci/${{ inputs.image-ref }}" \
-                    "${{ inputs.output }}" \
-                    "$vex_file" > temp.vex.json
-                  mv temp.vex.json "${{ inputs.output }}"
-                  MERGED_COUNT=$((MERGED_COUNT + 1))
+                  # Use vexctl to merge VEX documents if they have valid content
+                  if jq empty "$vex_file" 2>/dev/null && [ "$(jq '.statements | length' "$vex_file" 2>/dev/null || echo "0")" -gt 0 ]; then
+                    vexctl merge \
+                      --product="pkg:oci/${{ inputs.image-ref }}" \
+                      "${{ inputs.output }}" \
+                      "$vex_file" > temp.vex.json && mv temp.vex.json "${{ inputs.output }}"
+                    MERGED_COUNT=$((MERGED_COUNT + 1))
+                  else
+                    echo "  ⚠️ Skipping invalid/empty VEX: $(basename $vex_file)" >> $GITHUB_STEP_SUMMARY
+                  fi
                 fi
               done
               echo "" >> $GITHUB_STEP_SUMMARY

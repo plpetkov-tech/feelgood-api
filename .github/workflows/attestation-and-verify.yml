@@ -290,6 +290,84 @@ jobs:
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
 
+    # Copy final VEX to repository .vex directory for future pipeline runs
+    - name: 📁 Store final VEX for future pipeline runs
+      run: |
+        echo "📁 Storing final consolidated VEX for future pipeline runs..."
+        
+        # Create timestamp for filename
+        TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
+        
+        # Ensure .vex directories exist
+        mkdir -p .vex/consolidated
+        mkdir -p .vex/build-time
+        
+        if [ -f "final-consolidated.vex.json" ]; then
+          # Copy final consolidated VEX with timestamp
+          cp final-consolidated.vex.json ".vex/consolidated/final-${TIMESTAMP}.vex.json"
+          echo "✅ Final VEX saved to .vex/consolidated/final-${TIMESTAMP}.vex.json"
+          
+          # Also create/update a 'latest' symlink or copy
+          cp final-consolidated.vex.json ".vex/consolidated/latest.vex.json"
+          echo "✅ Latest VEX updated at .vex/consolidated/latest.vex.json"
+          
+          # Copy build-time VEX if available
+          if [ -f "build-vex/build-time.vex.json" ]; then
+            cp "build-vex/build-time.vex.json" ".vex/build-time/build-${TIMESTAMP}.vex.json"
+            echo "✅ Build-time VEX saved to .vex/build-time/build-${TIMESTAMP}.vex.json"
+          fi
+          
+          echo "### 📁 VEX Storage Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Final consolidated VEX stored for future pipeline runs**" >> $GITHUB_STEP_SUMMARY
+          echo "📂 **Location**: .vex/consolidated/final-${TIMESTAMP}.vex.json" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Latest symlink**: .vex/consolidated/latest.vex.json" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "⚠️ No final VEX document to store"
+          echo "⚠️ **No final VEX document available to store**" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    # Commit consolidated VEX documents back to repository for future pipeline runs
+    - name: 💾 Commit consolidated VEX to repository
+      if: github.event_name != 'pull_request' && hashFiles('.vex/consolidated/*.vex.json') != ''
+      run: |
+        echo "💾 Committing consolidated VEX documents to repository..."
+        
+        # Configure git for automated commits
+        git config --local user.email "action@github.com"
+        git config --local user.name "VEX Consolidation Bot"
+        
+        # Stage VEX files
+        git add .vex/consolidated/
+        git add .vex/build-time/
+        
+        # Check if there are changes to commit
+        if ! git diff --staged --quiet; then
+          git commit -m "🛡️ VEX: Consolidate build-time and runtime VEX documents
+
+          - Consolidated VEX from build-time and runtime analysis  
+          - Added to .vex/consolidated/ for future pipeline runs
+          - Generated from commit ${{ github.sha }}
+
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+          
+          # Push the changes
+          git push
+          
+          echo "### 💾 VEX Repository Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Consolidated VEX documents committed to repository**" >> $GITHUB_STEP_SUMMARY
+          echo "🔄 **Future pipeline runs will include these VEX documents**" >> $GITHUB_STEP_SUMMARY
+          echo "📂 **Location**: .vex/consolidated/ and .vex/build-time/" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "ℹ️ No new VEX documents to commit"
+          echo "ℹ️ **No new VEX documents to commit to repository**" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+
     # Upload final VEX documents and results
     - name: 📤 Upload final VEX artifacts
       id: upload-final-vex
@@ -303,6 +381,8 @@ jobs:
           unfiltered.sarif
           final-vex-attestation.jsonl
           final-vex-attestation-instructions.md
+          .vex/consolidated/*.vex.json
+          .vex/build-time/*.vex.json
         retention-days: 90
 
     - name: 🎯 Complete Final VEX Phase

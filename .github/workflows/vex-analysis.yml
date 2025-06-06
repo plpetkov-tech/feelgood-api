@@ -116,33 +116,64 @@ jobs:
         scan-file: "container-scan.json"
         title: "🛡️ Container Security Scan Results"
 
-    # Collect existing VEX documents from production/previous runs
+    # Collect existing VEX documents from .vex/production and other sources
     - name: 📄 Collect existing VEX documents
       run: |
         echo "🔍 Collecting existing VEX documents from repository..."
         mkdir -p vex-sources
         
-        # Find all VEX documents in the repository
-        find . -name "*.vex.json" -not -path "./vex-sources/*" -exec cp {} vex-sources/ \;
+        # Priority 1: Collect from .vex/production (consolidated production VEX)
+        if [ -d ".vex/production" ]; then
+          echo "🎯 Found .vex/production directory - collecting production VEX documents..."
+          find .vex/production -name "*.vex.json" -exec cp {} vex-sources/ \;
+        fi
+        
+        # Priority 2: Collect from .vex/consolidated (pipeline-generated consolidated VEX)
+        if [ -d ".vex/consolidated" ]; then
+          echo "🎯 Found .vex/consolidated directory - collecting consolidated VEX documents..."
+          find .vex/consolidated -name "*.vex.json" -exec cp {} vex-sources/ \;
+        fi
+        
+        # Priority 3: Collect from .vex/prod (alternative prod location)
+        if [ -d ".vex/prod" ]; then
+          echo "🎯 Found .vex/prod directory - collecting production VEX documents..."
+          find .vex/prod -name "*.vex.json" -exec cp {} vex-sources/ \;
+        fi
+        
+        # Priority 4: Collect any other VEX documents in the repo
+        find . -name "*.vex.json" -not -path "./vex-sources/*" -not -path "./.vex/*" -exec cp {} vex-sources/ \;
         
         echo "### 📄 Existing VEX Documents" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # List found VEX documents
-        if [ -d "vex-sources" ] && [ "$(ls -A vex-sources)" ]; then
+        if [ -d "vex-sources" ] && [ "$(ls -A vex-sources 2>/dev/null)" ]; then
           VEX_COUNT=$(ls -1 vex-sources/*.vex.json 2>/dev/null | wc -l || echo "0")
           echo "✅ **Found $VEX_COUNT existing VEX documents**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size | Source |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|--------|" >> $GITHUB_STEP_SUMMARY
           for vex_file in vex-sources/*.vex.json; do
             if [ -f "$vex_file" ]; then
               SIZE=$(stat -c%s "$vex_file" 2>/dev/null || echo "0")
-              echo "| $(basename $vex_file) | ${SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
+              # Determine source based on filename patterns
+              if [[ "$(basename $vex_file)" == *"runtime"* ]]; then
+                SOURCE="🚀 Runtime"
+              elif [[ "$(basename $vex_file)" == *"final"* ]] || [[ "$(basename $vex_file)" == *"consolidated"* ]]; then
+                SOURCE="🔄 Consolidated"
+              elif [[ "$(basename $vex_file)" == *"production"* ]] || [[ "$(basename $vex_file)" == *"prod"* ]]; then
+                SOURCE="🏭 Production"
+              elif [[ "$(basename $vex_file)" == *"build"* ]]; then
+                SOURCE="🏗️ Build-time"
+              else
+                SOURCE="📋 Legacy"
+              fi
+              echo "| $(basename $vex_file) | ${SIZE} bytes | $SOURCE |" >> $GITHUB_STEP_SUMMARY
             fi
           done
         else
           echo "ℹ️ **No existing VEX documents found**" >> $GITHUB_STEP_SUMMARY
+          echo "📁 **Checked locations**: .vex/production/, .vex/prod/, root directory" >> $GITHUB_STEP_SUMMARY
           touch vex-sources/.keep
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
