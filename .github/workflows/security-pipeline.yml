@@ -51,9 +51,25 @@ jobs:
         
         EOF
 
+  # Check if external cluster is available
+  check-cluster-config:
+    needs: initialize
+    runs-on: ubuntu-latest
+    outputs:
+      use-external-cluster: ${{ steps.check-kubeconfig.outputs.use-external-cluster }}
+    steps:
+    - name: 🔍 Check KUBECONFIG availability
+      id: check-kubeconfig
+      run: |
+        if [ -n "${{ secrets.KUBECONFIG }}" ]; then
+          echo "use-external-cluster=true" >> $GITHUB_OUTPUT
+        else
+          echo "use-external-cluster=false" >> $GITHUB_OUTPUT
+        fi
+
   # Phase 1: Build and Test
   build-and-test:
-    needs: initialize
+    needs: [initialize, check-cluster-config]
     uses: ./.github/workflows/build-and-test.yml
     secrets: inherit
     with:
@@ -62,7 +78,7 @@ jobs:
 
   # Phase 2: VEX Analysis (build-time + runtime)
   vex-analysis:
-    needs: build-and-test
+    needs: [build-and-test, check-cluster-config]
     uses: ./.github/workflows/vex-analysis.yml
     secrets: inherit
     with:
@@ -72,7 +88,7 @@ jobs:
       sbom-artifact: ${{ needs.build-and-test.outputs.sbom-artifact }}
       scan-artifact: ${{ needs.build-and-test.outputs.scan-artifact }}
       vex-analysis-time: ${{ inputs.vex-analysis-time || '2m' }}
-      use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
+      use-external-cluster: ${{ needs.check-cluster-config.outputs.use-external-cluster == 'true' }}
 
   # Phase 3: Final Attestation and Verification
   attestation-and-verify:
