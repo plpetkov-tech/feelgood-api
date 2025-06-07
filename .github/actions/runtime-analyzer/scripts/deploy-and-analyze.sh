@@ -182,7 +182,13 @@ if [ "$SERVICE_READY" = "true" ]; then
     echo "✅ **Runtime test script found - executing comprehensive test suite**" >> $GITHUB_STEP_SUMMARY
     
     # Run the script and capture output
-    if timeout 300 bash scripts/test-during-runtime.sh "$NODE_IP" "30080" > runtime-test-output.log 2>&1; then
+    # Calculate dynamic timeout based on vex-analysis-time (max: analysis time, min: 300s)
+    VEX_TIME_SECONDS=$(echo "${VEX_ANALYSIS_TIME:-15m}" | sed 's/m/*60/g; s/s//g; s/h/*3600/g' | bc -l 2>/dev/null | cut -d. -f1 || echo "900")
+    MAIN_TEST_TIMEOUT=$((VEX_TIME_SECONDS > 300 ? VEX_TIME_SECONDS : 300))
+    
+    echo "🕒 Using dynamic timeout: ${MAIN_TEST_TIMEOUT}s (based on VEX analysis time: ${VEX_ANALYSIS_TIME:-15m})"
+    
+    if timeout $MAIN_TEST_TIMEOUT bash scripts/test-during-runtime.sh "$NODE_IP" "30080" > runtime-test-output.log 2>&1; then
       TOTAL_REQUESTS=$(grep "Total Requests:" runtime-test-output.log | awk '{print $NF}' || echo "0")
       SUCCESS_COUNT=$(grep "Successful:" runtime-test-output.log | awk '{print $NF}' || echo "0")
       SUCCESS_RATE=$(grep "Success Rate:" runtime-test-output.log | awk '{print $NF}' | tr -d '%' || echo "0")

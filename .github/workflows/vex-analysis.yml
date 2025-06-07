@@ -356,9 +356,13 @@ jobs:
             bash scripts/test-during-runtime.sh "$NODE_IP" "$PORT" > "cycle-${CYCLE}-output.log" 2>&1 &
             TEST_PID=$!
             
-            # Wait for test to complete or timeout after 60 seconds
-            timeout 60 wait $TEST_PID 2>/dev/null || {
-              echo "⚠️ Test cycle $CYCLE timed out, killing..."
+            # Calculate dynamic timeout based on vex-analysis-time (max: analysis time, min: 60s)
+            VEX_TIME_SECONDS=$(echo "${{ inputs.vex-analysis-time }}" | sed 's/m/*60/g; s/s//g; s/h/*3600/g' | bc -l 2>/dev/null | cut -d. -f1 || echo "120")
+            TEST_TIMEOUT=$((VEX_TIME_SECONDS > 60 ? VEX_TIME_SECONDS : 60))
+            
+            # Wait for test to complete or timeout dynamically
+            timeout $TEST_TIMEOUT wait $TEST_PID 2>/dev/null || {
+              echo "⚠️ Test cycle $CYCLE timed out after ${TEST_TIMEOUT}s, killing..."
               kill $TEST_PID 2>/dev/null || true
             }
             
