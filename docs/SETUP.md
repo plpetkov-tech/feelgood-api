@@ -7,6 +7,8 @@ This guide provides comprehensive instructions for setting up a new repository t
 This repository implements a **SLSA Level 3 Supply Chain Security proof of concept** with comprehensive DevSecOps pipeline featuring:
 - Multi-platform container builds with vulnerability scanning and patching
 - Build-time + runtime VEX (Vulnerability Exploitability eXchange) integration
+- **Flexible runtime analysis**: Support for both ephemeral Kind clusters and external Kubernetes clusters
+- **Enhanced VEX extraction**: Improved detection and handling of Kubescape VEX documents
 - SLSA Level 3 provenance generation and verification
 - Container signing with Cosign
 - Automated security monitoring and reporting
@@ -90,12 +92,73 @@ COSIGN_PRIVATE_KEY    # Content of your cosign.key file
 COSIGN_PASSWORD       # Password you used when generating the key pair
 ```
 
-**How to add secrets:**
+**Optional Secrets:**
+```
+KUBECONFIG           # Base64-encoded kubeconfig for external Kubernetes cluster runtime analysis
+```
+
+**How to add required secrets:**
 1. Click "New repository secret"
 2. Name: `COSIGN_PRIVATE_KEY`
 3. Value: Copy and paste the entire content of your `cosign.key` file
 4. Click "Add secret"
 5. Repeat for `COSIGN_PASSWORD` with the password you used
+
+**How to add KUBECONFIG secret (optional):**
+
+The `KUBECONFIG` secret enables runtime VEX analysis using an existing Kubernetes cluster instead of creating ephemeral Kind clusters. This is useful for:
+- Production-like environment testing
+- Using clusters with pre-installed Kubescape
+- Reducing CI/CD resource usage
+- Testing with specific cluster configurations
+
+**Setup Instructions:**
+
+1. **Prepare your kubeconfig file:**
+   ```bash
+   # Ensure your kubeconfig works locally
+   kubectl --kubeconfig=/path/to/your/kubeconfig cluster-info
+   
+   # Verify Kubescape is installed (optional but recommended)
+   kubectl --kubeconfig=/path/to/your/kubeconfig get ns kubescape
+   ```
+
+2. **Base64 encode the kubeconfig:**
+   ```bash
+   # Encode the kubeconfig file
+   cat /path/to/your/kubeconfig | base64 -w 0
+   # Copy the output (long base64 string)
+   ```
+
+3. **Add as GitHub secret:**
+   - Click "New repository secret"
+   - Name: `KUBECONFIG`
+   - Value: Paste the base64-encoded kubeconfig content
+   - Click "Add secret"
+
+**Runtime Analysis Behavior:**
+
+- **With KUBECONFIG secret**: Uses your external cluster, preserves cluster after analysis
+- **Without KUBECONFIG secret**: Creates ephemeral Kind cluster, destroys after analysis
+
+**External Cluster Requirements:**
+
+- **Kubernetes Version**: 1.24+ recommended
+- **Network Access**: Outbound internet access for image pulls
+- **Resources**: At least 2 CPU cores and 4GB RAM available
+- **Kubescape**: Pre-installed operator recommended (will be installed automatically if missing)
+- **Permissions**: Kubeconfig should have cluster-admin or sufficient permissions for:
+  - Creating deployments and services
+  - Installing Helm charts (if Kubescape not pre-installed)
+  - Accessing `kubescape` namespace
+  - Reading CRDs: `openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io`
+
+**Security Considerations:**
+
+- **Cluster Access**: Ensure the kubeconfig has minimal required permissions
+- **Network Security**: Consider network policies if using production clusters
+- **Resource Isolation**: Use dedicated namespaces or clusters for CI/CD testing
+- **Temporary Deployments**: The pipeline only deploys test applications temporarily (cleaned up automatically)
 
 ### 3. Repository Variables (Optional)
 
@@ -130,7 +193,7 @@ Copy the following workflow files from this repository to your `.github/workflow
 .github/workflows/
 ├── security-pipeline.yml          # Main orchestrator
 ├── build-and-test.yml             # Phase 1: Build & vulnerability scanning
-├── vex-analysis.yml               # Phase 2: VEX generation
+├── vex-analysis.yml               # Phase 2: VEX generation with flexible runtime analysis
 ├── attestation-and-verify.yml     # Phase 3: Signing & verification
 ├── security-monitoring.yml        # Daily security monitoring
 └── slsa-provenance.yml            # SLSA Level 3 provenance generation
@@ -147,8 +210,36 @@ Copy the following workflow files from this repository to your `.github/workflow
 .github/actions/
 ├── security-reporter/            # Unified security reporting
 ├── vex-processor/               # VEX document processing
-└── runtime-analyzer/            # Runtime security analysis
+└── runtime-analyzer/            # Runtime security analysis with external cluster support
 ```
+
+**Runtime Analyzer Action Details:**
+
+The `runtime-analyzer` action supports multiple operational modes:
+
+- **setup-cluster**: Initializes Kubernetes environment
+  - Checks for `KUBECONFIG` secret and uses external cluster if available
+  - Falls back to creating ephemeral Kind cluster if no external cluster
+  - Installs Kubescape operator with VEX generation capabilities
+
+- **deploy-and-analyze**: Deploys application for runtime analysis
+  - Creates security-hardened deployment with non-root user
+  - Generates runtime load for comprehensive VEX analysis
+  - Supports background testing during VEX generation period
+
+- **cleanup**: Cleans up analysis environment
+  - Preserves external clusters (only removes test deployments)
+  - Destroys ephemeral Kind clusters completely
+  - Handles cleanup gracefully for both scenarios
+
+**Input Parameters:**
+- `action`: Operation to perform (setup-cluster, deploy-and-analyze, cleanup)
+- `cluster-name`: Kubernetes cluster name (default: security-analysis-cluster)
+- `image-ref`: Container image reference for analysis
+- `app-name`: Application name for deployment
+- `timeout`: Operation timeout in seconds (default: 600)
+- `vex-analysis-time`: VEX analysis duration (default: 2m)
+- `kubeconfig-content`: Base64-encoded kubeconfig for external clusters (optional)
 
 ## Required Scripts
 
@@ -480,6 +571,43 @@ cat cosign.pub | head -1  # Should be: -----BEGIN PUBLIC KEY-----
 - If actions fail to resolve, check GitHub API rate limits
 - Use GitHub token: `export GITHUB_TOKEN="your_token"`
 - Verify action repository exists and is accessible
+
+**7. External Cluster Issues:**
+- **Kubeconfig Validation**: Verify base64 encoding is correct:
+  ```bash
+  # Test decoding
+  echo "YOUR_BASE64_STRING" | base64 -d > test-kubeconfig
+  kubectl --kubeconfig=test-kubeconfig cluster-info
+  ```
+- **Network Connectivity**: Ensure cluster is accessible from GitHub Actions runners
+- **Kubescape Installation**: Check if Kubescape operator is running:
+  ```bash
+  kubectl get pods -n kubescape
+  kubectl get crd | grep kubescape
+  ```
+- **VEX Document Generation**: Monitor for VEX resource creation:
+  ```bash
+  # Check for VEX documents
+  kubectl get openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io -n kubescape
+  # Fallback check
+  kubectl get openvulnerabilityexchangecontainer -n kubescape
+  ```
+- **Resource Cleanup**: Verify application deployments are cleaned up:
+  ```bash
+  kubectl get deployments,services --all-namespaces | grep feelgood
+  ```
+
+**8. VEX Extraction Issues:**
+- **CRD Availability**: Verify Kubescape CRDs are installed:
+  ```bash
+  kubectl get crd openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io
+  ```
+- **Document Naming**: VEX documents follow naming pattern: `registry-org-image-tag-hash`
+- **Timing Issues**: VEX generation may take time; check VEX analysis duration settings
+- **Empty Results**: If no VEX documents found, check Kubescape logs:
+  ```bash
+  kubectl logs -n kubescape -l app.kubernetes.io/name=kubescape --tail=50
+  ```
 
 ### Debug Commands
 

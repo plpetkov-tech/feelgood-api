@@ -269,6 +269,7 @@ jobs:
           action: "setup-cluster"
           cluster-name: "feelgood-cluster"
           vex-analysis-time: ${{ inputs.vex-analysis-time }}
+          kubeconfig-content: ${{ secrets.KUBECONFIG }}
 
       - name: 🛡️ Deploy and analyze application
         uses: ./.github/actions/runtime-analyzer
@@ -276,6 +277,7 @@ jobs:
           action: "deploy-and-analyze"
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
           app-name: "${{ github.event.repository.name }}"
+          kubeconfig-content: ${{ secrets.KUBECONFIG }}
 
       - name: 🎭 Start background runtime testing
         run: |
@@ -433,7 +435,12 @@ jobs:
           for i in $(seq 1 $WAIT_MINUTES); do
             echo "⏱️  Minute $i/$WAIT_MINUTES - $(date)"
             
-            VEX_COUNT=$(kubectl get openvulnerabilityexchangecontainer -n kubescape 2>/dev/null | wc -l || echo "0")
+            # Try with full CRD name first, then fallback to short name
+            VEX_COUNT=$(kubectl get openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io -n kubescape 2>/dev/null | wc -l || echo "0")
+            if [ "$VEX_COUNT" -eq 0 ]; then
+              VEX_COUNT=$(kubectl get openvulnerabilityexchangecontainer -n kubescape 2>/dev/null | wc -l || echo "0")
+            fi
+            
             if [ "$VEX_COUNT" -gt 1 ]; then
               echo "📄 Found $((VEX_COUNT-1)) runtime VEX document(s)"
               echo "✅ **Runtime VEX documents generated in $i minutes**" >> $GITHUB_STEP_SUMMARY
@@ -504,24 +511,79 @@ jobs:
           echo "### 📊 Runtime VEX Extraction" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          VEX_RESOURCES=$(kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers 2>/dev/null || echo "")
+          # Get all VEX resources with the full CRD name
+          VEX_RESOURCES=$(kubectl get openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io -n kubescape --no-headers 2>/dev/null || echo "")
           
           if [ -z "$VEX_RESOURCES" ]; then
             echo "⚠️ **No runtime VEX documents found from Kubescape**" >> $GITHUB_STEP_SUMMARY
-            echo "📋 **Skipping placeholder creation - will rely on existing production VEX**" >> $GITHUB_STEP_SUMMARY
+            echo "📋 **Checking for alternative VEX resource names...**" >> $GITHUB_STEP_SUMMARY
             
-            # Create empty placeholder to avoid workflow failures
-            echo '{"@context": "https://openvex.dev/ns/v0.2.0", "statements": []}' > runtime.vex.json
-            echo "📄 **Created minimal placeholder for workflow continuity**" >> $GITHUB_STEP_SUMMARY
+            # Try shorter form as fallback
+            VEX_RESOURCES=$(kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers 2>/dev/null || echo "")
+            
+            if [ -z "$VEX_RESOURCES" ]; then
+              echo "📋 **No VEX documents found, creating placeholder**" >> $GITHUB_STEP_SUMMARY
+              # Create empty placeholder to avoid workflow failures
+              echo '{"@context": "https://openvex.dev/ns/v0.2.0", "statements": []}' > runtime.vex.json
+              echo "📄 **Created minimal placeholder for workflow continuity**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ **Found VEX documents using fallback resource name**" >> $GITHUB_STEP_SUMMARY
+              VEX_COUNT=$(echo "$VEX_RESOURCES" | wc -l)
+              echo "📊 **Total VEX documents**: $VEX_COUNT" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              # List all found VEX documents for debugging
+              echo "| 📋 Found VEX Documents | Created At |" >> $GITHUB_STEP_SUMMARY
+              echo "|------------------------|------------|" >> $GITHUB_STEP_SUMMARY
+              echo "$VEX_RESOURCES" | while read -r line; do
+                VEX_NAME=$(echo "$line" | awk '{print $1}')
+                CREATED_AT=$(echo "$line" | awk '{print $2}')
+                echo "| $VEX_NAME | $CREATED_AT |" >> $GITHUB_STEP_SUMMARY
+              done
+              echo "" >> $GITHUB_STEP_SUMMARY
+              
+              # Extract the first VEX document using fallback name
+              FIRST_VEX=$(echo "$VEX_RESOURCES" | head -1 | awk '{print $1}')
+              kubectl get openvulnerabilityexchangecontainer "$FIRST_VEX" -n kubescape -o jsonpath='{.spec}' > runtime.vex.json
+              echo "📄 **Runtime VEX extracted**: $FIRST_VEX" >> $GITHUB_STEP_SUMMARY
+            fi
           else
             echo "✅ **Found runtime VEX documents**" >> $GITHUB_STEP_SUMMARY
+            VEX_COUNT=$(echo "$VEX_RESOURCES" | wc -l)
+            echo "📊 **Total VEX documents**: $VEX_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
             
-            # Extract the first VEX document
-            FIRST_VEX=$(kubectl get openvulnerabilityexchangecontainer -n kubescape --no-headers | head -1 | awk '{print $1}')
-            kubectl get openvulnerabilityexchangecontainer "$FIRST_VEX" -n kubescape -o jsonpath='{.spec}' > runtime.vex.json
+            # List all found VEX documents for debugging
+            echo "| 📋 Found VEX Documents | Created At |" >> $GITHUB_STEP_SUMMARY
+            echo "|------------------------|------------|" >> $GITHUB_STEP_SUMMARY
+            echo "$VEX_RESOURCES" | while read -r line; do
+              VEX_NAME=$(echo "$line" | awk '{print $1}')
+              CREATED_AT=$(echo "$line" | awk '{print $2}')
+              echo "| $VEX_NAME | $CREATED_AT |" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
             
-            echo "📄 **Runtime VEX extracted successfully**" >> $GITHUB_STEP_SUMMARY
-            echo "🎯 **Status**: Real-time VEX generated" >> $GITHUB_STEP_SUMMARY
+            # Look for our specific application image in the VEX documents
+            APP_IMAGE_NAME="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+            # Convert image name to expected VEX resource naming pattern (replace special chars with -)
+            VEX_PATTERN=$(echo "$APP_IMAGE_NAME" | sed 's|[/.:]|-|g' | tr '[:upper:]' '[:lower:]')
+            
+            echo "🔍 **Looking for VEX document matching our image pattern**: $VEX_PATTERN" >> $GITHUB_STEP_SUMMARY
+            
+            # Try to find a VEX document that matches our image
+            MATCHING_VEX=$(echo "$VEX_RESOURCES" | grep -i "$VEX_PATTERN" | head -1 | awk '{print $1}' || echo "")
+            
+            if [ -n "$MATCHING_VEX" ]; then
+              echo "🎯 **Found matching VEX document**: $MATCHING_VEX" >> $GITHUB_STEP_SUMMARY
+              kubectl get openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io "$MATCHING_VEX" -n kubescape -o jsonpath='{.spec}' > runtime.vex.json
+              echo "📄 **Extracted VEX for our application image**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ **No VEX document found for our specific image, using first available**" >> $GITHUB_STEP_SUMMARY
+              # Extract the first VEX document
+              FIRST_VEX=$(echo "$VEX_RESOURCES" | head -1 | awk '{print $1}')
+              kubectl get openvulnerabilityexchangecontainers.spdx.softwarecomposition.kubescape.io "$FIRST_VEX" -n kubescape -o jsonpath='{.spec}' > runtime.vex.json
+              echo "📄 **Extracted first available VEX**: $FIRST_VEX" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
           
           # Validate runtime VEX
@@ -553,6 +615,7 @@ jobs:
         with:
           action: "cleanup"
           cluster-name: "feelgood-cluster"
+          kubeconfig-content: ${{ secrets.KUBECONFIG }}
 
       - name: 🎯 Complete Runtime VEX Phase
         run: |

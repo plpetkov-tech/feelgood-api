@@ -22,19 +22,60 @@ inputs:
     description: 'VEX analysis duration (e.g., "2m", "5m", "10m")'
     required: false
     default: '2m'
+  kubeconfig-content:
+    description: 'Base64-encoded kubeconfig content for using existing cluster'
+    required: false
 
 runs:
   using: 'composite'
   steps:
     - name: Runtime Analysis Operations
       shell: bash
+      env:
+        KUBECONFIG_CONTENT: ${{ inputs.kubeconfig-content }}
       run: |
         case "${{ inputs.action }}" in
           "setup-cluster")
-            echo "🎲 Setting up Kubernetes Kind cluster for runtime analysis..."
+            echo "🎲 Setting up Kubernetes cluster for runtime analysis..."
             
-            # Create Kind cluster
-            cat > kind-config.yaml << EOF
+            # Check if KUBECONFIG secret is available for using existing cluster
+            if [ -n "${KUBECONFIG_CONTENT:-}" ]; then
+              echo "🔗 Using existing Kubernetes cluster from KUBECONFIG secret..."
+              
+              # Setup kubeconfig from secret
+              mkdir -p ~/.kube
+              echo "$KUBECONFIG_CONTENT" | base64 -d > ~/.kube/config
+              chmod 600 ~/.kube/config
+              
+              # Verify cluster connectivity
+              if kubectl cluster-info > /dev/null 2>&1; then
+                NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
+                K8S_VERSION=$(kubectl version --client=false -o json | jq -r '.serverVersion.gitVersion')
+                CLUSTER_NAME=$(kubectl config current-context)
+                
+                echo "### 🔗 Existing Kubernetes Cluster" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "| 📋 Cluster Information | Value |" >> $GITHUB_STEP_SUMMARY
+                echo "|------------------------|-------|" >> $GITHUB_STEP_SUMMARY
+                echo "| 🔗 Cluster Context | $CLUSTER_NAME |" >> $GITHUB_STEP_SUMMARY
+                echo "| 🖥️ Node Count | $NODE_COUNT |" >> $GITHUB_STEP_SUMMARY
+                echo "| ⚙️ Kubernetes Version | $K8S_VERSION |" >> $GITHUB_STEP_SUMMARY
+                echo "| 🔧 Runtime | External Cluster |" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "✅ **Using existing Kubernetes cluster**" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "❌ **Failed to connect to existing cluster, falling back to Kind**" >> $GITHUB_STEP_SUMMARY
+                unset KUBECONFIG_CONTENT
+              fi
+            fi
+            
+            # Fallback to Kind cluster if no kubeconfig or connection failed
+            if [ -z "${KUBECONFIG_CONTENT:-}" ]; then
+              echo "🎲 Creating new Kind cluster for runtime analysis..."
+              
+              # Create Kind cluster
+              cat > kind-config.yaml << EOF
         kind: Cluster
         apiVersion: kind.x-k8s.io/v1alpha4
         name: ${{ inputs.cluster-name }}
@@ -51,33 +92,34 @@ runs:
             hostPort: 30080
             protocol: TCP
         EOF
-            
-            # Install Kind if not present
-            if ! command -v kind &> /dev/null; then
-              curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
-              chmod +x ./kind
-              sudo mv ./kind /usr/local/bin/kind
+              
+              # Install Kind if not present
+              if ! command -v kind &> /dev/null; then
+                curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+                chmod +x ./kind
+                sudo mv ./kind /usr/local/bin/kind
+              fi
+              
+              # Create cluster
+              kind create cluster --config=kind-config.yaml --wait=60s
+              
+              # Verify cluster
+              kubectl cluster-info
+              NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
+              K8S_VERSION=$(kubectl version --client=false -o json | jq -r '.serverVersion.gitVersion')
+              
+              echo "### 🎲 Kind Kubernetes Cluster" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "| 📋 Cluster Information | Value |" >> $GITHUB_STEP_SUMMARY
+              echo "|------------------------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🎲 Cluster Name | ${{ inputs.cluster-name }} |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🖥️ Node Count | $NODE_COUNT |" >> $GITHUB_STEP_SUMMARY
+              echo "| ⚙️ Kubernetes Version | $K8S_VERSION |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔧 Runtime | Kind (Docker) |" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Kind cluster ready for deployment**" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
             fi
-            
-            # Create cluster
-            kind create cluster --config=kind-config.yaml --wait=60s
-            
-            # Verify cluster
-            kubectl cluster-info
-            NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
-            K8S_VERSION=$(kubectl version --client=false -o json | jq -r '.serverVersion.gitVersion')
-            
-            echo "### 🎲 Kubernetes Cluster Setup" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| 📋 Cluster Information | Value |" >> $GITHUB_STEP_SUMMARY
-            echo "|------------------------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| 🎲 Cluster Name | ${{ inputs.cluster-name }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🖥️ Node Count | $NODE_COUNT |" >> $GITHUB_STEP_SUMMARY
-            echo "| ⚙️ Kubernetes Version | $K8S_VERSION |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🔧 Runtime | Kind (Docker) |" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "✅ **Kubernetes cluster ready for deployment**" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
             
             # Install Kubescape Operator
             echo "🛡️ Installing Kubescape Operator with VEX generation..."
@@ -444,25 +486,38 @@ runs:
             pkill -f "kubectl port-forward" || true
             pkill -f "kind" || true
             
-            # Delete Kind cluster with timeout
-            if command -v kind &> /dev/null; then
-              echo "🗑️ Deleting Kind cluster..."
-              timeout 60s kind delete cluster --name ${{ inputs.cluster-name }} || {
-                echo "⚠️ **Cluster deletion timed out, forcing cleanup...**" >> $GITHUB_STEP_SUMMARY
-                docker ps -a --filter "label=io.x-k8s.kind.cluster=${{ inputs.cluster-name }}" -q | xargs -r docker rm -f || true
-              }
-              echo "✅ **Kind cluster cleanup attempted**" >> $GITHUB_STEP_SUMMARY
+            # Check if we used an external cluster or Kind
+            if [ -n "${KUBECONFIG_CONTENT:-}" ]; then
+              echo "🔗 Used external cluster - skipping cluster deletion..."
+              echo "✅ **External cluster preserved (no cleanup needed)**" >> $GITHUB_STEP_SUMMARY
+              
+              # Clean up our application deployments only
+              kubectl delete deployment ${{ github.event.repository.name }} --ignore-not-found=true || true
+              kubectl delete service ${{ github.event.repository.name }}-service --ignore-not-found=true || true
+              echo "✅ **Application resources cleaned up**" >> $GITHUB_STEP_SUMMARY
+            else
+              # Delete Kind cluster with timeout
+              if command -v kind &> /dev/null; then
+                echo "🗑️ Deleting Kind cluster..."
+                timeout 60s kind delete cluster --name ${{ inputs.cluster-name }} || {
+                  echo "⚠️ **Cluster deletion timed out, forcing cleanup...**" >> $GITHUB_STEP_SUMMARY
+                  docker ps -a --filter "label=io.x-k8s.kind.cluster=${{ inputs.cluster-name }}" -q | xargs -r docker rm -f || true
+                }
+                echo "✅ **Kind cluster cleanup attempted**" >> $GITHUB_STEP_SUMMARY
+              fi
+              
+              # Clean up Docker networks
+              docker network ls --filter "name=kind" -q | xargs -r docker network rm || true
+              
+              # Clean up any leftover containers
+              docker ps -a --filter "label=io.x-k8s.kind.cluster" -q | xargs -r docker rm -f || true
             fi
-            
-            # Clean up Docker networks
-            docker network ls --filter "name=kind" -q | xargs -r docker network rm || true
             
             # Clean up temporary files
             rm -f kind-config.yaml app-deployment.yaml || true
+            rm -f ~/.kube/config || true
             echo "✅ **Temporary files cleaned up**" >> $GITHUB_STEP_SUMMARY
             
-            # Clean up any leftover containers
-            docker ps -a --filter "label=io.x-k8s.kind.cluster" -q | xargs -r docker rm -f || true
             echo "✅ **Cleanup completed**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             ;;
