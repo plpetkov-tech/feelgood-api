@@ -269,7 +269,8 @@ jobs:
           action: "setup-cluster"
           cluster-name: "feelgood-cluster"
           vex-analysis-time: ${{ inputs.vex-analysis-time }}
-          kubeconfig-content: ${{ secrets.KUBECONFIG }}
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: 🛡️ Deploy and analyze application
         uses: ./.github/actions/runtime-analyzer
@@ -277,7 +278,8 @@ jobs:
           action: "deploy-and-analyze"
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
           app-name: "${{ github.event.repository.name }}"
-          kubeconfig-content: ${{ secrets.KUBECONFIG }}
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: 🎭 Start background runtime testing
         run: |
@@ -615,7 +617,8 @@ jobs:
         with:
           action: "cleanup"
           cluster-name: "feelgood-cluster"
-          kubeconfig-content: ${{ secrets.KUBECONFIG }}
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: 🎯 Complete Runtime VEX Phase
         run: |

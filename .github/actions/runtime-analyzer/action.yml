@@ -22,29 +22,24 @@ inputs:
     description: 'VEX analysis duration (e.g., "2m", "5m", "10m")'
     required: false
     default: '2m'
-  kubeconfig-content:
-    description: 'Base64-encoded kubeconfig content for using existing cluster'
-    required: false
 
 runs:
   using: 'composite'
   steps:
     - name: Runtime Analysis Operations
       shell: bash
-      env:
-        KUBECONFIG_CONTENT: ${{ inputs.kubeconfig-content }}
       run: |
         case "${{ inputs.action }}" in
           "setup-cluster")
             echo "🎲 Setting up Kubernetes cluster for runtime analysis..."
             
             # Check if KUBECONFIG secret is available for using existing cluster
-            if [ -n "${KUBECONFIG_CONTENT:-}" ]; then
+            if [ -n "${KUBECONFIG:-}" ]; then
               echo "🔗 Using existing Kubernetes cluster from KUBECONFIG secret..."
               
               # Setup kubeconfig from secret
               mkdir -p ~/.kube
-              echo "$KUBECONFIG_CONTENT" | base64 -d > ~/.kube/config
+              echo "$KUBECONFIG" | base64 -d > ~/.kube/config
               chmod 600 ~/.kube/config
               
               # Verify cluster connectivity
@@ -66,12 +61,12 @@ runs:
                 echo "" >> $GITHUB_STEP_SUMMARY
               else
                 echo "❌ **Failed to connect to existing cluster, falling back to Kind**" >> $GITHUB_STEP_SUMMARY
-                unset KUBECONFIG_CONTENT
+                unset KUBECONFIG
               fi
             fi
             
             # Fallback to Kind cluster if no kubeconfig or connection failed
-            if [ -z "${KUBECONFIG_CONTENT:-}" ]; then
+            if [ -z "${KUBECONFIG:-}" ]; then
               echo "🎲 Creating new Kind cluster for runtime analysis..."
               
               # Create Kind cluster
@@ -487,7 +482,7 @@ runs:
             pkill -f "kind" || true
             
             # Check if we used an external cluster or Kind
-            if [ -n "${KUBECONFIG_CONTENT:-}" ]; then
+            if [ -n "${KUBECONFIG:-}" ]; then
               echo "🔗 Used external cluster - skipping cluster deletion..."
               echo "✅ **External cluster preserved (no cleanup needed)**" >> $GITHUB_STEP_SUMMARY
               
