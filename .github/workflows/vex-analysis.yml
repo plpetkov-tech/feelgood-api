@@ -261,6 +261,14 @@ jobs:
         with:
           vexctl-release: '0.3.0'
 
+      - name: 🔧 Setup KUBECONFIG if external cluster
+        if: ${{ secrets.KUBECONFIG != '' }}
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          echo "✅ KUBECONFIG configured for external cluster"
+
       # Set up runtime analysis environment
       - name: 🎲 Setup Runtime Analysis Environment
         id: runtime-setup
@@ -270,8 +278,6 @@ jobs:
           cluster-name: "feelgood-cluster"
           vex-analysis-time: ${{ inputs.vex-analysis-time }}
           use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: 🛡️ Deploy and analyze application
         uses: ./.github/actions/runtime-analyzer
@@ -280,8 +286,6 @@ jobs:
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
           app-name: "${{ github.event.repository.name }}"
           use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: 🎭 Start background runtime testing
         run: |
@@ -620,8 +624,6 @@ jobs:
           action: "cleanup"
           cluster-name: "feelgood-cluster"
           use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
       - name: 🎯 Complete Runtime VEX Phase
         run: |

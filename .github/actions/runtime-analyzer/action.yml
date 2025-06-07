@@ -32,27 +32,16 @@ runs:
   steps:
     - name: Runtime Analysis Operations
       shell: bash
-      env:
-        KUBECONFIG_DATA: ${{ env.KUBECONFIG }}
       run: |
-        # Setup kubeconfig if using external cluster
-        if [ "${{ inputs.use-external-cluster }}" = "true" ] && [ -n "${KUBECONFIG_DATA:-}" ]; then
-          echo "🔧 Setting up kubeconfig for external cluster..."
-          mkdir -p ~/.kube
-          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config
-          echo "✅ KUBECONFIG written to ~/.kube/config"
-        fi
-        
         case "${{ inputs.action }}" in
           "setup-cluster")
             echo "🎲 Setting up Kubernetes cluster for runtime analysis..."
             
-            # Check if we should use external cluster
-            if [ "${{ inputs.use-external-cluster }}" = "true" ]; then
-              echo "🔗 Using existing Kubernetes cluster from KUBECONFIG secret..."
+            # Check if we should use external cluster (kubeconfig should be pre-configured)
+            if [ "${{ inputs.use-external-cluster }}" = "true" ] && [ -f ~/.kube/config ]; then
+              echo "🔗 Using existing Kubernetes cluster from KUBECONFIG..."
               
-              # Verify cluster connectivity (kubeconfig already set up in previous step)
+              # Verify cluster connectivity
               echo "🔍 Testing kubectl connectivity..."
               if kubectl cluster-info; then
                 NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
