@@ -22,10 +22,24 @@ inputs:
     description: 'VEX analysis duration (e.g., "2m", "5m", "10m")'
     required: false
     default: '2m'
+  use-external-cluster:
+    description: 'Whether to use external cluster (true/false)'
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
   steps:
+    - name: Setup KUBECONFIG if external cluster
+      if: ${{ inputs.use-external-cluster == 'true' }}
+      shell: bash
+      run: |
+        mkdir -p ~/.kube
+        echo "$KUBECONFIG" | base64 -d > ~/.kube/config
+        chmod 600 ~/.kube/config
+        echo "✅ KUBECONFIG written to ~/.kube/config"
+      env:
+        KUBECONFIG: ${{ env.KUBECONFIG }}
     - name: Runtime Analysis Operations
       shell: bash
       run: |
@@ -33,16 +47,11 @@ runs:
           "setup-cluster")
             echo "🎲 Setting up Kubernetes cluster for runtime analysis..."
             
-            # Check if KUBECONFIG secret is available for using existing cluster
-            if [ -n "${KUBECONFIG:-}" ]; then
+            # Check if we should use external cluster
+            if [ "${{ inputs.use-external-cluster }}" = "true" ]; then
               echo "🔗 Using existing Kubernetes cluster from KUBECONFIG secret..."
               
-              # Setup kubeconfig from secret
-              mkdir -p ~/.kube
-              echo "$KUBECONFIG" | base64 -d > ~/.kube/config
-              chmod 600 ~/.kube/config
-              
-              # Verify cluster connectivity
+              # Verify cluster connectivity (kubeconfig already set up in previous step)
               if kubectl cluster-info > /dev/null 2>&1; then
                 NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
                 K8S_VERSION=$(kubectl version --client=false -o json | jq -r '.serverVersion.gitVersion')
@@ -61,12 +70,14 @@ runs:
                 echo "" >> $GITHUB_STEP_SUMMARY
               else
                 echo "❌ **Failed to connect to existing cluster, falling back to Kind**" >> $GITHUB_STEP_SUMMARY
-                unset KUBECONFIG
+                USE_KIND=true
               fi
+            else
+              USE_KIND=true
             fi
             
-            # Fallback to Kind cluster if no kubeconfig or connection failed
-            if [ -z "${KUBECONFIG:-}" ]; then
+            # Fallback to Kind cluster if no external cluster or connection failed
+            if [ "${USE_KIND:-false}" = "true" ]; then
               echo "🎲 Creating new Kind cluster for runtime analysis..."
               
               # Create Kind cluster
@@ -482,7 +493,7 @@ runs:
             pkill -f "kind" || true
             
             # Check if we used an external cluster or Kind
-            if [ -n "${KUBECONFIG:-}" ]; then
+            if [ "${{ inputs.use-external-cluster }}" = "true" ]; then
               echo "🔗 Used external cluster - skipping cluster deletion..."
               echo "✅ **External cluster preserved (no cleanup needed)**" >> $GITHUB_STEP_SUMMARY
               

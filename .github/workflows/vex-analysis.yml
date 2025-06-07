@@ -269,6 +269,7 @@ jobs:
           action: "setup-cluster"
           cluster-name: "feelgood-cluster"
           vex-analysis-time: ${{ inputs.vex-analysis-time }}
+          use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
@@ -278,6 +279,7 @@ jobs:
           action: "deploy-and-analyze"
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
           app-name: "${{ github.event.repository.name }}"
+          use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
@@ -617,6 +619,7 @@ jobs:
         with:
           action: "cleanup"
           cluster-name: "feelgood-cluster"
+          use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
 
