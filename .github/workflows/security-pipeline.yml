@@ -72,6 +72,7 @@ jobs:
       sbom-artifact: ${{ needs.build-and-test.outputs.sbom-artifact }}
       scan-artifact: ${{ needs.build-and-test.outputs.scan-artifact }}
       vex-analysis-time: ${{ inputs.vex-analysis-time || '2m' }}
+      use-external-cluster: ${{ secrets.KUBECONFIG != '' }}
 
   # Phase 3: Final Attestation and Verification
   attestation-and-verify:
