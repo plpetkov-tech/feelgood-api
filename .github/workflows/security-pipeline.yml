@@ -10,7 +10,7 @@ on:
       vex-analysis-time:
         description: 'VEX analysis runtime duration (e.g., "2m", "5m", "10m")'
         required: false
-        default: '2m'
+        default: '15m'
         type: string
 
 # Grant all necessary permissions for called workflows

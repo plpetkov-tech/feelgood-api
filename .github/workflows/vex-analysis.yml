@@ -21,7 +21,7 @@ on:
       vex-analysis-time:
         required: false
         type: string
-        default: '2m'
+        default: '15m'
       use-external-cluster:
         required: false
         type: boolean

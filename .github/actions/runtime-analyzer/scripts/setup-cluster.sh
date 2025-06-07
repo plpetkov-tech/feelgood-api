@@ -7,7 +7,7 @@ echo "🎲 Setting up Kubernetes cluster for runtime analysis..."
 # Input parameters (passed as environment variables)
 CLUSTER_NAME="${CLUSTER_NAME:-security-analysis-cluster}"
 USE_EXTERNAL_CLUSTER="${USE_EXTERNAL_CLUSTER:-false}"
-VEX_ANALYSIS_TIME="${VEX_ANALYSIS_TIME:-2m}"
+VEX_ANALYSIS_TIME="${VEX_ANALYSIS_TIME:-15m}"
 TIMEOUT="${TIMEOUT:-600}"
 
 # Check if we should use external cluster (kubeconfig should be pre-configured)

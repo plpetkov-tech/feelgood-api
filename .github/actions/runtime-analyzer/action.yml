@@ -21,7 +21,7 @@ inputs:
   vex-analysis-time:
     description: 'VEX analysis duration (e.g., "2m", "5m", "10m")'
     required: false
-    default: '2m'
+    default: '15m'
   use-external-cluster:
     description: 'Whether to use external cluster (true/false)'
     required: false
