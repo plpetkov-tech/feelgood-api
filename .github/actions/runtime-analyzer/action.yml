@@ -30,19 +30,20 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup KUBECONFIG if external cluster
-      if: ${{ inputs.use-external-cluster == 'true' }}
-      shell: bash
-      run: |
-        mkdir -p ~/.kube
-        echo "$KUBECONFIG" | base64 -d > ~/.kube/config
-        chmod 600 ~/.kube/config
-        echo "✅ KUBECONFIG written to ~/.kube/config"
-      env:
-        KUBECONFIG: ${{ env.KUBECONFIG }}
     - name: Runtime Analysis Operations
       shell: bash
+      env:
+        KUBECONFIG_DATA: ${{ env.KUBECONFIG }}
       run: |
+        # Setup kubeconfig if using external cluster
+        if [ "${{ inputs.use-external-cluster }}" = "true" ] && [ -n "${KUBECONFIG_DATA:-}" ]; then
+          echo "🔧 Setting up kubeconfig for external cluster..."
+          mkdir -p ~/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          echo "✅ KUBECONFIG written to ~/.kube/config"
+        fi
+        
         case "${{ inputs.action }}" in
           "setup-cluster")
             echo "🎲 Setting up Kubernetes cluster for runtime analysis..."
@@ -52,7 +53,8 @@ runs:
               echo "🔗 Using existing Kubernetes cluster from KUBECONFIG secret..."
               
               # Verify cluster connectivity (kubeconfig already set up in previous step)
-              if kubectl cluster-info > /dev/null 2>&1; then
+              echo "🔍 Testing kubectl connectivity..."
+              if kubectl cluster-info; then
                 NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
                 K8S_VERSION=$(kubectl version --client=false -o json | jq -r '.serverVersion.gitVersion')
                 CLUSTER_NAME=$(kubectl config current-context)
