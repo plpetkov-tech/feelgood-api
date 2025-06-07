@@ -238,7 +238,7 @@ The `runtime-analyzer` action supports multiple operational modes:
 - `image-ref`: Container image reference for analysis
 - `app-name`: Application name for deployment
 - `timeout`: Operation timeout in seconds (default: 600)
-- `vex-analysis-time`: VEX analysis duration (default: 2m)
+- `vex-analysis-time`: VEX analysis duration (default: 2m) - configures learningPeriod and applicationActivityTime
 - `kubeconfig-content`: Base64-encoded kubeconfig for external clusters (optional)
 
 ## Required Scripts

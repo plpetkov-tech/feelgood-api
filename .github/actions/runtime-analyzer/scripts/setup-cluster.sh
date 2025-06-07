@@ -111,6 +111,9 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   --set capabilities.runtimeObservability=enable \
   --set capabilities.networkEventsStreaming=disable \
   --set nodeAgent.config.applicationActivityTime=${VEX_ANALYSIS_TIME} \
+  --set nodeAgent.config.learningPeriod=${VEX_ANALYSIS_TIME} \
+  --set nodeAgent.config.maxLearningPeriod=24h \
+  --set nodeAgent.config.updatePeriod=10m \
   --wait \
   --timeout=${TIMEOUT}s; then
   
@@ -118,7 +121,7 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   echo "" >> $GITHUB_STEP_SUMMARY
   echo "| 🔧 Capability | Status | Configuration |" >> $GITHUB_STEP_SUMMARY
   echo "|---------------|--------|---------------|" >> $GITHUB_STEP_SUMMARY
-  echo "| 📋 VEX Generation | ✅ Enabled | Activity time: ${VEX_ANALYSIS_TIME} |" >> $GITHUB_STEP_SUMMARY
+  echo "| 📋 VEX Generation | ✅ Enabled | Learning: ${VEX_ANALYSIS_TIME}, Max: 24h, Update: 10m |" >> $GITHUB_STEP_SUMMARY
   echo "| 🛡️ Vulnerability Scan | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY
   echo "| 🎯 Relevancy Analysis | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY
   echo "| 🔍 Runtime Observability | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY
