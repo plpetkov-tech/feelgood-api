@@ -109,6 +109,7 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   --set capabilities.vulnerabilityScan=enable \
   --set capabilities.relevancy=enable \
   --set capabilities.runtimeObservability=enable \
+  --set capabilities.networkEventsStreaming=disable \
   --set nodeAgent.config.applicationActivityTime=${VEX_ANALYSIS_TIME} \
   --wait \
   --timeout=${TIMEOUT}s; then
