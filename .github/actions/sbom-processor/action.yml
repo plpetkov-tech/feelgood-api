@@ -40,57 +40,61 @@ runs:
         echo "🔒 Validating SBOM processor inputs..."
         
         # Validate build-sbom-artifact
-        if [[ -z "${{ inputs.build-sbom-artifact }}" ]]; then
+        BUILD_SBOM_ARTIFACT="${{ inputs.build-sbom-artifact }}"
+        if [[ -z "$BUILD_SBOM_ARTIFACT" ]]; then
           echo "❌ Build SBOM artifact name is required"
           exit 1
         fi
         
-        if [[ ! "${{ inputs.build-sbom-artifact }}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$ ]]; then
+        if [[ ! "$BUILD_SBOM_ARTIFACT" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$ ]]; then
           echo "❌ Invalid build SBOM artifact name format"
           exit 1
         fi
         
-        if [[ ${#${{ inputs.build-sbom-artifact }}} -gt 100 ]]; then
+        if [[ ${#BUILD_SBOM_ARTIFACT} -gt 100 ]]; then
           echo "❌ Build SBOM artifact name too long"
           exit 1
         fi
         
         # Validate runtime-filtered-sbom-artifact if provided
-        if [[ -n "${{ inputs.runtime-filtered-sbom-artifact }}" ]]; then
-          if [[ ! "${{ inputs.runtime-filtered-sbom-artifact }}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$ ]]; then
+        RUNTIME_FILTERED_SBOM_ARTIFACT="${{ inputs.runtime-filtered-sbom-artifact }}"
+        if [[ -n "$RUNTIME_FILTERED_SBOM_ARTIFACT" ]]; then
+          if [[ ! "$RUNTIME_FILTERED_SBOM_ARTIFACT" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$ ]]; then
             echo "❌ Invalid runtime filtered SBOM artifact name format"
             exit 1
           fi
           
-          if [[ ${#${{ inputs.runtime-filtered-sbom-artifact }}} -gt 100 ]]; then
+          if [[ ${#RUNTIME_FILTERED_SBOM_ARTIFACT} -gt 100 ]]; then
             echo "❌ Runtime filtered SBOM artifact name too long"
             exit 1
           fi
         fi
         
         # Validate container image reference
-        if [[ -z "${{ inputs.container-image }}" ]]; then
+        CONTAINER_IMAGE="${{ inputs.container-image }}"
+        if [[ -z "$CONTAINER_IMAGE" ]]; then
           echo "❌ Container image reference is required"
           exit 1
         fi
         
-        if [[ ! "${{ inputs.container-image }}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
+        if [[ ! "$CONTAINER_IMAGE" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
           echo "❌ Invalid container image reference format"
           exit 1
         fi
         
-        if [[ ${#${{ inputs.container-image }}} -gt 512 ]]; then
+        if [[ ${#CONTAINER_IMAGE} -gt 512 ]]; then
           echo "❌ Container image reference too long"
           exit 1
         fi
         
         # Validate output prefix
-        if [[ ! "${{ inputs.output-prefix }}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
+        OUTPUT_PREFIX="${{ inputs.output-prefix }}"
+        if [[ ! "$OUTPUT_PREFIX" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
           echo "❌ Invalid output prefix format. Must start with alphanumeric and contain only alphanumeric, hyphens, and underscores"
           exit 1
         fi
         
-        if [[ ${#${{ inputs.output-prefix }}} -gt 50 ]]; then
+        if [[ ${#OUTPUT_PREFIX} -gt 50 ]]; then
           echo "❌ Output prefix too long"
           exit 1
         fi

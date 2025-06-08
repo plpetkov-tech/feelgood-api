@@ -79,13 +79,14 @@ runs:
         done
         
         # Validate image reference if provided
-        if [[ -n "${{ inputs.image-ref }}" ]]; then
-          if [[ ! "${{ inputs.image-ref }}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
+        IMAGE_REF="${{ inputs.image-ref }}"
+        if [[ -n "$IMAGE_REF" ]]; then
+          if [[ ! "$IMAGE_REF" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
             echo "❌ Invalid image reference format"
             exit 1
           fi
           
-          if [[ ${#${{ inputs.image-ref }}} -gt 512 ]]; then
+          if [[ ${#IMAGE_REF} -gt 512 ]]; then
             echo "❌ Image reference too long"
             exit 1
           fi

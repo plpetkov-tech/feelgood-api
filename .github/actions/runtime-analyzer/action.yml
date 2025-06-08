@@ -45,13 +45,14 @@ runs:
         esac
         
         # Validate cluster name (alphanumeric, hyphens, underscores only)
-        if [[ ! "${{ inputs.cluster-name }}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        CLUSTER_NAME="${{ inputs.cluster-name }}"
+        if [[ ! "$CLUSTER_NAME" =~ ^[a-zA-Z0-9_-]+$ ]]; then
           echo "❌ Invalid cluster name. Must contain only letters, numbers, hyphens, and underscores"
           exit 1
         fi
         
         # Validate cluster name length
-        if [[ ${#${{ inputs.cluster-name }}} -gt 63 ]]; then
+        if [[ ${#CLUSTER_NAME} -gt 63 ]]; then
           echo "❌ Cluster name too long. Must be 63 characters or less"
           exit 1
         fi
@@ -69,38 +70,42 @@ runs:
         fi
         
         # Validate VEX analysis time format
-        if [[ ! "${{ inputs.vex-analysis-time }}" =~ ^[0-9]+[smh]$ ]]; then
+        VEX_ANALYSIS_TIME="${{ inputs.vex-analysis-time }}"
+        if [[ ! "$VEX_ANALYSIS_TIME" =~ ^[0-9]+[smh]$ ]]; then
           echo "❌ Invalid VEX analysis time format. Must be like '5m', '30s', or '1h'"
           exit 1
         fi
         
         # Validate boolean inputs
-        if [[ ! "${{ inputs.use-external-cluster }}" =~ ^(true|false)$ ]]; then
+        USE_EXTERNAL_CLUSTER="${{ inputs.use-external-cluster }}"
+        if [[ ! "$USE_EXTERNAL_CLUSTER" =~ ^(true|false)$ ]]; then
           echo "❌ Invalid use-external-cluster value. Must be 'true' or 'false'"
           exit 1
         fi
         
         # Validate image reference if provided
-        if [[ -n "${{ inputs.image-ref }}" ]]; then
-          if [[ ! "${{ inputs.image-ref }}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
+        IMAGE_REF="${{ inputs.image-ref }}"
+        if [[ -n "$IMAGE_REF" ]]; then
+          if [[ ! "$IMAGE_REF" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
             echo "❌ Invalid image reference format"
             exit 1
           fi
           
-          if [[ ${#${{ inputs.image-ref }}} -gt 512 ]]; then
+          if [[ ${#IMAGE_REF} -gt 512 ]]; then
             echo "❌ Image reference too long"
             exit 1
           fi
         fi
         
         # Validate app name if provided
-        if [[ -n "${{ inputs.app-name }}" ]]; then
-          if [[ ! "${{ inputs.app-name }}" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+        APP_NAME="${{ inputs.app-name }}"
+        if [[ -n "$APP_NAME" ]]; then
+          if [[ ! "$APP_NAME" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
             echo "❌ Invalid app name. Must be lowercase alphanumeric with hyphens"
             exit 1
           fi
           
-          if [[ ${#${{ inputs.app-name }}} -gt 63 ]]; then
+          if [[ ${#APP_NAME} -gt 63 ]]; then
             echo "❌ App name too long. Must be 63 characters or less"
             exit 1
           fi

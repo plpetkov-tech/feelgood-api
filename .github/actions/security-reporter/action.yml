@@ -36,21 +36,24 @@ runs:
         
         # Validate scan file if provided
         if [[ -n "${{ inputs.scan-file }}" ]]; then
+          # Store in variable to avoid bash substitution issues with hyphens
+          SCAN_FILE_PATH="${{ inputs.scan-file }}"
+          
           # Basic path validation
-          if [[ ! "${{ inputs.scan-file }}" =~ ^[a-zA-Z0-9.//_-]+$ ]]; then
+          if [[ ! "$SCAN_FILE_PATH" =~ ^[a-zA-Z0-9.//_-]+$ ]]; then
             echo "❌ Invalid scan file path format"
             exit 1
           fi
           
           # Check path length
-          if [[ ${#${{ inputs.scan-file }}} -gt 256 ]]; then
+          if [[ ${#SCAN_FILE_PATH} -gt 256 ]]; then
             echo "❌ Scan file path too long"
             exit 1
           fi
           
           # Check if file exists (if not empty)
-          if [[ ! -f "${{ inputs.scan-file }}" ]]; then
-            echo "⚠️ Scan file does not exist: ${{ inputs.scan-file }}"
+          if [[ ! -f "$SCAN_FILE_PATH" ]]; then
+            echo "⚠️ Scan file does not exist: $SCAN_FILE_PATH"
           fi
         fi
         
@@ -103,23 +106,24 @@ runs:
             ;;
             
           "scan-results")
-            if [ -f "${{ inputs.scan-file }}" ]; then
+            SCAN_FILE_PATH="${{ inputs.scan-file }}"
+            if [ -f "$SCAN_FILE_PATH" ]; then
               echo "### $SAFE_TITLE" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
               
               # Validate JSON file size before processing
-              FILE_SIZE=$(stat -c%s "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              FILE_SIZE=$(stat -c%s "$SCAN_FILE_PATH" 2>/dev/null || echo "0")
               if [[ $FILE_SIZE -gt 10485760 ]]; then  # 10MB limit
                 echo "⚠️ Scan file too large to process safely" >> $GITHUB_STEP_SUMMARY
                 exit 0
               fi
               
               # Safely parse JSON with error handling
-              TOTAL_VULNS=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]?] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              CRITICAL=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              HIGH=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              MEDIUM=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              LOW=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              TOTAL_VULNS=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]?] | length' "$SCAN_FILE_PATH" 2>/dev/null || echo "0")
+              CRITICAL=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "$SCAN_FILE_PATH" 2>/dev/null || echo "0")
+              HIGH=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "$SCAN_FILE_PATH" 2>/dev/null || echo "0")
+              MEDIUM=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' "$SCAN_FILE_PATH" 2>/dev/null || echo "0")
+              LOW=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' "$SCAN_FILE_PATH" 2>/dev/null || echo "0")
               
               # Validate numeric values to prevent injection
               TOTAL_VULNS=$([[ "$TOTAL_VULNS" =~ ^[0-9]+$ ]] && echo "$TOTAL_VULNS" || echo "0")
