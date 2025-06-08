@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Enhanced SBOM generation with SLSA metadata"""
 import subprocess
+import re
 import json
 import sys
 import os
