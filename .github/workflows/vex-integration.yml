@@ -263,8 +263,11 @@ jobs:
             if [ -f "$vex_file" ]; then
               echo "📄 Using VEX document: $vex_file"
               
-              # Check if image exists and is accessible
-              if cosign verify --key cosign.pub "$image_ref" >/dev/null 2>&1; then
+              # Check if image exists and is accessible with repository-specific identity verification
+              if cosign verify \
+                --certificate-identity-regexp "^https://github\\.com/${{ github.repository }}/\\.github/workflows/.*@refs/.*" \
+                --certificate-oidc-issuer-regexp "^https://token\\.actions\\.githubusercontent\\.com$" \
+                "$image_ref" >/dev/null 2>&1; then
                 echo "🔐 Re-attesting VEX document to image..."
                 vexctl attest \
                   --attach \

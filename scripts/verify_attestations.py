@@ -20,8 +20,8 @@ class AttestationVerifier:
         
         result = subprocess.run([
             "cosign", "verify",
-            "--certificate-identity-regexp", ".*",
-            "--certificate-oidc-issuer-regexp", ".*",
+            "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
+            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
             self.image_ref
         ], capture_output=True, text=True)
         
@@ -40,8 +40,8 @@ class AttestationVerifier:
         result = subprocess.run([
             "cosign", "verify-attestation",
             "--type", "slsaprovenance",
-            "--certificate-identity-regexp", ".*",
-            "--certificate-oidc-issuer-regexp", ".*",
+            "--certificate-identity-regexp", r"^https://github\.com/slsa-framework/slsa-github-generator/\.github/workflows/generator_container_slsa3\.yml@refs/tags/v\d+\.\d+\.\d+$",
+            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
             self.image_ref
         ], capture_output=True, text=True)
         
@@ -86,8 +86,8 @@ class AttestationVerifier:
         result = subprocess.run([
             "cosign", "verify-attestation",
             "--type", "https://slsa.dev/provenance/v1",
-            "--certificate-identity-regexp", ".*",
-            "--certificate-oidc-issuer-regexp", ".*",
+            "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
+            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
             self.image_ref
         ], capture_output=True, text=True)
         
@@ -119,8 +119,8 @@ class AttestationVerifier:
             result = subprocess.run([
                 "cosign", "verify-attestation",
                 "--type", "cyclonedx",
-                "--certificate-identity-regexp", ".*",
-                "--certificate-oidc-issuer-regexp", ".*",
+                "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
+                "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
                 self.image_ref
             ], capture_output=True, text=True)
             
@@ -194,8 +194,8 @@ class AttestationVerifier:
         result = subprocess.run([
             "cosign", "verify-attestation",
             "--type", "openvex",
-            "--certificate-identity-regexp", ".*",
-            "--certificate-oidc-issuer-regexp", ".*",
+            "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
+            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
             self.image_ref
         ], capture_output=True, text=True)
         

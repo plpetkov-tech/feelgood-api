@@ -664,8 +664,11 @@ jobs:
         echo "### 🔐 Signature & Provenance Verification" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
-        # Verify signature
-        if cosign verify --key cosign.pub "$IMAGE_REF" 2>/dev/null; then
+        # Verify signature with repository-specific identity verification
+        if cosign verify \
+          --certificate-identity-regexp "^https://github\\.com/${{ github.repository }}/\\.github/workflows/.*@refs/.*" \
+          --certificate-oidc-issuer-regexp "^https://token\\.actions\\.githubusercontent\\.com$" \
+          "$IMAGE_REF" 2>/dev/null; then
           echo "✅ **Container signature verified**" >> $GITHUB_STEP_SUMMARY
         else
           echo "⚠️ **Container signature verification failed**" >> $GITHUB_STEP_SUMMARY
