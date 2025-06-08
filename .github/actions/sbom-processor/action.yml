@@ -34,6 +34,69 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: 🔒 Validate Inputs
+      shell: bash
+      run: |
+        echo "🔒 Validating SBOM processor inputs..."
+        
+        # Validate build-sbom-artifact
+        if [[ -z "${{ inputs.build-sbom-artifact }}" ]]; then
+          echo "❌ Build SBOM artifact name is required"
+          exit 1
+        fi
+        
+        if [[ ! "${{ inputs.build-sbom-artifact }}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$ ]]; then
+          echo "❌ Invalid build SBOM artifact name format"
+          exit 1
+        fi
+        
+        if [[ ${#${{ inputs.build-sbom-artifact }}} -gt 100 ]]; then
+          echo "❌ Build SBOM artifact name too long"
+          exit 1
+        fi
+        
+        # Validate runtime-filtered-sbom-artifact if provided
+        if [[ -n "${{ inputs.runtime-filtered-sbom-artifact }}" ]]; then
+          if [[ ! "${{ inputs.runtime-filtered-sbom-artifact }}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$ ]]; then
+            echo "❌ Invalid runtime filtered SBOM artifact name format"
+            exit 1
+          fi
+          
+          if [[ ${#${{ inputs.runtime-filtered-sbom-artifact }}} -gt 100 ]]; then
+            echo "❌ Runtime filtered SBOM artifact name too long"
+            exit 1
+          fi
+        fi
+        
+        # Validate container image reference
+        if [[ -z "${{ inputs.container-image }}" ]]; then
+          echo "❌ Container image reference is required"
+          exit 1
+        fi
+        
+        if [[ ! "${{ inputs.container-image }}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
+          echo "❌ Invalid container image reference format"
+          exit 1
+        fi
+        
+        if [[ ${#${{ inputs.container-image }}} -gt 512 ]]; then
+          echo "❌ Container image reference too long"
+          exit 1
+        fi
+        
+        # Validate output prefix
+        if [[ ! "${{ inputs.output-prefix }}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
+          echo "❌ Invalid output prefix format. Must start with alphanumeric and contain only alphanumeric, hyphens, and underscores"
+          exit 1
+        fi
+        
+        if [[ ${#${{ inputs.output-prefix }}} -gt 50 ]]; then
+          echo "❌ Output prefix too long"
+          exit 1
+        fi
+        
+        echo "✅ All inputs validated successfully"
+
     - name: 🔍 Debug artifact information
       shell: bash
       run: |
@@ -110,8 +173,8 @@ runs:
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
         fi
         
-        # Install cyclonedx-cli for SBOM manipulation
-        pip install cyclonedx-bom cyclonedx-python-lib
+        # Install cyclonedx-cli for SBOM manipulation with pinned versions
+        pip install cyclonedx-bom==4.3.0 cyclonedx-python-lib==7.4.1
         
         # Verify installations
         trivy --version
@@ -122,10 +185,12 @@ runs:
       run: |
         echo "🏗️ Generating container SBOM with Trivy..."
         
-        # Generate container SBOM using Trivy
-        trivy image ${{ inputs.container-image }} \
+        # Generate container SBOM using Trivy (input already validated)
+        trivy image "${{ inputs.container-image }}" \
           --format cyclonedx \
-          --output sbom-processing/container.sbom.json
+          --output sbom-processing/container.sbom.json \
+          --timeout 5m \
+          --quiet
         
         echo "✅ Container SBOM generated successfully"
         

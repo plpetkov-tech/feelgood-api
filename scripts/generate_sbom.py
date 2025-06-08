@@ -92,22 +92,32 @@ def generate_enhanced_sbom():
     
     # Add GitHub Actions specific metadata if available
     if "GITHUB_ACTIONS" in os.environ:
+        # Safely get and validate environment variables
+        def safe_env_get(key, default="unknown", max_length=256):
+            """Safely get environment variable with validation"""
+            value = os.environ.get(key, default)
+            if not isinstance(value, str):
+                return default
+            # Remove potentially dangerous characters
+            safe_value = re.sub(r'[^a-zA-Z0-9._/@:-]', '', value)
+            return safe_value[:max_length] if safe_value else default
+        
         github_properties = [
             {
                 "name": "github.workflow",
-                "value": os.environ.get("GITHUB_WORKFLOW", "")
+                "value": safe_env_get("GITHUB_WORKFLOW")
             },
             {
                 "name": "github.run.id",
-                "value": os.environ.get("GITHUB_RUN_ID", "")
+                "value": safe_env_get("GITHUB_RUN_ID")
             },
             {
                 "name": "github.run.number",
-                "value": os.environ.get("GITHUB_RUN_NUMBER", "")
+                "value": safe_env_get("GITHUB_RUN_NUMBER")
             },
             {
                 "name": "github.actor",
-                "value": os.environ.get("GITHUB_ACTOR", "")
+                "value": safe_env_get("GITHUB_ACTOR")
             }
         ]
         slsa_properties.extend(github_properties)
@@ -139,5 +149,17 @@ def generate_enhanced_sbom():
     return json.dumps(sbom, indent=2)
 
 
+def main():
+    """Main function with error handling"""
+    try:
+        result = generate_enhanced_sbom()
+        print(result)
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
+
 if __name__ == "__main__":
-    print(generate_enhanced_sbom())
+    main()

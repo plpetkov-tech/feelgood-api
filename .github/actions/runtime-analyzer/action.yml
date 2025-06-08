@@ -30,10 +30,87 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        # Validate action input
+        case "${{ inputs.action }}" in
+          "setup-cluster"|"deploy-and-analyze"|"cleanup")
+            echo "✅ Valid action: ${{ inputs.action }}"
+            ;;
+          *)
+            echo "❌ Invalid action. Must be: setup-cluster, deploy-and-analyze, or cleanup"
+            exit 1
+            ;;
+        esac
+        
+        # Validate cluster name (alphanumeric, hyphens, underscores only)
+        if [[ ! "${{ inputs.cluster-name }}" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+          echo "❌ Invalid cluster name. Must contain only letters, numbers, hyphens, and underscores"
+          exit 1
+        fi
+        
+        # Validate cluster name length
+        if [[ ${#${{ inputs.cluster-name }}} -gt 63 ]]; then
+          echo "❌ Cluster name too long. Must be 63 characters or less"
+          exit 1
+        fi
+        
+        # Validate timeout (numeric only)
+        if [[ ! "${{ inputs.timeout }}" =~ ^[0-9]+$ ]]; then
+          echo "❌ Invalid timeout. Must be a positive integer"
+          exit 1
+        fi
+        
+        # Validate timeout range
+        if [[ "${{ inputs.timeout }}" -lt 60 || "${{ inputs.timeout }}" -gt 3600 ]]; then
+          echo "❌ Invalid timeout. Must be between 60 and 3600 seconds"
+          exit 1
+        fi
+        
+        # Validate VEX analysis time format
+        if [[ ! "${{ inputs.vex-analysis-time }}" =~ ^[0-9]+[smh]$ ]]; then
+          echo "❌ Invalid VEX analysis time format. Must be like '5m', '30s', or '1h'"
+          exit 1
+        fi
+        
+        # Validate boolean inputs
+        if [[ ! "${{ inputs.use-external-cluster }}" =~ ^(true|false)$ ]]; then
+          echo "❌ Invalid use-external-cluster value. Must be 'true' or 'false'"
+          exit 1
+        fi
+        
+        # Validate image reference if provided
+        if [[ -n "${{ inputs.image-ref }}" ]]; then
+          if [[ ! "${{ inputs.image-ref }}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
+            echo "❌ Invalid image reference format"
+            exit 1
+          fi
+          
+          if [[ ${#${{ inputs.image-ref }}} -gt 512 ]]; then
+            echo "❌ Image reference too long"
+            exit 1
+          fi
+        fi
+        
+        # Validate app name if provided
+        if [[ -n "${{ inputs.app-name }}" ]]; then
+          if [[ ! "${{ inputs.app-name }}" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+            echo "❌ Invalid app name. Must be lowercase alphanumeric with hyphens"
+            exit 1
+          fi
+          
+          if [[ ${#${{ inputs.app-name }}} -gt 63 ]]; then
+            echo "❌ App name too long. Must be 63 characters or less"
+            exit 1
+          fi
+        fi
+
     - name: Runtime Analysis Operations
       shell: bash
       run: |
-        # Set up environment variables for scripts
+        # Set up sanitized environment variables for scripts
+        # These have been validated in the previous step
         export CLUSTER_NAME="${{ inputs.cluster-name }}"
         export USE_EXTERNAL_CLUSTER="${{ inputs.use-external-cluster }}"
         export VEX_ANALYSIS_TIME="${{ inputs.vex-analysis-time }}"
@@ -41,21 +118,36 @@ runs:
         export IMAGE_REF="${{ inputs.image-ref }}"
         export APP_NAME="${{ inputs.app-name }}"
         
-        # Get the directory of this action
+        # Get the directory of this action (this is safe - provided by GitHub)
         ACTION_DIR="${{ github.action_path }}"
         
+        # Validate ACTION_DIR exists and contains expected scripts
+        if [[ ! -d "$ACTION_DIR/scripts" ]]; then
+          echo "❌ Action scripts directory not found"
+          exit 1
+        fi
+        
+        # Execute validated action
         case "${{ inputs.action }}" in
           "setup-cluster")
+            if [[ ! -f "$ACTION_DIR/scripts/setup-cluster.sh" ]]; then
+              echo "❌ setup-cluster.sh script not found"
+              exit 1
+            fi
             bash "$ACTION_DIR/scripts/setup-cluster.sh"
             ;;
           "deploy-and-analyze")
+            if [[ ! -f "$ACTION_DIR/scripts/deploy-and-analyze.sh" ]]; then
+              echo "❌ deploy-and-analyze.sh script not found"
+              exit 1
+            fi
             bash "$ACTION_DIR/scripts/deploy-and-analyze.sh"
             ;;
           "cleanup")
+            if [[ ! -f "$ACTION_DIR/scripts/cleanup.sh" ]]; then
+              echo "❌ cleanup.sh script not found"
+              exit 1
+            fi
             bash "$ACTION_DIR/scripts/cleanup.sh"
-            ;;
-          *)
-            echo "❌ Unknown action: ${{ inputs.action }}"
-            exit 1
             ;;
         esac

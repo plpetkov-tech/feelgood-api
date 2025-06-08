@@ -24,10 +24,87 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: 🔒 Validate VEX Processor Inputs
+      shell: bash
+      run: |
+        echo "🔒 Validating VEX processor inputs..."
+        
+        # Validate action input
+        case "${{ inputs.action }}" in
+          "consolidate-build-vex"|"consolidate-final-vex"|"validate"|"merge")
+            echo "✅ Valid action: ${{ inputs.action }}"
+            ;;
+          *)
+            echo "❌ Invalid action. Must be: consolidate-build-vex, consolidate-final-vex, validate, or merge"
+            exit 1
+            ;;
+        esac
+        
+        # Validate file paths if provided
+        for input_name in "build-vex" "runtime-vex" "existing-vex-dir" "output"; do
+          case $input_name in
+            "build-vex")
+              input_value="${{ inputs.build-vex }}"
+              ;;
+            "runtime-vex")
+              input_value="${{ inputs.runtime-vex }}"
+              ;;
+            "existing-vex-dir")
+              input_value="${{ inputs.existing-vex-dir }}"
+              ;;
+            "output")
+              input_value="${{ inputs.output }}"
+              ;;
+          esac
+          
+          if [[ -n "$input_value" ]]; then
+            # Basic path validation - no directory traversal
+            if [[ "$input_value" == *".."* ]] || [[ "$input_value" == "/"* ]]; then
+              echo "❌ Invalid $input_name path: potential directory traversal"
+              exit 1
+            fi
+            
+            # Length check
+            if [[ ${#input_value} -gt 256 ]]; then
+              echo "❌ $input_name path too long"
+              exit 1
+            fi
+            
+            # Character validation - allow only safe characters
+            if [[ ! "$input_value" =~ ^[a-zA-Z0-9.//_-]+$ ]]; then
+              echo "❌ Invalid characters in $input_name path"
+              exit 1
+            fi
+          fi
+        done
+        
+        # Validate image reference if provided
+        if [[ -n "${{ inputs.image-ref }}" ]]; then
+          if [[ ! "${{ inputs.image-ref }}" =~ ^[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\.-]*[a-zA-Z0-9])?)$ ]]; then
+            echo "❌ Invalid image reference format"
+            exit 1
+          fi
+          
+          if [[ ${#${{ inputs.image-ref }}} -gt 512 ]]; then
+            echo "❌ Image reference too long"
+            exit 1
+          fi
+        fi
+        
+        echo "✅ All VEX processor inputs validated"
+
     - name: Process VEX Documents
       shell: bash
       run: |
-        case "${{ inputs.action }}" in
+        # Use validated inputs
+        ACTION="${{ inputs.action }}"
+        BUILD_VEX="${{ inputs.build-vex }}"
+        RUNTIME_VEX="${{ inputs.runtime-vex }}"
+        EXISTING_VEX_DIR="${{ inputs.existing-vex-dir }}"
+        IMAGE_REF="${{ inputs.image-ref }}"
+        OUTPUT="${{ inputs.output }}"
+        
+        case "$ACTION" in
           "consolidate-build-vex")
             echo "🔄 Creating initial consolidated VEX (build-time only, no existing merge)..."
             
@@ -35,14 +112,21 @@ runs:
             echo "" >> $GITHUB_STEP_SUMMARY
             
             # Start with build-time VEX ONLY - no merging with existing to avoid product ID conflicts
-            if [ -f "${{ inputs.build-vex }}" ]; then
-              cp "${{ inputs.build-vex }}" "${{ inputs.output }}"
-              BUILD_STATEMENTS=$(jq '.statements | length' "${{ inputs.build-vex }}" 2>/dev/null || echo "0")
-              echo "✅ **Started with build-time VEX** ($BUILD_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
+            if [ -f "$BUILD_VEX" ]; then
+              # Validate JSON before copying
+              if jq empty "$BUILD_VEX" 2>/dev/null; then
+                cp "$BUILD_VEX" "$OUTPUT"
+                BUILD_STATEMENTS=$(jq '.statements | length' "$BUILD_VEX" 2>/dev/null || echo "0")
+                echo "✅ **Started with build-time VEX** ($BUILD_STATEMENTS statements)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "❌ **Invalid build-time VEX JSON format**" >> $GITHUB_STEP_SUMMARY
+                exit 1
+              fi
             else
               echo "⚠️ **No build-time VEX found, creating new document**" >> $GITHUB_STEP_SUMMARY
-              COMMIT_AUTHOR=$(git log -1 --pretty=format:'%an <%ae>')
-              cat > "${{ inputs.output }}" << EOF
+              # Safe git command execution
+              COMMIT_AUTHOR=$(timeout 10 git log -1 --pretty=format:'%an <%ae>' 2>/dev/null | head -c 100 || echo "Unknown <unknown@example.com>")
+              cat > "$OUTPUT" << EOF
         {
           "@context": "https://openvex.dev/ns/v0.2.0",
           "@id": "https://openvex.dev/docs/public/vex-build-$(date +%Y%m%d%H%M%S)",

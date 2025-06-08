@@ -4,26 +4,113 @@ import subprocess
 import json
 import sys
 import argparse
+import re
+import shlex
 from typing import Optional
+from pathlib import Path
 
 
 class AttestationVerifier:
     """Verify SLSA attestations and container signatures"""
     
-    def __init__(self, image_ref: str):
-        self.image_ref = image_ref
+    # Security configuration
+    VERIFICATION_CONFIG = {
+        "allowed_repos": ["plamen/feelgood-api"],
+        "trusted_issuers": ["https://token.actions.githubusercontent.com"],
+        "slsa_generator_pattern": r"^https://github\.com/slsa-framework/slsa-github-generator/\.github/workflows/generator_container_slsa3\.yml@refs/tags/v\d+\.\d+\.\d+$",
+        "max_command_timeout": 120
+    }
+    
+    def __init__(self, image_ref: str, repository: str = "plamen/feelgood-api"):
+        self.image_ref = self._validate_image_ref(image_ref)
+        self.repository = self._validate_repository(repository)
         self.verified_components = []
+    
+    def _validate_image_ref(self, image_ref: str) -> str:
+        """Validate and sanitize OCI image reference"""
+        if not image_ref or not isinstance(image_ref, str):
+            raise ValueError("Image reference must be a non-empty string")
+        
+        # Validate OCI image reference format
+        # Supports: registry/namespace/name:tag or registry/namespace/name@sha256:digest
+        pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(/[a-zA-Z0-9]([a-zA-Z0-9\-\._]*[a-zA-Z0-9])?)*(@sha256:[a-f0-9]{64}|:[a-zA-Z0-9]([a-zA-Z0-9\-\._]*[a-zA-Z0-9])?)$'
+        
+        if not re.match(pattern, image_ref):
+            raise ValueError(f"Invalid OCI image reference format: {image_ref}")
+        
+        # Additional length check to prevent buffer overflow attacks
+        if len(image_ref) > 512:
+            raise ValueError("Image reference too long")
+        
+        return image_ref
+    
+    def _validate_repository(self, repository: str) -> str:
+        """Validate GitHub repository format"""
+        if not repository or not isinstance(repository, str):
+            raise ValueError("Repository must be a non-empty string")
+        
+        # Validate GitHub repo format: owner/repo
+        pattern = r'^[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]/[a-zA-Z0-9][a-zA-Z0-9\-\._]*[a-zA-Z0-9]$'
+        
+        if not re.match(pattern, repository):
+            raise ValueError(f"Invalid GitHub repository format: {repository}")
+        
+        if repository not in self.VERIFICATION_CONFIG["allowed_repos"]:
+            raise ValueError(f"Repository {repository} not in allowed list")
+        
+        return repository
+    
+    def _get_certificate_identity_pattern(self) -> str:
+        """Get repository-specific certificate identity pattern"""
+        escaped_repo = re.escape(self.repository)
+        return f"^https://github\.com/{escaped_repo}/\.github/workflows/.*@refs/.*"
+    
+    def _safe_subprocess_run(self, cmd: list[str], timeout: int = None) -> subprocess.CompletedProcess:
+        """Safely execute subprocess with proper validation and timeouts"""
+        if not cmd or not isinstance(cmd, list):
+            raise ValueError("Command must be a non-empty list")
+        
+        # Validate command arguments
+        for arg in cmd:
+            if not isinstance(arg, str):
+                raise ValueError("All command arguments must be strings")
+            if len(arg) > 1024:  # Reasonable limit
+                raise ValueError("Command argument too long")
+        
+        timeout = timeout or self.VERIFICATION_CONFIG["max_command_timeout"]
+        
+        try:
+            return subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False  # We handle return codes manually
+            )
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(f"Command timed out after {timeout} seconds")
+        except Exception as e:
+            raise RuntimeError(f"Subprocess execution failed: {e}")
     
     def verify_signature(self) -> bool:
         """Verify container signature with Cosign"""
         print(f"🔍 Verifying signature for {self.image_ref}")
         
-        result = subprocess.run([
+        cert_pattern = self._get_certificate_identity_pattern()
+        issuer_pattern = self.VERIFICATION_CONFIG["trusted_issuers"][0]
+        
+        cmd = [
             "cosign", "verify",
-            "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
-            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
+            "--certificate-identity-regexp", cert_pattern,
+            "--certificate-oidc-issuer-regexp", f"^{re.escape(issuer_pattern)}$",
             self.image_ref
-        ], capture_output=True, text=True)
+        ]
+        
+        try:
+            result = self._safe_subprocess_run(cmd)
+        except (ValueError, RuntimeError) as e:
+            print(f"❌ Signature verification failed: {e}")
+            return False
         
         if result.returncode != 0:
             print(f"❌ Signature verification failed: {result.stderr}")
@@ -37,13 +124,22 @@ class AttestationVerifier:
         """Verify SLSA provenance attestation"""
         print(f"🔍 Verifying SLSA provenance for {self.image_ref}")
         
-        result = subprocess.run([
+        slsa_pattern = self.VERIFICATION_CONFIG["slsa_generator_pattern"]
+        issuer_pattern = self.VERIFICATION_CONFIG["trusted_issuers"][0]
+        
+        cmd = [
             "cosign", "verify-attestation",
             "--type", "slsaprovenance",
-            "--certificate-identity-regexp", r"^https://github\.com/slsa-framework/slsa-github-generator/\.github/workflows/generator_container_slsa3\.yml@refs/tags/v\d+\.\d+\.\d+$",
-            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
+            "--certificate-identity-regexp", slsa_pattern,
+            "--certificate-oidc-issuer-regexp", f"^{re.escape(issuer_pattern)}$",
             self.image_ref
-        ], capture_output=True, text=True)
+        ]
+        
+        try:
+            result = self._safe_subprocess_run(cmd)
+        except (ValueError, RuntimeError) as e:
+            print(f"❌ SLSA provenance verification failed: {e}")
+            return False
         
         if result.returncode != 0:
             print(f"❌ SLSA provenance verification failed: {result.stderr}")
@@ -65,11 +161,28 @@ class AttestationVerifier:
         """Verify using the official SLSA verifier"""
         print(f"🔍 Verifying with SLSA verifier against source {source_uri}")
         
-        result = subprocess.run([
+        # Validate source URI format
+        if not source_uri or not isinstance(source_uri, str):
+            print("❌ Invalid source URI")
+            return False
+        
+        # Basic GitHub URI validation
+        github_pattern = r'^github\.com/[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]/[a-zA-Z0-9][a-zA-Z0-9\-\._]*[a-zA-Z0-9]$'
+        if not re.match(github_pattern, source_uri):
+            print(f"❌ Invalid GitHub source URI format: {source_uri}")
+            return False
+        
+        cmd = [
             "slsa-verifier", "verify-image",
             self.image_ref,
             "--source-uri", source_uri
-        ], capture_output=True, text=True)
+        ]
+        
+        try:
+            result = self._safe_subprocess_run(cmd)
+        except (ValueError, RuntimeError) as e:
+            print(f"❌ SLSA verifier failed: {e}")
+            return False
         
         if result.returncode != 0:
             print(f"❌ SLSA verifier failed: {result.stderr}")
@@ -83,13 +196,22 @@ class AttestationVerifier:
         """Verify GitHub native attestations"""
         print(f"🔍 Verifying GitHub attestations for {self.image_ref}")
         
-        result = subprocess.run([
+        cert_pattern = self._get_certificate_identity_pattern()
+        issuer_pattern = self.VERIFICATION_CONFIG["trusted_issuers"][0]
+        
+        cmd = [
             "cosign", "verify-attestation",
             "--type", "https://slsa.dev/provenance/v1",
-            "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
-            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
+            "--certificate-identity-regexp", cert_pattern,
+            "--certificate-oidc-issuer-regexp", f"^{re.escape(issuer_pattern)}$",
             self.image_ref
-        ], capture_output=True, text=True)
+        ]
+        
+        try:
+            result = self._safe_subprocess_run(cmd)
+        except (ValueError, RuntimeError) as e:
+            print(f"⚠️ GitHub attestations verification failed: {e}")
+            return False
         
         if result.returncode != 0:
             print(f"⚠️ GitHub attestations not found or verification failed")
@@ -116,17 +238,34 @@ class AttestationVerifier:
         for sbom_type, description in sbom_types.items():
             print(f"  🔍 Checking {description}...")
             
-            result = subprocess.run([
+            cert_pattern = self._get_certificate_identity_pattern()
+            issuer_pattern = self.VERIFICATION_CONFIG["trusted_issuers"][0]
+            
+            cmd = [
                 "cosign", "verify-attestation",
                 "--type", "cyclonedx",
-                "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
-                "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
+                "--certificate-identity-regexp", cert_pattern,
+                "--certificate-oidc-issuer-regexp", f"^{re.escape(issuer_pattern)}$",
                 self.image_ref
-            ], capture_output=True, text=True)
+            ]
+            
+            try:
+                result = self._safe_subprocess_run(cmd)
+            except (ValueError, RuntimeError) as e:
+                print(f"    ❌ {description}: Verification failed - {e}")
+                continue
             
             if result.returncode == 0:
                 try:
+                    # Validate JSON size before parsing
+                    if len(result.stdout) > 10 * 1024 * 1024:  # 10MB limit
+                        print(f"    ❌ {description}: Response too large")
+                        continue
+                    
                     attestations = json.loads(result.stdout)
+                    if not isinstance(attestations, list):
+                        print(f"    ❌ {description}: Invalid attestation format")
+                        continue
                     # Look for SBOM that matches our type based on metadata
                     for attestation in attestations:
                         predicate = attestation.get("predicate", {})
@@ -167,8 +306,8 @@ class AttestationVerifier:
                     else:
                         print(f"    ⚠️ {description}: Not found or no matching layer info")
                         
-                except json.JSONDecodeError:
-                    print(f"    ❌ {description}: Invalid JSON in attestation")
+                except (json.JSONDecodeError, ValueError) as e:
+                    print(f"    ❌ {description}: Invalid JSON in attestation - {e}")
             else:
                 print(f"    ⚠️ {description}: No attestation found")
         
@@ -191,33 +330,54 @@ class AttestationVerifier:
         """Verify VEX attestations"""
         print(f"🛡️ Verifying VEX attestations for {self.image_ref}")
         
-        result = subprocess.run([
+        cert_pattern = self._get_certificate_identity_pattern()
+        issuer_pattern = self.VERIFICATION_CONFIG["trusted_issuers"][0]
+        
+        cmd = [
             "cosign", "verify-attestation",
             "--type", "openvex",
-            "--certificate-identity-regexp", r"^https://github\.com/plamen/feelgood-api/\.github/workflows/.*@refs/.*",
-            "--certificate-oidc-issuer-regexp", r"^https://token\.actions\.githubusercontent\.com$",
+            "--certificate-identity-regexp", cert_pattern,
+            "--certificate-oidc-issuer-regexp", f"^{re.escape(issuer_pattern)}$",
             self.image_ref
-        ], capture_output=True, text=True)
+        ]
+        
+        try:
+            result = self._safe_subprocess_run(cmd)
+        except (ValueError, RuntimeError) as e:
+            print(f"⚠️ VEX attestations verification failed: {e}")
+            return False
         
         if result.returncode != 0:
             print(f"⚠️ VEX attestations not found or verification failed")
             return False
         
         try:
+            # Validate JSON size before parsing
+            if len(result.stdout) > 5 * 1024 * 1024:  # 5MB limit for VEX
+                print("❌ VEX attestation response too large")
+                return False
+            
             attestations = json.loads(result.stdout)
+            if not isinstance(attestations, list):
+                print("❌ Invalid VEX attestation format")
+                return False
+            
             total_statements = 0
             
             for attestation in attestations:
+                if not isinstance(attestation, dict):
+                    continue
                 predicate = attestation.get("predicate", {})
                 statements = predicate.get("statements", [])
-                total_statements += len(statements)
+                if isinstance(statements, list):
+                    total_statements += len(statements)
             
             print(f"✅ VEX attestations verified: {total_statements} statements across {len(attestations)} documents")
             self.verified_components.append("vex-attestations")
             return True
             
-        except json.JSONDecodeError:
-            print("❌ Invalid VEX attestation JSON")
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"❌ Invalid VEX attestation JSON: {e}")
             return False
     
     def _display_provenance_summary(self, attestation: dict):
@@ -260,9 +420,17 @@ class AttestationVerifier:
             else:
                 slsa_level = "2+"  # SLSA Level 2 with provenance
         
+        # Safe timestamp generation
+        try:
+            timestamp_result = self._safe_subprocess_run(["date", "-Iseconds"], timeout=10)
+            timestamp = timestamp_result.stdout.strip() if timestamp_result.returncode == 0 else "unknown"
+        except (ValueError, RuntimeError):
+            timestamp = "unknown"
+        
         return {
             "image": self.image_ref,
-            "timestamp": subprocess.check_output(["date", "-Iseconds"], text=True).strip(),
+            "repository": self.repository,
+            "timestamp": timestamp,
             "verified_components": self.verified_components,
             "slsa_level": slsa_level,
             "sbom_layers_verified": len(sbom_components),
@@ -276,11 +444,16 @@ def main():
     parser = argparse.ArgumentParser(description="Verify SLSA attestations and signatures")
     parser.add_argument("image_ref", help="Container image reference to verify")
     parser.add_argument("--source-uri", help="Source repository URI for verification")
+    parser.add_argument("--repository", default="plamen/feelgood-api", help="GitHub repository (owner/repo)")
     parser.add_argument("--report", help="Output verification report to file")
     
     args = parser.parse_args()
     
-    verifier = AttestationVerifier(args.image_ref)
+    try:
+        verifier = AttestationVerifier(args.image_ref, args.repository)
+    except ValueError as e:
+        print(f"❌ Invalid input: {e}")
+        sys.exit(1)
     
     # Run all verifications
     all_passed = True
@@ -315,12 +488,24 @@ def main():
     report = verifier.generate_verification_report()
     
     if args.report:
-        with open(args.report, 'w') as f:
-            json.dump(report, f, indent=2)
-        print(f"\n📄 Verification report saved to {args.report}")
+        try:
+            # Validate report file path
+            report_path = Path(args.report).resolve()
+            if not report_path.parent.exists():
+                print(f"❌ Report directory does not exist: {report_path.parent}")
+                sys.exit(1)
+            
+            with open(report_path, 'w') as f:
+                json.dump(report, f, indent=2)
+            print(f"\n📄 Verification report saved to {report_path}")
+        except (OSError, ValueError) as e:
+            print(f"❌ Failed to save report: {e}")
+            sys.exit(1)
     
     print(f"\n🎯 Overall Status: {'PASSED' if all_passed else 'FAILED'}")
-    print(f"🔧 Verified Components: {', '.join(verifier.verified_components)}")
+    print(f"🔧 Verified Components: {', '.join(verifier.verified_components) if verifier.verified_components else 'None'}")
+    print(f"🏷️ Repository: {verifier.repository}")
+    print(f"📊 SLSA Level: {report['slsa_level']}")
     
     sys.exit(0 if all_passed else 1)
 

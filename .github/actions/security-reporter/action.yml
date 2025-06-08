@@ -18,13 +18,76 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: 🔒 Validate Security Reporter Inputs
+      shell: bash
+      run: |
+        echo "🔒 Validating security reporter inputs..."
+        
+        # Validate phase input
+        case "${{ inputs.phase }}" in
+          "test-start"|"scan-results"|"container-scan"|"test-complete")
+            echo "✅ Valid phase: ${{ inputs.phase }}"
+            ;;
+          *)
+            echo "❌ Invalid phase. Must be: test-start, scan-results, container-scan, or test-complete"
+            exit 1
+            ;;
+        esac
+        
+        # Validate scan file if provided
+        if [[ -n "${{ inputs.scan-file }}" ]]; then
+          # Basic path validation
+          if [[ ! "${{ inputs.scan-file }}" =~ ^[a-zA-Z0-9.//_-]+$ ]]; then
+            echo "❌ Invalid scan file path format"
+            exit 1
+          fi
+          
+          # Check path length
+          if [[ ${#${{ inputs.scan-file }}} -gt 256 ]]; then
+            echo "❌ Scan file path too long"
+            exit 1
+          fi
+          
+          # Check if file exists (if not empty)
+          if [[ ! -f "${{ inputs.scan-file }}" ]]; then
+            echo "⚠️ Scan file does not exist: ${{ inputs.scan-file }}"
+          fi
+        fi
+        
+        # Validate title if provided
+        if [[ -n "${{ inputs.title }}" ]]; then
+          # Remove dangerous characters for markdown
+          SAFE_TITLE=$(echo "${{ inputs.title }}" | sed 's/[<>&"'\''`]//g')
+          if [[ ${#SAFE_TITLE} -gt 100 ]]; then
+            echo "❌ Title too long"
+            exit 1
+          fi
+        fi
+        
+        # Validate format
+        case "${{ inputs.format }}" in
+          "github-summary"|"markdown"|"json")
+            echo "✅ Valid format: ${{ inputs.format }}"
+            ;;
+          *)
+            echo "❌ Invalid format. Must be: github-summary, markdown, or json"
+            exit 1
+            ;;
+        esac
+        
+        echo "✅ All security reporter inputs validated"
+
     - name: Generate Security Report
       shell: bash
       run: |
-        case "${{ inputs.phase }}" in
+        # Create safe versions of inputs for use in output
+        SAFE_TITLE=$(echo "${{ inputs.title }}" | sed 's/[<>&"'\''`]//g' | head -c 100)
+        SAFE_PHASE="${{ inputs.phase }}"
+        
+        case "$SAFE_PHASE" in
           "test-start")
-            cat >> $GITHUB_STEP_SUMMARY << 'EOF'
-        ## ${{ inputs.title }}
+            cat >> $GITHUB_STEP_SUMMARY << EOF
+        ## $SAFE_TITLE
         
         | Stage | Status | Description |
         |-------|--------|-------------|
@@ -41,14 +104,29 @@ runs:
             
           "scan-results")
             if [ -f "${{ inputs.scan-file }}" ]; then
-              echo "### ${{ inputs.title }}" >> $GITHUB_STEP_SUMMARY
+              echo "### $SAFE_TITLE" >> $GITHUB_STEP_SUMMARY
               echo "" >> $GITHUB_STEP_SUMMARY
               
-              TOTAL_VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
-              LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              # Validate JSON file size before processing
+              FILE_SIZE=$(stat -c%s "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              if [[ $FILE_SIZE -gt 10485760 ]]; then  # 10MB limit
+                echo "⚠️ Scan file too large to process safely" >> $GITHUB_STEP_SUMMARY
+                exit 0
+              fi
+              
+              # Safely parse JSON with error handling
+              TOTAL_VULNS=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]?] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              CRITICAL=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              HIGH=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              MEDIUM=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              LOW=$(timeout 30 jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "LOW")] | length' "${{ inputs.scan-file }}" 2>/dev/null || echo "0")
+              
+              # Validate numeric values to prevent injection
+              TOTAL_VULNS=$([[ "$TOTAL_VULNS" =~ ^[0-9]+$ ]] && echo "$TOTAL_VULNS" || echo "0")
+              CRITICAL=$([[ "$CRITICAL" =~ ^[0-9]+$ ]] && echo "$CRITICAL" || echo "0")
+              HIGH=$([[ "$HIGH" =~ ^[0-9]+$ ]] && echo "$HIGH" || echo "0")
+              MEDIUM=$([[ "$MEDIUM" =~ ^[0-9]+$ ]] && echo "$MEDIUM" || echo "0")
+              LOW=$([[ "$LOW" =~ ^[0-9]+$ ]] && echo "$LOW" || echo "0")
               
               echo "| 🎯 Severity Level | Count | Progress |" >> $GITHUB_STEP_SUMMARY
               echo "|-------------------|-------|----------|" >> $GITHUB_STEP_SUMMARY
