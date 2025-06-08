@@ -763,14 +763,14 @@ jobs:
             
             if [ -n "$MATCHING_SBOM" ]; then
               echo "🎯 **Found matching filtered SBOM**: $MATCHING_SBOM" >> $GITHUB_STEP_SUMMARY
-              kubectl get sbomsyftfiltereds "$MATCHING_SBOM" -n kubescape -o jsonpath='{.spec}' > runtime-filtered.sbom.json
-              echo "📄 **Extracted filtered SBOM for our application image**" >> $GITHUB_STEP_SUMMARY
+              kubectl get "$USED_CRD" "$MATCHING_SBOM" -n kubescape -o jsonpath='{.spec}' > runtime-filtered.sbom.json
+              echo "📄 **Extracted filtered SBOM for our application image using CRD**: $USED_CRD" >> $GITHUB_STEP_SUMMARY
             else
               echo "⚠️ **No filtered SBOM found for our specific image, using first available**" >> $GITHUB_STEP_SUMMARY
               # Extract the first filtered SBOM document
               FIRST_SBOM=$(echo "$FILTERED_SBOM_RESOURCES" | head -1 | awk '{print $1}')
-              kubectl get sbomsyftfiltereds "$FIRST_SBOM" -n kubescape -o jsonpath='{.spec}' > runtime-filtered.sbom.json
-              echo "📄 **Extracted first available filtered SBOM**: $FIRST_SBOM" >> $GITHUB_STEP_SUMMARY
+              kubectl get "$USED_CRD" "$FIRST_SBOM" -n kubescape -o jsonpath='{.spec}' > runtime-filtered.sbom.json
+              echo "📄 **Extracted first available filtered SBOM**: $FIRST_SBOM **using CRD**: $USED_CRD" >> $GITHUB_STEP_SUMMARY
             fi
           fi
           
