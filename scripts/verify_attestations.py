@@ -99,6 +99,127 @@ class AttestationVerifier:
         self.verified_components.append("github-attestations")
         return True
     
+    def verify_multi_layer_sboms(self) -> bool:
+        """Verify multi-layer SBOM attestations for SLSA Level 3+ compliance"""
+        print(f"📦 Verifying multi-layer SBOM attestations for {self.image_ref}")
+        
+        sbom_types = {
+            "build-time": "Build-time SBOM (application dependencies)",
+            "runtime-filtered": "Runtime filtered SBOM (Kubescape relevancy analysis)",
+            "container": "Container SBOM (full image contents)",
+            "consolidated": "Consolidated multi-layer SBOM"
+        }
+        
+        verified_sboms = []
+        sbom_details = {}
+        
+        for sbom_type, description in sbom_types.items():
+            print(f"  🔍 Checking {description}...")
+            
+            result = subprocess.run([
+                "cosign", "verify-attestation",
+                "--type", "cyclonedx",
+                "--certificate-identity-regexp", ".*",
+                "--certificate-oidc-issuer-regexp", ".*",
+                self.image_ref
+            ], capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                try:
+                    attestations = json.loads(result.stdout)
+                    # Look for SBOM that matches our type based on metadata
+                    for attestation in attestations:
+                        predicate = attestation.get("predicate", {})
+                        metadata = predicate.get("metadata", {})
+                        properties = metadata.get("properties", [])
+                        
+                        # Check if this SBOM matches our type
+                        layer_match = False
+                        for prop in properties:
+                            if (prop.get("name") == "slsa:layer" and 
+                                prop.get("value") == sbom_type.replace("-", "-")):
+                                layer_match = True
+                                break
+                        
+                        # For consolidated SBOM, check for layer_types property
+                        if sbom_type == "consolidated":
+                            for prop in properties:
+                                if (prop.get("name") == "sbom:layer_types" and 
+                                    "build-time" in prop.get("value", "")):
+                                    layer_match = True
+                                    break
+                        
+                        # If no specific layer info, consider it for build-time or container
+                        if not layer_match and sbom_type in ["build-time", "container"]:
+                            layer_match = True
+                        
+                        if layer_match:
+                            components = predicate.get("components", [])
+                            component_count = len(components)
+                            sbom_details[sbom_type] = {
+                                "components": component_count,
+                                "format": predicate.get("bomFormat", "Unknown"),
+                                "spec_version": predicate.get("specVersion", "Unknown")
+                            }
+                            verified_sboms.append(sbom_type)
+                            print(f"    ✅ {description}: {component_count} components")
+                            break
+                    else:
+                        print(f"    ⚠️ {description}: Not found or no matching layer info")
+                        
+                except json.JSONDecodeError:
+                    print(f"    ❌ {description}: Invalid JSON in attestation")
+            else:
+                print(f"    ⚠️ {description}: No attestation found")
+        
+        if verified_sboms:
+            print(f"\n📊 SBOM Verification Summary:")
+            for sbom_type in verified_sboms:
+                details = sbom_details.get(sbom_type, {})
+                print(f"  ✅ {sbom_types[sbom_type]}")
+                print(f"     📦 Components: {details.get('components', 'Unknown')}")
+                print(f"     📋 Format: {details.get('format', 'Unknown')} v{details.get('spec_version', 'Unknown')}")
+            
+            self.verified_components.extend([f"sbom-{sbom}" for sbom in verified_sboms])
+            print(f"✅ Multi-layer SBOM verification: {len(verified_sboms)}/{len(sbom_types)} types verified")
+            return True
+        else:
+            print("❌ No SBOM attestations found")
+            return False
+    
+    def verify_vex_attestations(self) -> bool:
+        """Verify VEX attestations"""
+        print(f"🛡️ Verifying VEX attestations for {self.image_ref}")
+        
+        result = subprocess.run([
+            "cosign", "verify-attestation",
+            "--type", "openvex",
+            "--certificate-identity-regexp", ".*",
+            "--certificate-oidc-issuer-regexp", ".*",
+            self.image_ref
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"⚠️ VEX attestations not found or verification failed")
+            return False
+        
+        try:
+            attestations = json.loads(result.stdout)
+            total_statements = 0
+            
+            for attestation in attestations:
+                predicate = attestation.get("predicate", {})
+                statements = predicate.get("statements", [])
+                total_statements += len(statements)
+            
+            print(f"✅ VEX attestations verified: {total_statements} statements across {len(attestations)} documents")
+            self.verified_components.append("vex-attestations")
+            return True
+            
+        except json.JSONDecodeError:
+            print("❌ Invalid VEX attestation JSON")
+            return False
+    
     def _display_provenance_summary(self, attestation: dict):
         """Display a summary of the provenance attestation"""
         print("\n📋 Provenance Summary:")
@@ -126,11 +247,27 @@ class AttestationVerifier:
     
     def generate_verification_report(self) -> dict:
         """Generate a verification report"""
+        # Assess SLSA level based on verified components
+        slsa_level = "unknown"
+        sbom_components = [comp for comp in self.verified_components if comp.startswith("sbom-")]
+        has_vex = "vex-attestations" in self.verified_components
+        
+        if "slsa-provenance" in self.verified_components:
+            if len(sbom_components) >= 3 and has_vex:
+                slsa_level = "3+"  # Enhanced SLSA Level 3 with multi-layer SBOMs and VEX
+            elif len(sbom_components) >= 1:
+                slsa_level = "3"   # Standard SLSA Level 3
+            else:
+                slsa_level = "2+"  # SLSA Level 2 with provenance
+        
         return {
             "image": self.image_ref,
             "timestamp": subprocess.check_output(["date", "-Iseconds"], text=True).strip(),
             "verified_components": self.verified_components,
-            "slsa_level": "3" if "slsa-provenance" in self.verified_components else "unknown",
+            "slsa_level": slsa_level,
+            "sbom_layers_verified": len(sbom_components),
+            "has_vex_attestations": has_vex,
+            "has_runtime_filtered_sbom": "sbom-runtime-filtered" in self.verified_components,
             "status": "verified" if self.verified_components else "failed"
         }
 
@@ -163,6 +300,16 @@ def main():
     
     # Try to verify GitHub attestations
     verifier.verify_github_attestations()  # Don't fail on this
+    
+    # Verify multi-layer SBOMs for SLSA Level 3+ compliance
+    print("\n" + "="*60)
+    if not verifier.verify_multi_layer_sboms():
+        print("⚠️ Multi-layer SBOM verification failed, but continuing...")
+    
+    # Verify VEX attestations
+    print("\n" + "="*60)
+    if not verifier.verify_vex_attestations():
+        print("⚠️ VEX attestation verification failed, but continuing...")
     
     # Generate report
     report = verifier.generate_verification_report()

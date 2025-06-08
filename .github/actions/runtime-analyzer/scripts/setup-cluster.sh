@@ -114,6 +114,7 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   --set nodeAgent.config.learningPeriod=${VEX_ANALYSIS_TIME} \
   --set nodeAgent.config.maxLearningPeriod=24h \
   --set nodeAgent.config.updatePeriod=10m \
+  --set kubevuln.config.storeFilteredSbom=true \
   --wait \
   --timeout=${TIMEOUT}s; then
   
@@ -122,6 +123,7 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   echo "| 🔧 Capability | Status | Configuration |" >> $GITHUB_STEP_SUMMARY
   echo "|---------------|--------|---------------|" >> $GITHUB_STEP_SUMMARY
   echo "| 📋 VEX Generation | ✅ Enabled | Learning: ${VEX_ANALYSIS_TIME}, Max: 24h, Update: 10m |" >> $GITHUB_STEP_SUMMARY
+  echo "| 📦 Filtered SBOM Storage | ✅ Enabled | Runtime-relevant components only |" >> $GITHUB_STEP_SUMMARY
   echo "| 🛡️ Vulnerability Scan | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY
   echo "| 🎯 Relevancy Analysis | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY
   echo "| 🔍 Runtime Observability | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY

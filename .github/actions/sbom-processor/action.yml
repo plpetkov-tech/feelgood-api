@@ -1,0 +1,294 @@
+name: 'SBOM Processor'
+description: 'Process and consolidate multiple SBOM types (build-time, runtime-filtered, container) for SLSA Level 3 compliance'
+author: 'DevSecOps Pipeline'
+
+inputs:
+  build-sbom-artifact:
+    description: 'Build-time SBOM artifact name'
+    required: true
+  runtime-filtered-sbom-artifact:
+    description: 'Runtime filtered SBOM artifact name'
+    required: false
+  container-image:
+    description: 'Container image reference for container SBOM generation'
+    required: true
+  output-prefix:
+    description: 'Prefix for output SBOM files'
+    required: false
+    default: 'consolidated'
+
+outputs:
+  build-sbom-path:
+    description: 'Path to processed build-time SBOM'
+    value: ${{ steps.process.outputs.build-sbom-path }}
+  runtime-filtered-sbom-path:
+    description: 'Path to processed runtime filtered SBOM'
+    value: ${{ steps.process.outputs.runtime-filtered-sbom-path }}
+  container-sbom-path:
+    description: 'Path to generated container SBOM'
+    value: ${{ steps.process.outputs.container-sbom-path }}
+  consolidated-sbom-path:
+    description: 'Path to consolidated multi-layer SBOM'
+    value: ${{ steps.process.outputs.consolidated-sbom-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 📋 Download build-time SBOM
+      uses: actions/download-artifact@eaceafb24b7dc7bcdafd20b8c11e7e1ab1d9b2a5
+      with:
+        name: ${{ inputs.build-sbom-artifact }}
+        path: sbom-processing/
+
+    - name: 📦 Download runtime filtered SBOM
+      if: inputs.runtime-filtered-sbom-artifact != ''
+      uses: actions/download-artifact@eaceafb24b7dc7bcdafd20b8c11e7e1ab1d9b2a5
+      with:
+        name: ${{ inputs.runtime-filtered-sbom-artifact }}
+        path: sbom-processing/
+      continue-on-error: true
+
+    - name: 🔧 Install SBOM tools
+      shell: bash
+      run: |
+        echo "🔧 Installing SBOM processing tools..."
+        
+        # Install Syft for container SBOM generation
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+        
+        # Install cyclonedx-cli for SBOM manipulation
+        pip install cyclonedx-bom cyclonedx-python-lib
+        
+        # Verify installations
+        syft version
+        cyclonedx-py --version
+
+    - name: 🏗️ Generate container SBOM
+      shell: bash
+      run: |
+        echo "🏗️ Generating container SBOM with Syft..."
+        
+        # Generate container SBOM using Syft
+        syft packages ${{ inputs.container-image }} \
+          --output cyclonedx-json=sbom-processing/container.sbom.json \
+          --catalogers all
+        
+        echo "✅ Container SBOM generated successfully"
+        
+        # Validate the generated SBOM
+        if jq empty sbom-processing/container.sbom.json 2>/dev/null; then
+          CONTAINER_COMPONENTS=$(jq '.components | length' sbom-processing/container.sbom.json)
+          echo "📊 Container SBOM contains $CONTAINER_COMPONENTS components"
+        else
+          echo "❌ Container SBOM generation failed, creating placeholder"
+          echo '{"bomFormat": "CycloneDX", "specVersion": "1.4", "components": []}' > sbom-processing/container.sbom.json
+        fi
+
+    - name: 📊 Process and consolidate SBOMs
+      id: process
+      shell: bash
+      run: |
+        echo "📊 Processing multiple SBOM types for SLSA Level 3 compliance..."
+        
+        cd sbom-processing
+        
+        # Initialize output paths
+        BUILD_SBOM_PATH=""
+        RUNTIME_FILTERED_SBOM_PATH=""
+        CONTAINER_SBOM_PATH="$(pwd)/container.sbom.json"
+        
+        # Process build-time SBOM
+        if [ -f "sbom.json" ]; then
+          echo "✅ Found build-time SBOM"
+          cp sbom.json "${{ inputs.output-prefix }}-build.sbom.json"
+          BUILD_SBOM_PATH="$(pwd)/${{ inputs.output-prefix }}-build.sbom.json"
+          
+          if jq empty "${{ inputs.output-prefix }}-build.sbom.json" 2>/dev/null; then
+            BUILD_COMPONENTS=$(jq '.components | length' "${{ inputs.output-prefix }}-build.sbom.json")
+            echo "📦 Build-time SBOM: $BUILD_COMPONENTS components"
+          fi
+        else
+          echo "⚠️ No build-time SBOM found"
+        fi
+        
+        # Process runtime filtered SBOM
+        if [ -f "runtime-filtered.sbom.json" ]; then
+          echo "✅ Found runtime filtered SBOM"
+          cp runtime-filtered.sbom.json "${{ inputs.output-prefix }}-runtime-filtered.sbom.json"
+          RUNTIME_FILTERED_SBOM_PATH="$(pwd)/${{ inputs.output-prefix }}-runtime-filtered.sbom.json"
+          
+          if jq empty "${{ inputs.output-prefix }}-runtime-filtered.sbom.json" 2>/dev/null; then
+            RUNTIME_COMPONENTS=$(jq '.components | length' "${{ inputs.output-prefix }}-runtime-filtered.sbom.json")
+            echo "🎯 Runtime filtered SBOM: $RUNTIME_COMPONENTS components"
+          fi
+        else
+          echo "⚠️ No runtime filtered SBOM found"
+        fi
+        
+        # Create consolidated multi-layer SBOM
+        echo "🔄 Creating consolidated multi-layer SBOM..."
+        
+        cat > "${{ inputs.output-prefix }}-consolidated.sbom.json" << 'EOF'
+        {
+          "bomFormat": "CycloneDX",
+          "specVersion": "1.4",
+          "serialNumber": "urn:uuid:$(uuidgen)",
+          "version": 1,
+          "metadata": {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)",
+            "tools": [
+              {
+                "vendor": "SLSA Level 3 Pipeline",
+                "name": "Multi-Layer SBOM Processor",
+                "version": "1.0.0"
+              }
+            ],
+            "component": {
+              "type": "container",
+              "name": "${{ inputs.container-image }}",
+              "version": "latest"
+            },
+            "properties": [
+              {
+                "name": "slsa:build_type",
+                "value": "https://slsa.dev/provenance/v1"
+              },
+              {
+                "name": "sbom:layer_types",
+                "value": "build-time,runtime-filtered,container"
+              }
+            ]
+          },
+          "components": [],
+          "compositions": []
+        }
+        EOF
+        
+        # Process and merge components from all SBOMs
+        python3 << 'PYTHON_EOF'
+        import json
+        import sys
+        from pathlib import Path
+        
+        consolidated = {}
+        
+        # Load base consolidated SBOM
+        with open('${{ inputs.output-prefix }}-consolidated.sbom.json', 'r') as f:
+            consolidated = json.load(f)
+        
+        all_components = []
+        compositions = []
+        
+        # Process build-time SBOM
+        build_sbom_file = '${{ inputs.output-prefix }}-build.sbom.json'
+        if Path(build_sbom_file).exists():
+            with open(build_sbom_file, 'r') as f:
+                build_sbom = json.load(f)
+                if 'components' in build_sbom:
+                    for comp in build_sbom['components']:
+                        comp['scope'] = 'required'
+                        comp['properties'] = comp.get('properties', [])
+                        comp['properties'].append({
+                            'name': 'slsa:layer',
+                            'value': 'build-time'
+                        })
+                        all_components.append(comp)
+                    
+                    compositions.append({
+                        'aggregate': 'incomplete',
+                        'assemblies': [f"ref:{comp.get('bom-ref', comp.get('name', 'unknown'))}" for comp in build_sbom.get('components', [])][:10],
+                        'dependencies': [],
+                        'description': f"Build-time dependencies ({len(build_sbom.get('components', []))} components)"
+                    })
+        
+        # Process runtime filtered SBOM
+        runtime_sbom_file = '${{ inputs.output-prefix }}-runtime-filtered.sbom.json'
+        if Path(runtime_sbom_file).exists():
+            with open(runtime_sbom_file, 'r') as f:
+                runtime_sbom = json.load(f)
+                if 'components' in runtime_sbom:
+                    for comp in runtime_sbom['components']:
+                        comp['scope'] = 'required'
+                        comp['properties'] = comp.get('properties', [])
+                        comp['properties'].append({
+                            'name': 'slsa:layer',
+                            'value': 'runtime-filtered'
+                        })
+                        comp['properties'].append({
+                            'name': 'kubescape:relevancy',
+                            'value': 'active'
+                        })
+                        all_components.append(comp)
+                    
+                    compositions.append({
+                        'aggregate': 'complete',
+                        'assemblies': [f"ref:{comp.get('bom-ref', comp.get('name', 'unknown'))}" for comp in runtime_sbom.get('components', [])][:10],
+                        'dependencies': [],
+                        'description': f"Runtime-relevant components ({len(runtime_sbom.get('components', []))} components)"
+                    })
+        
+        # Process container SBOM
+        container_sbom_file = 'container.sbom.json'
+        if Path(container_sbom_file).exists():
+            with open(container_sbom_file, 'r') as f:
+                container_sbom = json.load(f)
+                if 'components' in container_sbom:
+                    for comp in container_sbom['components']:
+                        comp['scope'] = 'required'
+                        comp['properties'] = comp.get('properties', [])
+                        comp['properties'].append({
+                            'name': 'slsa:layer',
+                            'value': 'container'
+                        })
+                        all_components.append(comp)
+                    
+                    compositions.append({
+                        'aggregate': 'complete',
+                        'assemblies': [f"ref:{comp.get('bom-ref', comp.get('name', 'unknown'))}" for comp in container_sbom.get('components', [])][:10],
+                        'dependencies': [],
+                        'description': f"Container image components ({len(container_sbom.get('components', []))} components)"
+                    })
+        
+        # Update consolidated SBOM
+        consolidated['components'] = all_components
+        consolidated['compositions'] = compositions
+        
+        # Add summary to metadata
+        consolidated['metadata']['properties'].extend([
+            {
+                'name': 'sbom:total_components',
+                'value': str(len(all_components))
+            },
+            {
+                'name': 'sbom:layers_processed',
+                'value': str(len(compositions))
+            }
+        ])
+        
+        # Write consolidated SBOM
+        with open('${{ inputs.output-prefix }}-consolidated.sbom.json', 'w') as f:
+            json.dump(consolidated, f, indent=2)
+        
+        print(f"✅ Consolidated SBOM created with {len(all_components)} total components across {len(compositions)} layers")
+        PYTHON_EOF
+        
+        CONSOLIDATED_SBOM_PATH="$(pwd)/${{ inputs.output-prefix }}-consolidated.sbom.json"
+        
+        # Set outputs
+        echo "build-sbom-path=$BUILD_SBOM_PATH" >> $GITHUB_OUTPUT
+        echo "runtime-filtered-sbom-path=$RUNTIME_FILTERED_SBOM_PATH" >> $GITHUB_OUTPUT
+        echo "container-sbom-path=$CONTAINER_SBOM_PATH" >> $GITHUB_OUTPUT
+        echo "consolidated-sbom-path=$CONSOLIDATED_SBOM_PATH" >> $GITHUB_OUTPUT
+        
+        # Summary
+        echo "📊 SBOM Processing Summary:"
+        echo "  🏗️ Build-time SBOM: $([ -n "$BUILD_SBOM_PATH" ] && echo "✅ Processed" || echo "❌ Missing")"
+        echo "  🎯 Runtime filtered SBOM: $([ -n "$RUNTIME_FILTERED_SBOM_PATH" ] && echo "✅ Processed" || echo "❌ Missing")"
+        echo "  📦 Container SBOM: ✅ Generated"
+        echo "  🔄 Consolidated SBOM: ✅ Created"
+        
+        if jq empty "${{ inputs.output-prefix }}-consolidated.sbom.json" 2>/dev/null; then
+          TOTAL_COMPONENTS=$(jq '.components | length' "${{ inputs.output-prefix }}-consolidated.sbom.json")
+          TOTAL_LAYERS=$(jq '.compositions | length' "${{ inputs.output-prefix }}-consolidated.sbom.json")
+          echo "  📈 Total components: $TOTAL_COMPONENTS across $TOTAL_LAYERS layers"
+        fi

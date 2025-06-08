@@ -101,6 +101,8 @@ jobs:
       image-digest: ${{ needs.build-and-test.outputs.image-digest }}
       build-vex-artifact: ${{ needs.vex-analysis.outputs.build-vex-artifact }}
       runtime-vex-artifact: ${{ needs.vex-analysis.outputs.runtime-vex-artifact }}
+      runtime-filtered-sbom-artifact: ${{ needs.vex-analysis.outputs.runtime-filtered-sbom-artifact }}
+      build-sbom-artifact: ${{ needs.build-and-test.outputs.sbom-artifact }}
 
   # Generate final pipeline summary
   pipeline-summary:

@@ -4,13 +4,18 @@ This guide provides comprehensive instructions for setting up a new repository t
 
 ## Overview
 
-This repository implements a **SLSA Level 3 Supply Chain Security proof of concept** with comprehensive DevSecOps pipeline featuring:
+This repository implements a **SLSA Level 3+ Enhanced Supply Chain Security proof of concept** with comprehensive DevSecOps pipeline featuring:
 - Multi-platform container builds with vulnerability scanning and patching
+- **Multi-layer SBOM generation and attestation**:
+  - Build-time SBOMs (application dependencies)
+  - Container SBOMs (full image contents)
+  - Runtime filtered SBOMs (Kubescape relevancy analysis)
+  - Consolidated multi-layer SBOMs (unified transparency)
 - Build-time + runtime VEX (Vulnerability Exploitability eXchange) integration
 - **Flexible runtime analysis**: Support for both ephemeral Kind clusters and external Kubernetes clusters
-- **Enhanced VEX extraction**: Improved detection and handling of Kubescape VEX documents
-- SLSA Level 3 provenance generation and verification
-- Container signing with Cosign
+- **Enhanced VEX and SBOM extraction**: Advanced detection and handling of Kubescape security documents
+- SLSA Level 3+ provenance generation and comprehensive verification
+- Container signing with Cosign and multi-layer attestations
 - Automated security monitoring and reporting
 
 ## Prerequisites
@@ -192,9 +197,9 @@ Copy the following workflow files from this repository to your `.github/workflow
 ```
 .github/workflows/
 ├── security-pipeline.yml          # Main orchestrator
-├── build-and-test.yml             # Phase 1: Build & vulnerability scanning
-├── vex-analysis.yml               # Phase 2: VEX generation with flexible runtime analysis
-├── attestation-and-verify.yml     # Phase 3: Signing & verification
+├── build-and-test.yml             # Phase 1: Build, vulnerability scanning & multi-layer SBOM generation
+├── vex-analysis.yml               # Phase 2: VEX generation, runtime analysis & filtered SBOM extraction
+├── attestation-and-verify.yml     # Phase 3: Multi-layer SBOM processing, signing & comprehensive verification
 ├── security-monitoring.yml        # Daily security monitoring
 └── slsa-provenance.yml            # SLSA Level 3 provenance generation
 ```
@@ -209,9 +214,32 @@ Copy the following workflow files from this repository to your `.github/workflow
 ```
 .github/actions/
 ├── security-reporter/            # Unified security reporting
-├── vex-processor/               # VEX document processing
+├── vex-processor/               # VEX document processing and consolidation
+├── sbom-processor/              # Multi-layer SBOM processing and consolidation
 └── runtime-analyzer/            # Runtime security analysis with external cluster support
 ```
+
+**SBOM Processor Action Details:**
+
+The `sbom-processor` action implements the multi-layer SBOM strategy for enhanced SLSA Level 3+ compliance:
+
+- **Multi-layer Processing**: Consolidates build-time, runtime-filtered, and container SBOMs
+- **SLSA Metadata Integration**: Adds provenance and layer information to all SBOMs
+- **Automated Container SBOM Generation**: Uses Syft to scan container images
+- **CycloneDX Format Compliance**: Industry-standard SBOM format with enhanced metadata
+- **Consolidated View Creation**: Generates unified multi-layer SBOM for complete transparency
+
+**Input Parameters:**
+- `build-sbom-artifact`: Build-time SBOM artifact name (from build phase)
+- `runtime-filtered-sbom-artifact`: Runtime filtered SBOM artifact name (from VEX analysis)
+- `container-image`: Container image reference for container SBOM generation
+- `output-prefix`: Prefix for output SBOM files (default: "consolidated")
+
+**Outputs:**
+- Build-time SBOM (processed)
+- Runtime filtered SBOM (from Kubescape relevancy analysis)
+- Container SBOM (comprehensive image contents)
+- Consolidated multi-layer SBOM (unified view with SLSA metadata)
 
 **Runtime Analyzer Action Details:**
 
@@ -220,12 +248,14 @@ The `runtime-analyzer` action supports multiple operational modes:
 - **setup-cluster**: Initializes Kubernetes environment
   - Checks for `KUBECONFIG` secret and uses external cluster if available
   - Falls back to creating ephemeral Kind cluster if no external cluster
-  - Installs Kubescape operator with VEX generation capabilities
+  - Installs Kubescape operator with VEX generation and filtered SBOM capabilities
+  - Configures nodeAgent with proper learning periods for relevancy analysis
 
 - **deploy-and-analyze**: Deploys application for runtime analysis
   - Creates security-hardened deployment with non-root user
-  - Generates runtime load for comprehensive VEX analysis
+  - Generates runtime load for comprehensive VEX and relevancy analysis
   - Supports background testing during VEX generation period
+  - Triggers Kubescape relevancy analysis for filtered SBOM generation
 
 - **cleanup**: Cleans up analysis environment
   - Preserves external clusters (only removes test deployments)
@@ -238,7 +268,7 @@ The `runtime-analyzer` action supports multiple operational modes:
 - `image-ref`: Container image reference for analysis
 - `app-name`: Application name for deployment
 - `timeout`: Operation timeout in seconds (default: 600)
-- `vex-analysis-time`: VEX analysis duration (default: 2m) - configures learningPeriod and applicationActivityTime
+- `vex-analysis-time`: VEX analysis duration (default: 2m) - configures learningPeriod, applicationActivityTime, and filtered SBOM generation timing
 - `kubeconfig-content`: Base64-encoded kubeconfig for external clusters (optional)
 
 ## Required Scripts
@@ -247,11 +277,11 @@ Copy the following scripts from this repository to your `scripts/` directory:
 
 ```
 scripts/
-├── generate_sbom.py              # Enhanced SBOM generation
-├── generate_vex.py               # VEX document generation
-├── compare_scans.py              # Vulnerability comparison
-├── verify_attestations.py       # Local verification
-├── sbom_diff.py                 # SBOM comparison
+├── generate_sbom.py              # Enhanced SBOM generation with SLSA metadata
+├── generate_vex.py               # VEX document generation with exploitability analysis
+├── compare_scans.py              # Vulnerability comparison and analysis
+├── verify_attestations.py       # Multi-layer SBOM and VEX attestation verification
+├── sbom_diff.py                 # SBOM comparison and difference analysis
 ├── fix_vex_timestamps.sh        # VEX timestamp correction
 └── pin-and-upgrader-gh-actions.sh # GitHub Actions pinning and upgrading
 ```
@@ -529,6 +559,63 @@ curl http://localhost:8000/health
 curl http://localhost:8000/security/info
 ```
 
+### 5. Multi-layer SBOM and Attestation Verification
+
+**Verify Multi-layer SBOM Attestations:**
+```bash
+# Verify all SBOM types attached to your image
+python scripts/verify_attestations.py ghcr.io/your-username/your-repo:latest \
+  --source-uri github.com/your-username/your-repo \
+  --report verification-report.json
+
+# The enhanced verification script will check:
+# - Build-time SBOM attestation (application dependencies)
+# - Runtime filtered SBOM attestation (Kubescape relevancy analysis)
+# - Container SBOM attestation (full image contents)
+# - Consolidated multi-layer SBOM attestation (unified view)
+# - VEX attestations (vulnerability analysis)
+# - SLSA provenance attestations
+```
+
+**Manual SBOM Attestation Verification:**
+```bash
+# Verify specific SBOM types
+cosign verify-attestation --type=cyclonedx \
+  --certificate-identity-regexp ".*" \
+  --certificate-oidc-issuer-regexp ".*" \
+  ghcr.io/your-username/your-repo:latest
+
+# Extract and view SBOM contents
+cosign verify-attestation --type=cyclonedx \
+  --certificate-identity-regexp ".*" \
+  --certificate-oidc-issuer-regexp ".*" \
+  ghcr.io/your-username/your-repo:latest | \
+  jq '.payload | @base64d | fromjson | .predicate'
+```
+
+**SLSA Level Assessment:**
+The verification script will assess your SLSA compliance level:
+- **SLSA Level 3**: Standard provenance + at least one SBOM type
+- **SLSA Level 3+**: Enhanced compliance with multiple SBOM layers + VEX attestations
+- **Runtime-aware**: Additional points for Kubescape filtered SBOM indicating runtime relevancy
+
+**Verification Report Output:**
+```json
+{
+  "image": "ghcr.io/your-username/your-repo:latest",
+  "slsa_level": "3+",
+  "sbom_layers_verified": 4,
+  "has_vex_attestations": true,
+  "has_runtime_filtered_sbom": true,
+  "verified_components": [
+    "signature", "slsa-provenance", "github-attestations",
+    "sbom-build-time", "sbom-runtime-filtered", 
+    "sbom-container", "sbom-consolidated", "vex-attestations"
+  ],
+  "status": "verified"
+}
+```
+
 ## Troubleshooting
 
 ### Common Issues
@@ -609,6 +696,53 @@ cat cosign.pub | head -1  # Should be: -----BEGIN PUBLIC KEY-----
   kubectl logs -n kubescape -l app.kubernetes.io/name=kubescape --tail=50
   ```
 
+**9. Multi-layer SBOM Issues:**
+- **Filtered SBOM Generation**: Check if Kubescape filtered SBOM storage is enabled:
+  ```bash
+  # Verify filtered SBOM CRDs are available
+  kubectl get crd sbomsyftfiltereds.spdx.softwarecomposition.kubescape.io -n kubescape
+  
+  # Check for filtered SBOM documents
+  kubectl get sbomsyftfiltereds -n kubescape
+  ```
+- **SBOM Processing Failures**: Check if all required SBOMs are available:
+  ```bash
+  # Check workflow artifacts for missing SBOMs
+  gh run list --workflow=security-pipeline.yml
+  gh run view <run-id> --log
+  ```
+- **Attestation Verification Failures**: Verify SBOM attestations are properly attached:
+  ```bash
+  # Check all attestation types
+  cosign verify-attestation --type=cyclonedx \
+    --certificate-identity-regexp ".*" \
+    --certificate-oidc-issuer-regexp ".*" \
+    your-image:latest
+  
+  # Check VEX attestations
+  cosign verify-attestation --type=openvex \
+    --certificate-identity-regexp ".*" \
+    --certificate-oidc-issuer-regexp ".*" \
+    your-image:latest
+  ```
+- **SLSA Level Assessment Issues**: Run enhanced verification for detailed analysis:
+  ```bash
+  python scripts/verify_attestations.py your-image:latest \
+    --source-uri github.com/your-username/your-repo \
+    --report detailed-report.json
+  
+  # Check the detailed report
+  cat detailed-report.json | jq '.'
+  ```
+- **Kubescape Learning Period Issues**: Verify nodeAgent configuration:
+  ```bash
+  # Check nodeAgent configuration
+  kubectl get kubescape -n kubescape -o yaml | grep -A 10 "nodeAgent"
+  
+  # Check if learning period matches VEX analysis time
+  kubectl logs -n kubescape -l app.kubernetes.io/name=node-agent --tail=20
+  ```
+
 ### Debug Commands
 
 **Check Workflow Logs:**
@@ -654,6 +788,8 @@ gh auth status
 - Review security monitoring workflow results daily
 - Set up GitHub notifications for security alerts
 - Monitor container registry for unauthorized images
+- **SBOM Monitoring**: Regularly verify all four SBOM layers are being generated and properly attested
+- **Runtime Relevancy**: Monitor Kubescape filtered SBOM generation for accurate runtime component tracking
 
 ## Support and Maintenance
 
@@ -662,10 +798,14 @@ gh auth status
 **Weekly Tasks:**
 - Review security monitoring reports
 - Check for new vulnerability alerts in GitHub Security tab
+- Monitor multi-layer SBOM attestation coverage in container registry
+- Verify filtered SBOM generation is working properly
 
 **Monthly Tasks:**
 - Update dependencies and base images with new SHA digests
 - Run GitHub Actions upgrade script: `./scripts/pin-and-upgrader-gh-actions.sh --upgrade`
+- Run comprehensive attestation verification: `python scripts/verify_attestations.py your-image:latest --report monthly-report.json`
+- Review multi-layer SBOM completeness and accuracy
 - Review and update base image pins in Dockerfile:
   ```bash
   # Check for new base image versions
@@ -687,5 +827,28 @@ gh auth status
 - Monitor this repository for updates to workflow files
 - Subscribe to security advisories for used tools
 - Keep external action versions updated
+- **Multi-layer SBOM Updates**: Stay current with CycloneDX specification updates and Kubescape feature releases
+- **SLSA Framework Updates**: Monitor SLSA specification evolution for enhanced compliance requirements
 
-For additional support or questions about this security pipeline, refer to the project documentation or create an issue in the source repository.
+## Enhanced SLSA Level 3+ Features Summary
+
+This implementation provides **SLSA Level 3+ Enhanced Compliance** through:
+
+### 🎯 **Multi-layer SBOM Strategy**
+- **Build-time SBOMs**: Application dependencies as declared by package managers
+- **Container SBOMs**: Complete inventory of deployable container contents  
+- **Runtime Filtered SBOMs**: Kubescape relevancy analysis identifying active components
+- **Consolidated SBOMs**: Unified view with comprehensive SLSA metadata
+
+### 🛡️ **Comprehensive Attestation Coverage**
+- Cryptographic signing of all SBOM layers
+- VEX attestations with build-time + runtime analysis
+- SLSA provenance with enhanced metadata
+- Complete verification and validation capabilities
+
+### 🔍 **Runtime Security Intelligence**
+- Dynamic component relevancy analysis
+- Runtime behavior correlation with vulnerability data
+- Supply chain transparency beyond traditional static analysis
+
+For additional support or questions about this enhanced security pipeline, refer to the project documentation or create an issue in the source repository.
