@@ -426,13 +426,20 @@ jobs:
           echo "### 🔧 Filtered SBOM Configuration Check" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Check nodeAgent configuration 
-          echo "🔍 Checking nodeAgent configuration..."
-          kubectl get kubescape -n kubescape -o yaml | grep -A 15 "nodeAgent" || echo "No nodeAgent config found"
-          
-          # Check kubevuln configuration for filtered SBOM storage
-          echo "🔍 Checking kubevuln configuration..."
-          kubectl get kubescape -n kubescape -o yaml | grep -A 10 "kubevuln" || echo "No kubevuln config found"
+          # Check configuration via Helm values
+          echo "🔍 Checking nodeAgent and kubevuln configuration..."
+          if helm get values kubescape -n kubescape > helm-values.yaml 2>/dev/null; then
+            echo "✅ Retrieved Helm values"
+            echo "📋 NodeAgent configuration:"
+            grep -A 5 -B 2 "nodeAgent" helm-values.yaml || echo "No nodeAgent config found"
+            echo "📋 Kubevuln configuration:"
+            grep -A 5 -B 2 "kubevuln" helm-values.yaml || echo "No kubevuln config found"
+          else
+            echo "⚠️ Could not retrieve Helm values"
+            # Fallback to checking pods and services
+            echo "📋 Checking deployed resources instead..."
+            kubectl get pods,svc,configmaps -n kubescape | head -10 || echo "Failed to get resources"
+          fi
           
           # Check if relevant CRDs are installed
           echo "🔍 Checking required CRDs for filtered SBOM..."

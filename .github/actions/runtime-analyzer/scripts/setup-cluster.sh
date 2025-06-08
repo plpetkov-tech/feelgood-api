@@ -93,6 +93,13 @@ fi
 
 # Install Kubescape Operator
 echo "🛡️ Installing Kubescape Operator with VEX generation..."
+
+# Ensure helm is available
+if ! command -v helm &> /dev/null; then
+  echo "📥 Installing Helm..."
+  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+fi
+
 helm repo add kubescape https://kubescape.github.io/helm-charts/
 helm repo update
 
@@ -129,31 +136,61 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   echo "| 🔍 Runtime Observability | ✅ Enabled | - |" >> $GITHUB_STEP_SUMMARY
   echo "" >> $GITHUB_STEP_SUMMARY
   
-  # Verify configuration was applied correctly
+  # Verify configuration was applied correctly (non-blocking)
   echo "🔍 Verifying Kubescape configuration..."
-  kubectl get kubescape -n kubescape -o yaml > kubescape-config.yaml
   
-  # Check if filtered SBOM storage is actually enabled
-  if grep -q "storeFilteredSbom.*true" kubescape-config.yaml; then
-    echo "✅ **Confirmed: Filtered SBOM storage is enabled**" >> $GITHUB_STEP_SUMMARY
+  # Get the actual Helm values to verify configuration
+  echo "📋 Checking Helm release values..."
+  if helm get values kubescape -n kubescape > kubescape-values.yaml 2>/dev/null; then
+    echo "✅ **Retrieved Helm values successfully**" >> $GITHUB_STEP_SUMMARY
+    
+    # Check if filtered SBOM storage is actually enabled
+    if grep -q "storeFilteredSbom.*true" kubescape-values.yaml; then
+      echo "✅ **Confirmed: Filtered SBOM storage is enabled**" >> $GITHUB_STEP_SUMMARY
+    else
+      echo "⚠️ **Warning: Filtered SBOM storage may not be enabled**" >> $GITHUB_STEP_SUMMARY
+      echo "📋 **Current kubevuln config:**" >> $GITHUB_STEP_SUMMARY
+      echo '```yaml' >> $GITHUB_STEP_SUMMARY
+      grep -A 3 -B 3 "kubevuln" kubescape-values.yaml >> $GITHUB_STEP_SUMMARY 2>&1 || echo "kubevuln config not found" >> $GITHUB_STEP_SUMMARY
+      echo '```' >> $GITHUB_STEP_SUMMARY
+    fi
+    
+    # Check nodeAgent configuration
+    if grep -q "learningPeriod.*${VEX_ANALYSIS_TIME}" kubescape-values.yaml; then
+      echo "✅ **Confirmed: Learning period set to ${VEX_ANALYSIS_TIME}**" >> $GITHUB_STEP_SUMMARY
+    else
+      echo "⚠️ **Warning: Learning period may not be set correctly**" >> $GITHUB_STEP_SUMMARY
+      echo "📋 **Current nodeAgent config:**" >> $GITHUB_STEP_SUMMARY
+      echo '```yaml' >> $GITHUB_STEP_SUMMARY
+      grep -A 3 -B 3 "nodeAgent" kubescape-values.yaml >> $GITHUB_STEP_SUMMARY 2>&1 || echo "nodeAgent config not found" >> $GITHUB_STEP_SUMMARY
+      echo '```' >> $GITHUB_STEP_SUMMARY
+    fi
   else
-    echo "⚠️ **Warning: Filtered SBOM storage may not be enabled**" >> $GITHUB_STEP_SUMMARY
-    echo "📋 **Current kubevuln config:**" >> $GITHUB_STEP_SUMMARY
-    echo '```yaml' >> $GITHUB_STEP_SUMMARY
-    grep -A 5 -B 5 "kubevuln" kubescape-config.yaml >> $GITHUB_STEP_SUMMARY 2>&1 || echo "kubevuln config not found" >> $GITHUB_STEP_SUMMARY
-    echo '```' >> $GITHUB_STEP_SUMMARY
+    echo "⚠️ **Could not retrieve Helm values, checking via ConfigMaps...**" >> $GITHUB_STEP_SUMMARY
+    
+    # Fallback: check ConfigMaps
+    echo "🔍 Checking Kubescape ConfigMaps..."
+    kubectl get configmap -n kubescape > configmaps.txt 2>/dev/null || echo "Failed to get configmaps"
+    
+    if kubectl get configmap kubescape-config -n kubescape -o yaml > kubescape-config.yaml 2>/dev/null; then
+      echo "✅ **Found kubescape-config ConfigMap**" >> $GITHUB_STEP_SUMMARY
+      
+      # Show relevant config sections
+      echo "📋 **Configuration summary:**" >> $GITHUB_STEP_SUMMARY
+      echo '```yaml' >> $GITHUB_STEP_SUMMARY
+      grep -A 10 -B 2 -i "sbom\|vex\|learning\|node" kubescape-config.yaml >> $GITHUB_STEP_SUMMARY 2>&1 || echo "No relevant config found" >> $GITHUB_STEP_SUMMARY
+      echo '```' >> $GITHUB_STEP_SUMMARY
+    else
+      echo "⚠️ **No configuration verification available**" >> $GITHUB_STEP_SUMMARY
+      echo "📋 **Available ConfigMaps:**" >> $GITHUB_STEP_SUMMARY
+      echo '```' >> $GITHUB_STEP_SUMMARY
+      cat configmaps.txt >> $GITHUB_STEP_SUMMARY 2>&1 || echo "No configmaps found" >> $GITHUB_STEP_SUMMARY
+      echo '```' >> $GITHUB_STEP_SUMMARY
+    fi
   fi
   
-  # Check nodeAgent configuration
-  if grep -q "learningPeriod.*${VEX_ANALYSIS_TIME}" kubescape-config.yaml; then
-    echo "✅ **Confirmed: Learning period set to ${VEX_ANALYSIS_TIME}**" >> $GITHUB_STEP_SUMMARY
-  else
-    echo "⚠️ **Warning: Learning period may not be set correctly**" >> $GITHUB_STEP_SUMMARY
-    echo "📋 **Current nodeAgent config:**" >> $GITHUB_STEP_SUMMARY
-    echo '```yaml' >> $GITHUB_STEP_SUMMARY
-    grep -A 5 -B 5 "nodeAgent" kubescape-config.yaml >> $GITHUB_STEP_SUMMARY 2>&1 || echo "nodeAgent config not found" >> $GITHUB_STEP_SUMMARY
-    echo '```' >> $GITHUB_STEP_SUMMARY
-  fi
+  echo "" >> $GITHUB_STEP_SUMMARY
+  echo "📋 **Configuration verification completed (non-blocking)**" >> $GITHUB_STEP_SUMMARY
 else
   echo "❌ **Kubescape installation failed**" >> $GITHUB_STEP_SUMMARY
   exit 1

@@ -737,7 +737,7 @@ cat cosign.pub | head -1  # Should be: -----BEGIN PUBLIC KEY-----
 - **Kubescape Learning Period Issues**: Verify nodeAgent configuration:
   ```bash
   # Check nodeAgent configuration
-  kubectl get kubescape -n kubescape -o yaml | grep -A 10 "nodeAgent"
+  helm get values kubescape -n kubescape | grep -A 10 "nodeAgent"
   
   # Check if learning period matches VEX analysis time
   kubectl logs -n kubescape -l app.kubernetes.io/name=node-agent --tail=20

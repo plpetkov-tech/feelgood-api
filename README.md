@@ -315,7 +315,7 @@ If you encounter issues with the multi-layer SBOM implementation, here's a quick
 gh run view <run-id> --json artifacts
 
 # Verify Kubescape configuration
-kubectl get kubescape -n kubescape -o yaml | grep -A 10 kubevuln
+helm get values kubescape -n kubescape | grep -A 10 kubevuln
 
 # Monitor filtered SBOM generation
 kubectl get sbomsyftfiltereds -n kubescape --watch
