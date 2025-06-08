@@ -105,25 +105,27 @@ runs:
       run: |
         echo "🔧 Installing SBOM processing tools..."
         
-        # Install Syft for container SBOM generation
-        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+        # Install Trivy for container SBOM generation (reuse existing installation logic)
+        if ! command -v trivy &> /dev/null; then
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+        fi
         
         # Install cyclonedx-cli for SBOM manipulation
         pip install cyclonedx-bom cyclonedx-python-lib
         
         # Verify installations
-        syft version
+        trivy --version
         cyclonedx-py --version
 
     - name: 🏗️ Generate container SBOM
       shell: bash
       run: |
-        echo "🏗️ Generating container SBOM with Syft..."
+        echo "🏗️ Generating container SBOM with Trivy..."
         
-        # Generate container SBOM using Syft
-        syft packages ${{ inputs.container-image }} \
-          --output cyclonedx-json=sbom-processing/container.sbom.json \
-          --catalogers all
+        # Generate container SBOM using Trivy
+        trivy image ${{ inputs.container-image }} \
+          --format cyclonedx \
+          --output sbom-processing/container.sbom.json
         
         echo "✅ Container SBOM generated successfully"
         
@@ -343,3 +345,4 @@ runs:
           TOTAL_COMPONENTS=$(jq '.components | length' "${{ inputs.output-prefix }}-consolidated.sbom.json")
           TOTAL_LAYERS=$(jq '.compositions | length' "${{ inputs.output-prefix }}-consolidated.sbom.json")
           echo "  📈 Total components: $TOTAL_COMPONENTS across $TOTAL_LAYERS layers"
+        fi
