@@ -35,14 +35,14 @@ runs:
   using: 'composite'
   steps:
     - name: 📋 Download build-time SBOM
-      uses: actions/download-artifact@eaceafb24b7dc7bcdafd20b8c11e7e1ab1d9b2a5
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         name: ${{ inputs.build-sbom-artifact }}
         path: sbom-processing/
 
     - name: 📦 Download runtime filtered SBOM
       if: inputs.runtime-filtered-sbom-artifact != ''
-      uses: actions/download-artifact@eaceafb24b7dc7bcdafd20b8c11e7e1ab1d9b2a5
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
         name: ${{ inputs.runtime-filtered-sbom-artifact }}
         path: sbom-processing/
@@ -291,4 +291,3 @@ runs:
           TOTAL_COMPONENTS=$(jq '.components | length' "${{ inputs.output-prefix }}-consolidated.sbom.json")
           TOTAL_LAYERS=$(jq '.compositions | length' "${{ inputs.output-prefix }}-consolidated.sbom.json")
           echo "  📈 Total components: $TOTAL_COMPONENTS across $TOTAL_LAYERS layers"
-        fi
