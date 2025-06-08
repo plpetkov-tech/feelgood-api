@@ -277,6 +277,52 @@ flowchart TD
 
 ---
 
+## 🔧 Multi-Layer SBOM Troubleshooting
+
+If you encounter issues with the multi-layer SBOM implementation, here's a quick troubleshooting guide:
+
+### Common Issues and Solutions
+
+**1. "Artifact not found" errors:**
+- ✅ Check artifact naming consistency in workflows
+- ✅ Verify all workflows are using artifact names, not IDs
+- ✅ Ensure VEX analysis completes before attestation phase
+
+**2. "Missing filtered SBOM" warnings:**
+- ✅ Verify Kubescape operator is properly installed with `kubevuln.config.storeFilteredSbom=true`
+- ✅ Check that nodeAgent pods are running in the kubescape namespace
+- ✅ Ensure learning period (`vex-analysis-time`) is sufficient for relevancy analysis
+- ✅ Verify runtime application deployment is generating traffic for analysis
+
+**3. SBOM processor failures:**
+- ✅ Check that build-time SBOM artifact exists and is valid JSON
+- ✅ Ensure container image reference is accessible
+- ✅ Verify all required tools (Syft, cyclonedx-cli) are properly installed
+
+**4. Kubescape CRD issues:**
+- ✅ Verify filtered SBOM CRDs are installed: `kubectl get crd | grep sbom`
+- ✅ Check for resources: `kubectl get sbomsyftfiltereds -n kubescape`
+- ✅ Monitor Kubescape logs: `kubectl logs -n kubescape -l app.kubernetes.io/name=kubevuln`
+
+**5. External cluster configuration:**
+- ✅ Ensure KUBECONFIG secret is properly base64-encoded
+- ✅ Verify cluster has sufficient resources and network access
+- ✅ Check that Kubescape operator can be installed/upgraded
+
+**Debug Commands:**
+```bash
+# Check all SBOM artifacts in a workflow run
+gh run view <run-id> --json artifacts
+
+# Verify Kubescape configuration
+kubectl get kubescape -n kubescape -o yaml | grep -A 10 kubevuln
+
+# Monitor filtered SBOM generation
+kubectl get sbomsyftfiltereds -n kubescape --watch
+```
+
+---
+
 ## 📚 Learn More
 - [SLSA Framework](https://slsa.dev/)
 - [OpenVEX](https://openvex.dev/)

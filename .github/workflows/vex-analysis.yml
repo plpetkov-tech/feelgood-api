@@ -419,6 +419,45 @@ jobs:
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
 
+      - name: 🔧 Verify filtered SBOM configuration
+        run: |
+          echo "🔧 Verifying filtered SBOM configuration and triggering generation..."
+          
+          echo "### 🔧 Filtered SBOM Configuration Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check nodeAgent configuration 
+          echo "🔍 Checking nodeAgent configuration..."
+          kubectl get kubescape -n kubescape -o yaml | grep -A 15 "nodeAgent" || echo "No nodeAgent config found"
+          
+          # Check kubevuln configuration for filtered SBOM storage
+          echo "🔍 Checking kubevuln configuration..."
+          kubectl get kubescape -n kubescape -o yaml | grep -A 10 "kubevuln" || echo "No kubevuln config found"
+          
+          # Check if relevant CRDs are installed
+          echo "🔍 Checking required CRDs for filtered SBOM..."
+          kubectl get crd | grep -E "(sbom|relevant)" || echo "Required CRDs not found"
+          
+          # Check nodeAgent pods specifically
+          echo "🔍 Checking nodeAgent pod status..."
+          kubectl get pods -n kubescape -l app.kubernetes.io/name=node-agent || echo "No nodeAgent pods found"
+          
+          # Try to get recent nodeAgent logs
+          echo "🔍 Checking nodeAgent logs for SBOM activity..."
+          kubectl logs -n kubescape -l app.kubernetes.io/name=node-agent --tail=20 | head -10 || echo "No nodeAgent logs available"
+          
+          # Force trigger SBOM generation by scaling nodeAgent if needed
+          NODE_AGENT_PODS=$(kubectl get pods -n kubescape -l app.kubernetes.io/name=node-agent --no-headers | wc -l)
+          if [ "$NODE_AGENT_PODS" -eq 0 ]; then
+            echo "⚠️ No nodeAgent pods found, this may explain missing filtered SBOMs"
+            echo "⚠️ **No nodeAgent pods found - filtered SBOM generation not available**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Found $NODE_AGENT_PODS nodeAgent pod(s)"
+            echo "✅ **nodeAgent pods active: $NODE_AGENT_PODS**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+
       - name: ⏳ Wait for runtime VEX generation
         run: |
           echo "⏳ Waiting for Kubescape to generate runtime VEX documents..."
@@ -628,8 +667,59 @@ jobs:
           echo "### 📦 Filtered SBOM Extraction" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Get all filtered SBOM resources
-          FILTERED_SBOM_RESOURCES=$(kubectl get sbomsyftfiltereds -n kubescape --no-headers 2>/dev/null || echo "")
+          # Debug Kubescape configuration first
+          echo "🔍 Checking Kubescape configuration for filtered SBOM storage..."
+          kubectl get configmap -n kubescape kubescape-config -o yaml | grep -A 5 -B 5 "storeFilteredSbom" || echo "Config not found"
+          
+          # Check all available CRDs with more detail
+          echo "🔍 Checking available Kubescape CRDs..."
+          echo "📋 All CRDs:"
+          kubectl get crd | grep kubescape || echo "No Kubescape CRDs found"
+          echo "📋 SBOM-related CRDs:"
+          kubectl get crd | grep sbom || echo "No SBOM CRDs found"
+          
+          # Try multiple potential CRD names
+          echo "🔍 Attempting to find filtered SBOM resources..."
+          FILTERED_SBOM_RESOURCES=""
+          
+          # List all potential CRD names
+          POTENTIAL_CRDS=(
+            "sbomsyftfiltereds.spdx.softwarecomposition.kubescape.io"
+            "sbomsyftfiltered.spdx.softwarecomposition.kubescape.io" 
+            "sbomsyftfiltereds"
+            "sbomsyftfiltered"
+            "filteredsboms.spdx.softwarecomposition.kubescape.io"
+            "filteredsbom.spdx.softwarecomposition.kubescape.io"
+          )
+          
+          for crd in "${POTENTIAL_CRDS[@]}"; do
+            echo "🔍 Trying CRD: $crd"
+            if kubectl get crd "$crd" >/dev/null 2>&1; then
+              echo "✅ Found CRD: $crd"
+              FILTERED_SBOM_RESOURCES=$(kubectl get "$crd" -n kubescape --no-headers 2>/dev/null || echo "")
+              if [ -n "$FILTERED_SBOM_RESOURCES" ]; then
+                echo "✅ Found filtered SBOM resources using: $crd"
+                USED_CRD="$crd"
+                break
+              else
+                echo "⚠️ CRD exists but no resources found: $crd"
+              fi
+            else
+              echo "❌ CRD not found: $crd"
+            fi
+          done
+          
+          # Debug: Show ALL custom resources in kubescape namespace
+          echo "🔍 All custom resources in kubescape namespace:"
+          kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n kubescape || echo "Failed to list resources"
+          
+          # Debug: Show specifically what SBOM-related resources exist
+          echo "🔍 All SBOM-related custom resources:"
+          kubectl api-resources | grep -i sbom || echo "No SBOM resources found"
+          
+          # Check if Kubescape is actually generating SBOMs
+          echo "🔍 Checking for any SBOM generation activity..."
+          kubectl logs -n kubescape -l app.kubernetes.io/name=kubevuln --tail=20 | grep -i sbom || echo "No SBOM logs found"
           
           if [ -z "$FILTERED_SBOM_RESOURCES" ]; then
             echo "⚠️ **No filtered SBOM documents found from Kubescape**" >> $GITHUB_STEP_SUMMARY

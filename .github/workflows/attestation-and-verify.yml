@@ -133,7 +133,7 @@ jobs:
       uses: ./.github/actions/sbom-processor
       with:
         build-sbom-artifact: ${{ inputs.build-sbom-artifact }}
-        runtime-filtered-sbom-artifact: ${{ inputs.runtime-filtered-sbom-artifact }}
+        runtime-filtered-sbom-artifact: ${{ inputs.runtime-filtered-sbom-artifact || '' }}
         container-image: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ inputs.image-digest }}"
         output-prefix: "final"
 
