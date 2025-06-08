@@ -119,8 +119,8 @@ if helm upgrade --install kubescape kubescape/kubescape-operator \
   --set capabilities.networkEventsStreaming=disable \
   --set nodeAgent.config.applicationActivityTime=${VEX_ANALYSIS_TIME} \
   --set nodeAgent.config.learningPeriod=${VEX_ANALYSIS_TIME} \
-  --set nodeAgent.config.maxLearningPeriod=24h \
-  --set nodeAgent.config.updatePeriod=10m \
+  --set nodeAgent.config.maxLearningPeriod=${VEX_ANALYSIS_TIME} \
+  --set nodeAgent.config.updatePeriod=1m \
   --set kubevuln.config.storeFilteredSbom=true \
   --wait \
   --timeout=${TIMEOUT}s; then
