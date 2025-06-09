@@ -12,7 +12,7 @@ click==8.2.1 ; python_version >= "3.11" and python_version < "4.0"
 colorama==0.4.6 ; python_version >= "3.11" and python_version < "4.0" and (platform_system == "Windows" or sys_platform == "win32")
 csaf-tool==0.3.2 ; python_version >= "3.11" and python_version < "4.0"
 cyclonedx-bom==6.1.1 ; python_version >= "3.11" and python_version < "4.0"
-cyclonedx-python-lib==9.1.0 ; python_version >= "3.11" and python_version < "4.0"
+cyclonedx-python-lib==10.1.0 ; python_version >= "3.11" and python_version < "4.0"
 defusedxml==0.7.1 ; python_version >= "3.11" and python_version < "4.0"
 fastapi==0.115.12 ; python_version >= "3.11" and python_version < "4.0"
 filelock==3.18.0 ; python_version >= "3.11" and python_version < "4.0"
