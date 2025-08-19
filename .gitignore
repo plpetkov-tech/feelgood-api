@@ -1,4 +1,4 @@
-
+migration/**
 CLAUDE.md
 # VEX temporary files (but track the .vex directory structure)
 .vex/**/*.tmp
