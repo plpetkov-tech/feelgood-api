@@ -8,6 +8,7 @@ help:
 	@echo "  make lock          Generate lock files"
 	@echo "  make refresh-locks  Refresh lock files (clear caches and regenerate)"
 	@echo "  make update-deps   Update dependencies and regenerate locks"
+	@echo "  make bump-deps     Bump all dependencies to latest versions"
 	@echo "  make verify-lock   Verify lock file integrity"
 	@echo ""
 	@echo "🧪 Testing & Quality:"
@@ -55,6 +56,12 @@ update-deps:
 	poetry update
 	$(MAKE) lock
 	@echo "✅ Dependencies updated"
+
+# Bump all dependencies to latest versions
+bump-deps:
+	@echo "🚀 Bumping all dependencies to latest versions..."
+	./scripts/bump-deps.sh
+	@echo "✅ All dependencies updated to latest versions"
 
 # Clear caches and regenerate everything
 refresh-locks:
