@@ -54,7 +54,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
     
     - name: Log in to Container Registry
-      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+      uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -66,17 +66,17 @@ jobs:
         vexctl-release: '0.3.0'
     
     - name: Install Cosign
-      uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb
+      uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159
     
     # Download all VEX artifacts
     - name: 📥 Download build-time VEX artifacts
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
       with:
         name: ${{ inputs.build-vex-artifact }}
         path: build-vex/
     
     - name: 📥 Download runtime VEX artifacts
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
       with:
         name: ${{ inputs.runtime-vex-artifact }}
         path: runtime-vex/
@@ -150,7 +150,7 @@ jobs:
 
     # Apply final VEX filtering to scan results
     - name: Install Trivy
-      uses: aquasecurity/setup-trivy@v0.2.3
+      uses: aquasecurity/setup-trivy@9ea583eb67910444b1f64abf338bd2e105a0a93d
       
     - name: 🔽 Apply final VEX filtering
       run: |
@@ -594,7 +594,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Log in to Container Registry
-      uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+      uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
@@ -623,7 +623,7 @@ jobs:
         actions: read
         id-token: write
         packages: write
-      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+      uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a
       with:
         image: ${{ inputs.registry }}/${{ inputs.image-name }}
         digest: ${{ inputs.image-digest }}
@@ -647,10 +647,10 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
     
     - name: Install Cosign
-      uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb
+      uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159
       
     - name: Install SLSA Verifier
-      uses: slsa-framework/slsa-verifier/actions/installer@6657aada084353c65e5dde35394b1a010289fab0
+      uses: slsa-framework/slsa-verifier/actions/installer@ea584f4502babc6f60d9bc799dbbb13c1caa9ee6
 
     - name: Install vexctl
       uses: openvex/setup-vexctl@e85ca48f3c8a376289f6476129d59cda82147e71
@@ -756,7 +756,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: 📊 Download final VEX summary
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
       with:
         name: final-consolidated-vex-${{ github.sha }}
 

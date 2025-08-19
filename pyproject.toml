@@ -1,8 +1,12 @@
+[build-system]
+requires = [ "poetry-core",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "feelgood-api"
 version = "1.0.0"
 description = "A Feel Good Phrases API with Supply Chain Security"
-authors = ["Plamen Petkov <hello@plamen.works>"]
+authors = [ "Plamen Petkov <hello@plamen.works>",]
 readme = "README.md"
 packages = [{include = "src"}]
 
@@ -30,13 +34,34 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = [ "py311",]
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "I", "N", "UP", "S", "B", "A", "C4", "PT"]
+select = [ "E", "F", "I", "N", "UP", "S", "B", "A", "C4", "PT",]
 
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.116.1"
+pydantic = "^2.11.7"
+httpx = "^0.28.1"
+lib4vex = "^0.2.0"
+pip-licenses = "^5.0.0"
+
+[tool.poetry.dependencies.uvicorn]
+extras = [ "standard",]
+version = "^0.35.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
+black = "^25.1.0"
+mypy = "^1.17.1"
+ruff = "^0.12.9"
+cyclonedx-bom = "^7.0.0"
+pip-audit = "^2.9.0"
