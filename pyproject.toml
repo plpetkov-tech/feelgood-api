@@ -8,8 +8,29 @@ version = "1.0.0"
 description = "A Feel Good Phrases API with Supply Chain Security"
 authors = [ "Plamen Petkov <hello@plamen.works>",]
 readme = "README.md"
-[[tool.poetry.packages]]
-include = "src"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.116.1"
+uvicorn = {extras = ["standard"], version = "^0.34.3"}
+pydantic = "^2.5.0"
+httpx = "^0.28.1"
+lib4vex = "^0.2.0"
+pip-licenses = "^5.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+pytest-asyncio = "^0.26.0"
+black = "^25.1.0"
+mypy = "^1.16.0"
+ruff = "^0.11.12"
+cyclonedx-bom = "^6.1.1"
+pip-audit = "^2.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88
