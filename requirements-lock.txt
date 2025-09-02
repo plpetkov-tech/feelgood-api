@@ -89,8 +89,8 @@ jsonschema-specifications==2025.4.1 ; python_version >= "3.11" and python_versio
 jsonschema==4.25.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:3fba0169e345c7175110351d456342c364814cfcf3b964ba4587f22915230a63 \
     --hash=sha256:e4a9655ce0da0c0b67a085847e00a3a51449e1157f4f75e9fb5aa545e122eb85
-lib4sbom==0.8.7 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:a8bfaff60ede5dad035cc01b82b8d1abd59be5c78af5158ba5ea4cc75b971b94
+lib4sbom==0.8.8 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:c8622549fddd568ac473e085be8d08d8eeb3338bd813612f50da189645cdaccf
 lib4vex==0.2.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:bbe730148c1a7629473067ba9702b673af11e225fcd76e6431b881f0731f52ce
 markdown-it-py==4.0.0 ; python_version >= "3.11" and python_version < "4.0" \
