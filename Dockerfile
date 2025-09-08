@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir --user -r requirements-lock.txt
 COPY src/ ./src/
 
 # Final stage - use Google's distroless image for minimal attack surface
-FROM gcr.io/distroless/python3-debian12:nonroot@sha256:fe1e2e967b1846d3bef73d94039d1287a8aac181d9f19c9b7d216ae9729ca867
+FROM gcr.io/distroless/python3-debian12:nonroot@sha256:b486fae565ee5ff57ed88a4e0e594c359bef114e021e82657545e63b37db047d
 
 # Copy Python packages from builder
 COPY --from=builder /root/.local /home/nonroot/.local
