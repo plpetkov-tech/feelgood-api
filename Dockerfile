@@ -1,5 +1,5 @@
 # Multi-stage build for security and minimal size
-FROM python:3.11-slim@sha256:1d6131b5d479888b43200645e03a78443c7157efbdb730e6b48129740727c312 AS builder
+FROM python:3.11-slim@sha256:5e9093a415c674b51e705d42dde4dd6aad8c132dab6ca3e81ecd5cbbe3689bd2 AS builder
 
 # Install only essential build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir --user -r requirements-lock.txt
 COPY src/ ./src/
 
 # Final stage - use Google's distroless image for minimal attack surface
-FROM gcr.io/distroless/python3-debian12:nonroot@sha256:fe1e2e967b1846d3bef73d94039d1287a8aac181d9f19c9b7d216ae9729ca867
+FROM gcr.io/distroless/python3-debian12:nonroot@sha256:d16acb572fdea246400130b6e83b0db6592755aa9a31ae0bf00a71271f123bd5
 
 # Copy Python packages from builder
 COPY --from=builder /root/.local /home/nonroot/.local
