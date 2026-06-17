@@ -1,15 +1,15 @@
 {
   "@context": "https://openvex.dev/ns/v0.2.0",
-  "@id": "https://openvex.dev/docs/public/vex-20250731062250",
+  "@id": "https://openvex.dev/docs/public/vex-20260617102925",
   "author": "FeelGood API Security Team",
-  "timestamp": "2025-07-31T06:22:50.685457+00:00",
+  "timestamp": "2026-06-17T10:29:25.809711+00:00",
   "version": 1,
   "statements": [
     {
       "vulnerability": {
         "name": "CVE-2022-27943"
       },
-      "timestamp": "2025-07-31T06:22:50.684623+00:00",
+      "timestamp": "2026-06-17T10:29:25.806301+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -22,23 +22,99 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-4802"
+        "name": "CVE-2026-42250"
       },
-      "timestamp": "2025-07-31T06:22:50.684647+00:00",
+      "timestamp": "2026-06-17T10:29:25.806331+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
         }
       ],
-      "status": "under_investigation",
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4802"
+      },
+      "timestamp": "2026-06-17T10:29:25.806352+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
       "justification": "requires_configuration",
-      "detail": "High/Critical severity vulnerability requires detailed analysis"
+      "detail": "Analyzing vulnerability CVE-2025-4802 in component libc6@2.36-9+deb12u10. Fixed in version 2.36-9+deb12u11",
+      "impact_statement": "CVSS Score: 7.0"
     },
     {
       "vulnerability": {
         "name": "CVE-2025-8058"
       },
-      "timestamp": "2025-07-31T06:22:50.684668+00:00",
+      "timestamp": "2026-06-17T10:29:25.806384+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8058 in component libc6@2.36-9+deb12u10. Fixed in version 2.36-9+deb12u13",
+      "impact_statement": "CVSS Score: 4.2"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0915"
+      },
+      "timestamp": "2026-06-17T10:29:25.806405+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0915 in component libc6@2.36-9+deb12u10. Fixed in version 2.36-9+deb12u14",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4046"
+      },
+      "timestamp": "2026-06-17T10:29:25.806421+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-4046 in component libc6@2.36-9+deb12u10. Fixed in version 2.36-9+deb12u14",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4437"
+      },
+      "timestamp": "2026-06-17T10:29:25.806439+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-4437 in component libc6@2.36-9+deb12u10. Fixed in version 2.36-9+deb12u14",
+      "impact_statement": "CVSS Score: 6.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-5435"
+      },
+      "timestamp": "2026-06-17T10:29:25.806460+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -46,13 +122,55 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-8058 in component libc6@2.36-9+deb12u10"
+      "detail": "Analyzing vulnerability CVE-2026-5435 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-5450"
+      },
+      "timestamp": "2026-06-17T10:29:25.806478+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-5450 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-5928"
+      },
+      "timestamp": "2026-06-17T10:29:25.806495+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-5928 in component libc6@2.36-9+deb12u10"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6238"
+      },
+      "timestamp": "2026-06-17T10:29:25.806513+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-6238 in component libc6@2.36-9+deb12u10"
     },
     {
       "vulnerability": {
         "name": "CVE-2010-4756"
       },
-      "timestamp": "2025-07-31T06:22:50.684682+00:00",
+      "timestamp": "2026-06-17T10:29:25.806525+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -67,7 +185,7 @@
       "vulnerability": {
         "name": "CVE-2018-20796"
       },
-      "timestamp": "2025-07-31T06:22:50.684695+00:00",
+      "timestamp": "2026-06-17T10:29:25.806537+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -82,7 +200,7 @@
       "vulnerability": {
         "name": "CVE-2019-1010022"
       },
-      "timestamp": "2025-07-31T06:22:50.684708+00:00",
+      "timestamp": "2026-06-17T10:29:25.806549+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -97,7 +215,7 @@
       "vulnerability": {
         "name": "CVE-2019-1010023"
       },
-      "timestamp": "2025-07-31T06:22:50.684720+00:00",
+      "timestamp": "2026-06-17T10:29:25.806560+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -112,7 +230,7 @@
       "vulnerability": {
         "name": "CVE-2019-1010024"
       },
-      "timestamp": "2025-07-31T06:22:50.684741+00:00",
+      "timestamp": "2026-06-17T10:29:25.806572+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -127,7 +245,7 @@
       "vulnerability": {
         "name": "CVE-2019-1010025"
       },
-      "timestamp": "2025-07-31T06:22:50.684757+00:00",
+      "timestamp": "2026-06-17T10:29:25.806583+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -142,7 +260,52 @@
       "vulnerability": {
         "name": "CVE-2019-9192"
       },
-      "timestamp": "2025-07-31T06:22:50.684770+00:00",
+      "timestamp": "2026-06-17T10:29:25.806595+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15281"
+      },
+      "timestamp": "2026-06-17T10:29:25.806624+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0861"
+      },
+      "timestamp": "2026-06-17T10:29:25.806636+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4438"
+      },
+      "timestamp": "2026-06-17T10:29:25.806650+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -157,7 +320,7 @@
       "vulnerability": {
         "name": "CVE-2023-52425"
       },
-      "timestamp": "2025-07-31T06:22:50.684787+00:00",
+      "timestamp": "2026-06-17T10:29:25.806664+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -170,9 +333,37 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2024-8176"
+        "name": "CVE-2025-59375"
       },
-      "timestamp": "2025-07-31T06:22:50.684825+00:00",
+      "timestamp": "2026-06-17T10:29:25.806679+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-25210"
+      },
+      "timestamp": "2026-06-17T10:29:25.806692+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-45186"
+      },
+      "timestamp": "2026-06-17T10:29:25.806705+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -187,7 +378,37 @@
       "vulnerability": {
         "name": "CVE-2024-50602"
       },
-      "timestamp": "2025-07-31T06:22:50.684840+00:00",
+      "timestamp": "2026-06-17T10:29:25.806719+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2024-50602 in component libexpat1@2.5.0-1+deb12u1. Fixed in version 2.5.0-1+deb12u2",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2024-8176"
+      },
+      "timestamp": "2026-06-17T10:29:25.806738+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-66382"
+      },
+      "timestamp": "2026-06-17T10:29:25.806753+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -195,13 +416,69 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2024-50602 in component libexpat1@2.5.0-1+deb12u1"
+      "detail": "Analyzing vulnerability CVE-2025-66382 in component libexpat1@2.5.0-1+deb12u1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-32776"
+      },
+      "timestamp": "2026-06-17T10:29:25.806766+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-32776 in component libexpat1@2.5.0-1+deb12u1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-32777"
+      },
+      "timestamp": "2026-06-17T10:29:25.806779+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-32777 in component libexpat1@2.5.0-1+deb12u1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-32778"
+      },
+      "timestamp": "2026-06-17T10:29:25.806791+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-32778 in component libexpat1@2.5.0-1+deb12u1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-50219"
+      },
+      "timestamp": "2026-06-17T10:29:25.806804+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-50219 in component libexpat1@2.5.0-1+deb12u1"
     },
     {
       "vulnerability": {
         "name": "CVE-2023-52426"
       },
-      "timestamp": "2025-07-31T06:22:50.684852+00:00",
+      "timestamp": "2026-06-17T10:29:25.806818+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -216,7 +493,37 @@
       "vulnerability": {
         "name": "CVE-2024-28757"
       },
-      "timestamp": "2025-07-31T06:22:50.684864+00:00",
+      "timestamp": "2026-06-17T10:29:25.806830+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-24515"
+      },
+      "timestamp": "2026-06-17T10:29:25.806844+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-41080"
+      },
+      "timestamp": "2026-06-17T10:29:25.806856+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -231,7 +538,7 @@
       "vulnerability": {
         "name": "CVE-2022-27943"
       },
-      "timestamp": "2025-07-31T06:22:50.684876+00:00",
+      "timestamp": "2026-06-17T10:29:25.806868+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -246,7 +553,7 @@
       "vulnerability": {
         "name": "CVE-2022-27943"
       },
-      "timestamp": "2025-07-31T06:22:50.684887+00:00",
+      "timestamp": "2026-06-17T10:29:25.806880+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -261,7 +568,22 @@
       "vulnerability": {
         "name": "CVE-2025-3576"
       },
-      "timestamp": "2025-07-31T06:22:50.684902+00:00",
+      "timestamp": "2026-06-17T10:29:25.806895+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libgssapi-krb5-2@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u4",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-11850"
+      },
+      "timestamp": "2026-06-17T10:29:25.806912+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -269,13 +591,43 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-3576 in component libgssapi-krb5-2@1.20.1-2+deb12u3"
+      "detail": "Analyzing vulnerability CVE-2026-11850 in component libgssapi-krb5-2@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40355"
+      },
+      "timestamp": "2026-06-17T10:29:25.806926+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40355 in component libgssapi-krb5-2@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40356"
+      },
+      "timestamp": "2026-06-17T10:29:25.806941+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40356 in component libgssapi-krb5-2@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
     },
     {
       "vulnerability": {
         "name": "CVE-2018-5709"
       },
-      "timestamp": "2025-07-31T06:22:50.684917+00:00",
+      "timestamp": "2026-06-17T10:29:25.806953+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -290,7 +642,7 @@
       "vulnerability": {
         "name": "CVE-2024-26458"
       },
-      "timestamp": "2025-07-31T06:22:50.684929+00:00",
+      "timestamp": "2026-06-17T10:29:25.806964+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -305,7 +657,7 @@
       "vulnerability": {
         "name": "CVE-2024-26461"
       },
-      "timestamp": "2025-07-31T06:22:50.684940+00:00",
+      "timestamp": "2026-06-17T10:29:25.806978+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -320,7 +672,22 @@
       "vulnerability": {
         "name": "CVE-2025-3576"
       },
-      "timestamp": "2025-07-31T06:22:50.684953+00:00",
+      "timestamp": "2026-06-17T10:29:25.806992+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libk5crypto3@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u4",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-11850"
+      },
+      "timestamp": "2026-06-17T10:29:25.807006+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -328,13 +695,43 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-3576 in component libk5crypto3@1.20.1-2+deb12u3"
+      "detail": "Analyzing vulnerability CVE-2026-11850 in component libk5crypto3@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40355"
+      },
+      "timestamp": "2026-06-17T10:29:25.807022+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40355 in component libk5crypto3@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40356"
+      },
+      "timestamp": "2026-06-17T10:29:25.807036+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40356 in component libk5crypto3@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
     },
     {
       "vulnerability": {
         "name": "CVE-2018-5709"
       },
-      "timestamp": "2025-07-31T06:22:50.684979+00:00",
+      "timestamp": "2026-06-17T10:29:25.807050+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -349,7 +746,7 @@
       "vulnerability": {
         "name": "CVE-2024-26458"
       },
-      "timestamp": "2025-07-31T06:22:50.684992+00:00",
+      "timestamp": "2026-06-17T10:29:25.807063+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -364,7 +761,7 @@
       "vulnerability": {
         "name": "CVE-2024-26461"
       },
-      "timestamp": "2025-07-31T06:22:50.685004+00:00",
+      "timestamp": "2026-06-17T10:29:25.807076+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -379,7 +776,22 @@
       "vulnerability": {
         "name": "CVE-2025-3576"
       },
-      "timestamp": "2025-07-31T06:22:50.685020+00:00",
+      "timestamp": "2026-06-17T10:29:25.807092+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5-3@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u4",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-11850"
+      },
+      "timestamp": "2026-06-17T10:29:25.807107+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -387,13 +799,43 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5-3@1.20.1-2+deb12u3"
+      "detail": "Analyzing vulnerability CVE-2026-11850 in component libkrb5-3@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40355"
+      },
+      "timestamp": "2026-06-17T10:29:25.807121+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40355 in component libkrb5-3@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40356"
+      },
+      "timestamp": "2026-06-17T10:29:25.807135+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40356 in component libkrb5-3@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
     },
     {
       "vulnerability": {
         "name": "CVE-2018-5709"
       },
-      "timestamp": "2025-07-31T06:22:50.685035+00:00",
+      "timestamp": "2026-06-17T10:29:25.807147+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -408,7 +850,7 @@
       "vulnerability": {
         "name": "CVE-2024-26458"
       },
-      "timestamp": "2025-07-31T06:22:50.685049+00:00",
+      "timestamp": "2026-06-17T10:29:25.807162+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -423,7 +865,7 @@
       "vulnerability": {
         "name": "CVE-2024-26461"
       },
-      "timestamp": "2025-07-31T06:22:50.685060+00:00",
+      "timestamp": "2026-06-17T10:29:25.807174+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -438,7 +880,22 @@
       "vulnerability": {
         "name": "CVE-2025-3576"
       },
-      "timestamp": "2025-07-31T06:22:50.685073+00:00",
+      "timestamp": "2026-06-17T10:29:25.807188+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5support0@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u4",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-11850"
+      },
+      "timestamp": "2026-06-17T10:29:25.807206+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -446,13 +903,43 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-3576 in component libkrb5support0@1.20.1-2+deb12u3"
+      "detail": "Analyzing vulnerability CVE-2026-11850 in component libkrb5support0@1.20.1-2+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40355"
+      },
+      "timestamp": "2026-06-17T10:29:25.807219+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40355 in component libkrb5support0@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-40356"
+      },
+      "timestamp": "2026-06-17T10:29:25.807235+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-40356 in component libkrb5support0@1.20.1-2+deb12u3. Fixed in version 1.20.1-2+deb12u5",
+      "impact_statement": "CVSS Score: 5.9"
     },
     {
       "vulnerability": {
         "name": "CVE-2018-5709"
       },
-      "timestamp": "2025-07-31T06:22:50.685085+00:00",
+      "timestamp": "2026-06-17T10:29:25.807250+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -467,7 +954,7 @@
       "vulnerability": {
         "name": "CVE-2024-26458"
       },
-      "timestamp": "2025-07-31T06:22:50.685096+00:00",
+      "timestamp": "2026-06-17T10:29:25.807261+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -482,7 +969,7 @@
       "vulnerability": {
         "name": "CVE-2024-26461"
       },
-      "timestamp": "2025-07-31T06:22:50.685108+00:00",
+      "timestamp": "2026-06-17T10:29:25.807273+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -492,12 +979,40 @@
       "justification": "protected_by_mitigating_control",
       "detail": "Low severity vulnerability mitigated by security controls and monitoring",
       "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-34743"
+      },
+      "timestamp": "2026-06-17T10:29:25.807289+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-34743 in component liblzma5@5.4.1-1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69720"
+      },
+      "timestamp": "2026-06-17T10:29:25.807303+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
     },
     {
       "vulnerability": {
         "name": "CVE-2023-50495"
       },
-      "timestamp": "2025-07-31T06:22:50.685121+00:00",
+      "timestamp": "2026-06-17T10:29:25.807316+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -511,7 +1026,7 @@
       "vulnerability": {
         "name": "CVE-2025-6141"
       },
-      "timestamp": "2025-07-31T06:22:50.685135+00:00",
+      "timestamp": "2026-06-17T10:29:25.807328+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -524,9 +1039,39 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-8194"
+        "name": "CVE-2025-13836"
       },
-      "timestamp": "2025-07-31T06:22:50.685156+00:00",
+      "timestamp": "2026-06-17T10:29:25.807349+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69534"
+      },
+      "timestamp": "2026-06-17T10:29:25.807364+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3644"
+      },
+      "timestamp": "2026-06-17T10:29:25.807378+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -538,37 +1083,9 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-4516"
+        "name": "CVE-2026-4224"
       },
-      "timestamp": "2025-07-31T06:22:50.685170+00:00",
-      "products": [
-        {
-          "@id": "pkg:oci/feelgood-api@latest"
-        }
-      ],
-      "status": "under_investigation",
-      "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-minimal@3.11.2-6+deb12u6"
-    },
-    {
-      "vulnerability": {
-        "name": "CVE-2025-6069"
-      },
-      "timestamp": "2025-07-31T06:22:50.685184+00:00",
-      "products": [
-        {
-          "@id": "pkg:oci/feelgood-api@latest"
-        }
-      ],
-      "status": "under_investigation",
-      "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-6069 in component libpython3.11-minimal@3.11.2-6+deb12u6"
-    },
-    {
-      "vulnerability": {
-        "name": "CVE-2025-8194"
-      },
-      "timestamp": "2025-07-31T06:22:50.685201+00:00",
+      "timestamp": "2026-06-17T10:29:25.807391+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -580,9 +1097,9 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-4516"
+        "name": "CVE-2026-6100"
       },
-      "timestamp": "2025-07-31T06:22:50.685216+00:00",
+      "timestamp": "2026-06-17T10:29:25.807407+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -590,13 +1107,249 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7210"
+      },
+      "timestamp": "2026-06-17T10:29:25.807420+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-11468"
+      },
+      "timestamp": "2026-06-17T10:29:25.807433+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-11468 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-12084"
+      },
+      "timestamp": "2026-06-17T10:29:25.807448+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-12084 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-12781"
+      },
+      "timestamp": "2026-06-17T10:29:25.807474+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-12781 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13837"
+      },
+      "timestamp": "2026-06-17T10:29:25.807489+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-13837 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15282"
+      },
+      "timestamp": "2026-06-17T10:29:25.807505+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15282 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15366"
+      },
+      "timestamp": "2026-06-17T10:29:25.807519+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15366 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15367"
+      },
+      "timestamp": "2026-06-17T10:29:25.807531+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15367 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2026-06-17T10:29:25.807545+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.1"
     },
     {
       "vulnerability": {
         "name": "CVE-2025-6069"
       },
-      "timestamp": "2025-07-31T06:22:50.685229+00:00",
+      "timestamp": "2026-06-17T10:29:25.807559+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-6069 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-6075"
+      },
+      "timestamp": "2026-06-17T10:29:25.807573+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-6075 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-8194"
+      },
+      "timestamp": "2026-06-17T10:29:25.807596+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8194 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-8291"
+      },
+      "timestamp": "2026-06-17T10:29:25.807630+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8291 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0672"
+      },
+      "timestamp": "2026-06-17T10:29:25.807644+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0672 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0865"
+      },
+      "timestamp": "2026-06-17T10:29:25.807660+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0865 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-1299"
+      },
+      "timestamp": "2026-06-17T10:29:25.807678+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-1299 in component libpython3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-1502"
+      },
+      "timestamp": "2026-06-17T10:29:25.807691+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -604,13 +1357,653 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-6069 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+      "detail": "Analyzing vulnerability CVE-2026-1502 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3276"
+      },
+      "timestamp": "2026-06-17T10:29:25.807705+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3276 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3446"
+      },
+      "timestamp": "2026-06-17T10:29:25.807718+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3446 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6019"
+      },
+      "timestamp": "2026-06-17T10:29:25.807734+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-6019 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7774"
+      },
+      "timestamp": "2026-06-17T10:29:25.807748+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-7774 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8328"
+      },
+      "timestamp": "2026-06-17T10:29:25.807766+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-8328 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9669"
+      },
+      "timestamp": "2026-06-17T10:29:25.807780+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-9669 in component libpython3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13462"
+      },
+      "timestamp": "2026-06-17T10:29:25.807792+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-2297"
+      },
+      "timestamp": "2026-06-17T10:29:25.807804+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3479"
+      },
+      "timestamp": "2026-06-17T10:29:25.807818+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4519"
+      },
+      "timestamp": "2026-06-17T10:29:25.807830+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13836"
+      },
+      "timestamp": "2026-06-17T10:29:25.807845+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69534"
+      },
+      "timestamp": "2026-06-17T10:29:25.807859+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3644"
+      },
+      "timestamp": "2026-06-17T10:29:25.807875+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4224"
+      },
+      "timestamp": "2026-06-17T10:29:25.807890+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6100"
+      },
+      "timestamp": "2026-06-17T10:29:25.807904+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7210"
+      },
+      "timestamp": "2026-06-17T10:29:25.807918+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-11468"
+      },
+      "timestamp": "2026-06-17T10:29:25.807931+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-11468 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-12084"
+      },
+      "timestamp": "2026-06-17T10:29:25.807945+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-12084 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-12781"
+      },
+      "timestamp": "2026-06-17T10:29:25.807970+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-12781 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13837"
+      },
+      "timestamp": "2026-06-17T10:29:25.807985+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-13837 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15282"
+      },
+      "timestamp": "2026-06-17T10:29:25.807999+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15282 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15366"
+      },
+      "timestamp": "2026-06-17T10:29:25.808012+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15366 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15367"
+      },
+      "timestamp": "2026-06-17T10:29:25.808025+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15367 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-4516"
+      },
+      "timestamp": "2026-06-17T10:29:25.808038+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-6069"
+      },
+      "timestamp": "2026-06-17T10:29:25.808052+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-6069 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-6075"
+      },
+      "timestamp": "2026-06-17T10:29:25.808065+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-6075 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-8194"
+      },
+      "timestamp": "2026-06-17T10:29:25.808106+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8194 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-8291"
+      },
+      "timestamp": "2026-06-17T10:29:25.808121+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8291 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0672"
+      },
+      "timestamp": "2026-06-17T10:29:25.808137+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0672 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0865"
+      },
+      "timestamp": "2026-06-17T10:29:25.808151+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0865 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-1299"
+      },
+      "timestamp": "2026-06-17T10:29:25.808167+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-1299 in component libpython3.11-stdlib@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-1502"
+      },
+      "timestamp": "2026-06-17T10:29:25.808180+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-1502 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3276"
+      },
+      "timestamp": "2026-06-17T10:29:25.808193+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3276 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3446"
+      },
+      "timestamp": "2026-06-17T10:29:25.808208+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3446 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6019"
+      },
+      "timestamp": "2026-06-17T10:29:25.808224+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-6019 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7774"
+      },
+      "timestamp": "2026-06-17T10:29:25.808237+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-7774 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8328"
+      },
+      "timestamp": "2026-06-17T10:29:25.808252+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-8328 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9669"
+      },
+      "timestamp": "2026-06-17T10:29:25.808265+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-9669 in component libpython3.11-stdlib@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13462"
+      },
+      "timestamp": "2026-06-17T10:29:25.808277+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-2297"
+      },
+      "timestamp": "2026-06-17T10:29:25.808291+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3479"
+      },
+      "timestamp": "2026-06-17T10:29:25.808302+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4519"
+      },
+      "timestamp": "2026-06-17T10:29:25.808314+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
     },
     {
       "vulnerability": {
         "name": "CVE-2025-6965"
       },
-      "timestamp": "2025-07-31T06:22:50.685242+00:00",
+      "timestamp": "2026-06-17T10:29:25.808327+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.40.1-2+deb12u2",
+      "impact_statement": "CVSS Score: 9.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-7458"
+      },
+      "timestamp": "2026-06-17T10:29:25.808341+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-11822"
+      },
+      "timestamp": "2026-06-17T10:29:25.808356+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -622,39 +2015,37 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-29088"
+        "name": "CVE-2026-11824"
       },
-      "timestamp": "2025-07-31T06:22:50.685256+00:00",
+      "timestamp": "2026-06-17T10:29:25.808370+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
         }
       ],
-      "status": "not_affected",
-      "justification": "requires_environment",
-      "detail": "Vulnerability requires specific conditions not present in production environment",
-      "action_statement": "will_not_fix"
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-7458"
+        "name": "CVE-2025-7709"
       },
-      "timestamp": "2025-07-31T06:22:50.685269+00:00",
+      "timestamp": "2026-06-17T10:29:25.808385+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
         }
       ],
-      "status": "not_affected",
-      "justification": "requires_environment",
-      "detail": "Vulnerability requires specific conditions not present in production environment",
-      "action_statement": "will_not_fix"
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-7709 in component libsqlite3-0@3.40.1-2+deb12u1"
     },
     {
       "vulnerability": {
         "name": "CVE-2021-45346"
       },
-      "timestamp": "2025-07-31T06:22:50.685283+00:00",
+      "timestamp": "2026-06-17T10:29:25.808397+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -667,9 +2058,429 @@
     },
     {
       "vulnerability": {
+        "name": "CVE-2025-29088"
+      },
+      "timestamp": "2026-06-17T10:29:25.808408+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-70873"
+      },
+      "timestamp": "2026-06-17T10:29:25.808419+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-31789"
+      },
+      "timestamp": "2026-06-17T10:29:25.808442+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.0.19-1~deb12u2",
+      "impact_statement": "CVSS Score: 9.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15467"
+      },
+      "timestamp": "2026-06-17T10:29:25.808463+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.0.18-1~deb12u2",
+      "impact_statement": "CVSS Score: 9.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69421"
+      },
+      "timestamp": "2026-06-17T10:29:25.808480+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-28387"
+      },
+      "timestamp": "2026-06-17T10:29:25.808497+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.0.19-1~deb12u2",
+      "impact_statement": "CVSS Score: 8.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-28388"
+      },
+      "timestamp": "2026-06-17T10:29:25.808512+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-28389"
+      },
+      "timestamp": "2026-06-17T10:29:25.808532+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-28390"
+      },
+      "timestamp": "2026-06-17T10:29:25.808546+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-45447"
+      },
+      "timestamp": "2026-06-17T10:29:25.808563+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.0.20-1~deb12u2",
+      "impact_statement": "CVSS Score: 8.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69419"
+      },
+      "timestamp": "2026-06-17T10:29:25.808579+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-9230"
+      },
+      "timestamp": "2026-06-17T10:29:25.808593+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-31790"
+      },
+      "timestamp": "2026-06-17T10:29:25.808621+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-31790 in component libssl3@3.0.16-1~deb12u1. Fixed in version 3.0.19-1~deb12u2",
+      "impact_statement": "CVSS Score: 5.9"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-34182"
+      },
+      "timestamp": "2026-06-17T10:29:25.808640+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-34182 in component libssl3@3.0.16-1~deb12u1. Fixed in version 3.0.20-1~deb12u2",
+      "impact_statement": "CVSS Score: 7.4"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-45445"
+      },
+      "timestamp": "2026-06-17T10:29:25.808662+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-45445 in component libssl3@3.0.16-1~deb12u1. Fixed in version 3.0.20-1~deb12u2",
+      "impact_statement": "CVSS Score: 9.1"
+    },
+    {
+      "vulnerability": {
         "name": "CVE-2025-27587"
       },
-      "timestamp": "2025-07-31T06:22:50.685296+00:00",
+      "timestamp": "2026-06-17T10:29:25.808675+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-68160"
+      },
+      "timestamp": "2026-06-17T10:29:25.808687+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69418"
+      },
+      "timestamp": "2026-06-17T10:29:25.808699+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69420"
+      },
+      "timestamp": "2026-06-17T10:29:25.808713+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-9232"
+      },
+      "timestamp": "2026-06-17T10:29:25.808725+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-22795"
+      },
+      "timestamp": "2026-06-17T10:29:25.808737+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-22796"
+      },
+      "timestamp": "2026-06-17T10:29:25.808749+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-34180"
+      },
+      "timestamp": "2026-06-17T10:29:25.808760+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42766"
+      },
+      "timestamp": "2026-06-17T10:29:25.808772+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42767"
+      },
+      "timestamp": "2026-06-17T10:29:25.808786+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-42770"
+      },
+      "timestamp": "2026-06-17T10:29:25.808806+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-45446"
+      },
+      "timestamp": "2026-06-17T10:29:25.808818+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7383"
+      },
+      "timestamp": "2026-06-17T10:29:25.808830+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9076"
+      },
+      "timestamp": "2026-06-17T10:29:25.808842+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -684,7 +2495,7 @@
       "vulnerability": {
         "name": "CVE-2022-27943"
       },
-      "timestamp": "2025-07-31T06:22:50.685309+00:00",
+      "timestamp": "2026-06-17T10:29:25.808856+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -697,9 +2508,23 @@
     },
     {
       "vulnerability": {
+        "name": "CVE-2025-69720"
+      },
+      "timestamp": "2026-06-17T10:29:25.808870+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
         "name": "CVE-2023-50495"
       },
-      "timestamp": "2025-07-31T06:22:50.685323+00:00",
+      "timestamp": "2026-06-17T10:29:25.808882+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -713,7 +2538,7 @@
       "vulnerability": {
         "name": "CVE-2025-6141"
       },
-      "timestamp": "2025-07-31T06:22:50.685334+00:00",
+      "timestamp": "2026-06-17T10:29:25.808894+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -723,12 +2548,40 @@
       "justification": "protected_by_mitigating_control",
       "detail": "Low severity vulnerability mitigated by security controls and monitoring",
       "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-27456"
+      },
+      "timestamp": "2026-06-17T10:29:25.808913+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-27456 in component libuuid1@2.38.1-5+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3184"
+      },
+      "timestamp": "2026-06-17T10:29:25.808928+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3184 in component libuuid1@2.38.1-5+deb12u3"
     },
     {
       "vulnerability": {
         "name": "CVE-2022-0563"
       },
-      "timestamp": "2025-07-31T06:22:50.685346+00:00",
+      "timestamp": "2026-06-17T10:29:25.808939+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -741,9 +2594,82 @@
     },
     {
       "vulnerability": {
-        "name": "CVE-2025-8194"
+        "name": "CVE-2025-14104"
       },
-      "timestamp": "2025-07-31T06:22:50.685364+00:00",
+      "timestamp": "2026-06-17T10:29:25.808950+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-53613"
+      },
+      "timestamp": "2026-06-17T10:29:25.808963+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-53613 in component libuuid1@2.38.1-5+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-53615"
+      },
+      "timestamp": "2026-06-17T10:29:25.808975+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-53615 in component libuuid1@2.38.1-5+deb12u3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13836"
+      },
+      "timestamp": "2026-06-17T10:29:25.808989+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-69534"
+      },
+      "timestamp": "2026-06-17T10:29:25.809003+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3644"
+      },
+      "timestamp": "2026-06-17T10:29:25.809020+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -752,26 +2678,276 @@
       "status": "under_investigation",
       "justification": "requires_configuration",
       "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4224"
+      },
+      "timestamp": "2026-06-17T10:29:25.809033+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6100"
+      },
+      "timestamp": "2026-06-17T10:29:25.809050+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7210"
+      },
+      "timestamp": "2026-06-17T10:29:25.809065+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-11468"
+      },
+      "timestamp": "2026-06-17T10:29:25.809079+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-11468 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-12084"
+      },
+      "timestamp": "2026-06-17T10:29:25.809093+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-12084 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-12781"
+      },
+      "timestamp": "2026-06-17T10:29:25.809119+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-12781 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13837"
+      },
+      "timestamp": "2026-06-17T10:29:25.809133+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-13837 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15282"
+      },
+      "timestamp": "2026-06-17T10:29:25.809147+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15282 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15366"
+      },
+      "timestamp": "2026-06-17T10:29:25.809166+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15366 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-15367"
+      },
+      "timestamp": "2026-06-17T10:29:25.809180+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-15367 in component python3.11-minimal@3.11.2-6+deb12u6"
     },
     {
       "vulnerability": {
         "name": "CVE-2025-4516"
       },
-      "timestamp": "2025-07-31T06:22:50.685378+00:00",
+      "timestamp": "2026-06-17T10:29:25.809193+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
         }
       ],
-      "status": "under_investigation",
+      "status": "affected",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-4516 in component python3.11-minimal@3.11.2-6+deb12u6"
+      "detail": "Analyzing vulnerability CVE-2025-4516 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.1"
     },
     {
       "vulnerability": {
         "name": "CVE-2025-6069"
       },
-      "timestamp": "2025-07-31T06:22:50.685391+00:00",
+      "timestamp": "2026-06-17T10:29:25.809207+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-6069 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-6075"
+      },
+      "timestamp": "2026-06-17T10:29:25.809223+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-6075 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 5.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-8194"
+      },
+      "timestamp": "2026-06-17T10:29:25.809240+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8194 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-8291"
+      },
+      "timestamp": "2026-06-17T10:29:25.809255+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2025-8291 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0672"
+      },
+      "timestamp": "2026-06-17T10:29:25.809271+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0672 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.8"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-0865"
+      },
+      "timestamp": "2026-06-17T10:29:25.809285+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-0865 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 4.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-1299"
+      },
+      "timestamp": "2026-06-17T10:29:25.809302+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-1299 in component python3.11-minimal@3.11.2-6+deb12u6. Fixed in version 3.11.2-6+deb12u7",
+      "impact_statement": "CVSS Score: 7.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-1502"
+      },
+      "timestamp": "2026-06-17T10:29:25.809315+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -779,13 +2955,157 @@
       ],
       "status": "under_investigation",
       "justification": "requires_configuration",
-      "detail": "Analyzing vulnerability CVE-2025-6069 in component python3.11-minimal@3.11.2-6+deb12u6"
+      "detail": "Analyzing vulnerability CVE-2026-1502 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3276"
+      },
+      "timestamp": "2026-06-17T10:29:25.809329+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3276 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3446"
+      },
+      "timestamp": "2026-06-17T10:29:25.809342+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-3446 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-6019"
+      },
+      "timestamp": "2026-06-17T10:29:25.809360+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-6019 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-7774"
+      },
+      "timestamp": "2026-06-17T10:29:25.809374+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-7774 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-8328"
+      },
+      "timestamp": "2026-06-17T10:29:25.809389+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-8328 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-9669"
+      },
+      "timestamp": "2026-06-17T10:29:25.809403+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-9669 in component python3.11-minimal@3.11.2-6+deb12u6"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-13462"
+      },
+      "timestamp": "2026-06-17T10:29:25.809414+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-2297"
+      },
+      "timestamp": "2026-06-17T10:29:25.809426+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-3479"
+      },
+      "timestamp": "2026-06-17T10:29:25.809437+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4519"
+      },
+      "timestamp": "2026-06-17T10:29:25.809451+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
     },
     {
       "vulnerability": {
         "name": "CVE-2023-45853"
       },
-      "timestamp": "2025-07-31T06:22:50.685405+00:00",
+      "timestamp": "2026-06-17T10:29:25.809465+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -797,9 +3117,113 @@
     },
     {
       "vulnerability": {
+        "name": "CVE-2026-27171"
+      },
+      "timestamp": "2026-06-17T10:29:25.809478+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "under_investigation",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-27171 in component zlib1g@1:1.2.13.dfsg-1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-4539"
+      },
+      "timestamp": "2026-06-17T10:29:25.809490+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-45409"
+      },
+      "timestamp": "2026-06-17T10:29:25.809506+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-45409 in component idna@3.10. Fixed in version 3.15",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-28684"
+      },
+      "timestamp": "2026-06-17T10:29:25.809521+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-28684 in component python-dotenv@1.1.0. Fixed in version 1.2.2",
+      "impact_statement": "CVSS Score: 7.1"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2025-62727"
+      },
+      "timestamp": "2026-06-17T10:29:25.809539+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 0.49.1",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-48818"
+      },
+      "timestamp": "2026-06-17T10:29:25.809561+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "High/Critical severity vulnerability requires detailed analysis. Fixed in version 1.1.0",
+      "impact_statement": "CVSS Score: 7.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54283"
+      },
+      "timestamp": "2026-06-17T10:29:25.809581+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "requires_environment",
+      "detail": "Vulnerability requires specific conditions not present in production environment",
+      "action_statement": "will_not_fix"
+    },
+    {
+      "vulnerability": {
         "name": "CVE-2025-54121"
       },
-      "timestamp": "2025-07-31T06:22:50.685425+00:00",
+      "timestamp": "2026-06-17T10:29:25.809596+00:00",
       "products": [
         {
           "@id": "pkg:oci/feelgood-api@latest"
@@ -809,6 +3233,51 @@
       "justification": "requires_configuration",
       "detail": "Analyzing vulnerability CVE-2025-54121 in component starlette@0.46.2. Fixed in version 0.47.2",
       "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-48710"
+      },
+      "timestamp": "2026-06-17T10:29:25.809628+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-48710 in component starlette@0.46.2. Fixed in version 1.0.1",
+      "impact_statement": "CVSS Score: 6.5"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-48817"
+      },
+      "timestamp": "2026-06-17T10:29:25.809648+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "affected",
+      "justification": "requires_configuration",
+      "detail": "Analyzing vulnerability CVE-2026-48817 in component starlette@0.46.2. Fixed in version 1.1.0",
+      "impact_statement": "CVSS Score: 5.3"
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2026-54282"
+      },
+      "timestamp": "2026-06-17T10:29:25.809680+00:00",
+      "products": [
+        {
+          "@id": "pkg:oci/feelgood-api@latest"
+        }
+      ],
+      "status": "not_affected",
+      "justification": "protected_by_mitigating_control",
+      "detail": "Low severity vulnerability mitigated by security controls and monitoring",
+      "action_statement": "will_not_fix"
     }
   ]
 }
